@@ -1,0 +1,8 @@
+[submodule "lib/AVRTOS"]
+	path = lib/AVRTOS
+	url = https://github.com/lucasdietrich/AVRTOS.git
+	branch = master
+[submodule "lib/caniot-lib"]
+	path = lib/caniot-lib
+	url = git@github.com:lucasdietrich/caniot-lib.git
+	branch = avr-can-tool-integration
