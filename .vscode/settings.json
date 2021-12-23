@@ -2,6 +2,21 @@
     "files.associations": {
         "*.asm": "avr",
         "io.h": "c",
-        "init.h": "c"
+        "init.h": "c",
+        "device.h": "c",
+        "controller.h": "c",
+        "caniot.h": "c",
+        "pgmspace.h": "c",
+        "stddef.h": "c",
+        "string.h": "c",
+        "dev.h": "c",
+        "os.h": "c",
+        "hw.h": "c",
+        "can.h": "c",
+        "kernel.h": "c",
+        "avrtos.h": "c",
+        "interrupt.h": "c",
+        "defines.h": "c",
+        "common.h": "c"
     }
 }

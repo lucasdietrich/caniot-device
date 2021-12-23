@@ -1,21 +1,11 @@
-#include "init.h"
+#include "hw.h"
+
+#include <avrtos/avrtos.h>
 
 #include <avr/io.h>
 
-#include <avrtos/misc/uart.h>
-#include <avrtos/misc/led.h>
-
-#include <avrtos/kernel.h>
-
-#include "can.h"
-
-static __attribute__((naked, used, section(".init8"))) void os_init()
-{
-	k_avrtos_init();
-}
-
 // @see "init" function from arduino in "wiring.c"
-static void hw_ll_init(void)
+void hw_ll_init(void)
 {
     // on the ATmega168, timer 0 is also used for fast hardware pwm
     // (using phase-correct PWM would mean that timer 0 overflowed half as often
@@ -64,12 +54,4 @@ static void hw_ll_init(void)
 
     // enable interrupts before io init
     // sei();
-}
-
-void dev_init(void)
-{
-	hw_ll_init();
-	usart_init();
-        led_init();
-        can_init();
 }

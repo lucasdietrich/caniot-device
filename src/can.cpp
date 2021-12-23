@@ -17,12 +17,10 @@ static mcp2515_can can(SPI_CS_PIN);
 
 K_SIGNAL_DEFINE(can_sig_rx);
 
-static void can_rx_entry(void *context);
-
-K_THREAD_DEFINE(can_rx_thread, can_rx_entry, 0x64, K_COOPERATIVE, NULL, 'R');
+// K_THREAD_DEFINE(can_rx_thread, can_rx_entry, 0x64, K_COOPERATIVE, NULL, 'R');
 
 /* maybe unecessary */
-K_MUTEX_DEFINE(can_mutex_if);
+static K_MUTEX_DEFINE(can_mutex_if);
 
 void can_init(void)
 {
@@ -61,7 +59,7 @@ ISR(INT0_vect)
 	k_signal_raise(&can_sig_rx, 0u);
 }
 
-static uint8_t can_recv(can_message *msg)
+uint8_t can_recv(can_message *msg)
 {
 	__ASSERT_NOTNULL(msg);
 
@@ -83,7 +81,7 @@ static uint8_t can_recv(can_message *msg)
 	return rc;
 }
 
-uint8_t can_send(can_message *msg)
+static uint8_t can_send(can_message *msg)
 {
 	__ASSERT_NOTNULL(msg);
 
@@ -97,22 +95,27 @@ uint8_t can_send(can_message *msg)
 	return rc;
 }
 
-static void can_rx_entry(void *context)
+#define CAN_MSGQ_SIZE 2
+static uint8_t buf[CAN_MSGQ_SIZE * sizeof(can_message)];
+K_MSGQ_DEFINE(txq, buf, sizeof(can_message), CAN_MSGQ_SIZE);
+
+static void can_tx_entry(void *arg);
+
+K_THREAD_DEFINE(can_tx_thread, can_tx_entry, 0x64, K_COOPERATIVE, NULL, 'T');
+
+static void can_tx_entry(void *arg)
 {
-	static can_message msg;
-
-	for (;;) {
-		k_poll_signal(&can_sig_rx, K_FOREVER);
-		can_sig_rx.flags = K_POLL_STATE_NOT_READY;
-
-		while (can_recv(&msg) == 0) {
-			can_print_msg(&msg);
-
-			/* yield to allow tx thread to process
-			 * loopback packet if any */
-			k_yield();
+	can_message msg;
+	while (1) {
+		if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
+			can_send(&msg);
 		}
 	}
+}
+
+int can_txq_message(can_message *msg)
+{
+	return k_msgq_put(&txq, msg, K_NO_WAIT);
 }
 
 // print can_message
