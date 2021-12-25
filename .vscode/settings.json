@@ -10,13 +10,14 @@
         "stddef.h": "c",
         "string.h": "c",
         "dev.h": "c",
-        "os.h": "c",
         "hw.h": "c",
         "can.h": "c",
         "kernel.h": "c",
         "avrtos.h": "c",
         "interrupt.h": "c",
         "defines.h": "c",
-        "common.h": "c"
+        "common.h": "c",
+        "class.h": "c",
+        "stdbool.h": "c"
     }
 }

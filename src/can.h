@@ -7,8 +7,6 @@
 extern "C" {
 #endif
 
-extern struct k_signal can_sig_rx;
-
 typedef struct 
 {
         union {

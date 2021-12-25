@@ -5,6 +5,8 @@
 #include <mcp2515_can.h>
 #include <mcp2515_can_dfs.h>
 
+#include "dev.h"
+
 #define K_MODULE_CAN    0x21
 #define K_MODULE K_MODULE_CAN
 
@@ -14,8 +16,6 @@
 #define CAN_SPEEDSET CAN_500KBPS
 
 static mcp2515_can can(SPI_CS_PIN);
-
-K_SIGNAL_DEFINE(can_sig_rx);
 
 // K_THREAD_DEFINE(can_rx_thread, can_rx_entry, 0x64, K_COOPERATIVE, NULL, 'R');
 
@@ -56,7 +56,7 @@ void can_init(void)
 
 ISR(INT0_vect)
 {
-	k_signal_raise(&can_sig_rx, 0u);
+	caniot_trigger_event();
 }
 
 uint8_t can_recv(can_message *msg)
@@ -108,6 +108,8 @@ static void can_tx_entry(void *arg)
 	can_message msg;
 	while (1) {
 		if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
+			can_print_msg(&msg);
+
 			can_send(&msg);
 		}
 	}
