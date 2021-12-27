@@ -30,6 +30,10 @@ int main(void)
 
 		do {
 			ret = caniot_process();
+
+			// show error
+			caniot_show_error(ret);
+
 		} while (ret != -CANIOT_EAGAIN);
 		
 		caniot_schedule_event();

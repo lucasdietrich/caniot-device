@@ -28,8 +28,8 @@ static struct caniot_config config = {
 	.telemetry = {
 		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT,
 		// .delay = CANIOT_TELEMETRY_DELAY_DEFAULT,
-		.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,
-		.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT,
+		.delay_min = 1000,
+		.delay_max = 5000,
 	},
 	.flags = {
 		.error_response = 1u,
@@ -140,6 +140,8 @@ static void dmsg_handler(struct k_event *ev)
 
 static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 {
+	int ret = -EINVAL;
+
 	printf_P(PSTR("caniot_send delay = %lu\n"), delay_ms);
 
 	if (delay_ms == 0) {
@@ -147,20 +149,19 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 
 		caniot2msg(&msg, frame);
 
-		return can_txq_message(&msg);
+		ret = can_txq_message(&msg);
 	} else if (delay_ms > 0) {
 		struct delayed_msg *dmsg;
-
-		if (k_mem_slab_alloc(&dmsg_slab, (void **)&dmsg, K_NO_WAIT) == 0) {
+		
+		ret = k_mem_slab_alloc(&dmsg_slab, (void **)&dmsg, K_NO_WAIT);
+		if (ret == 0) {
 			caniot2msg(&dmsg->msg, frame);
 			k_event_init(&dmsg->ev, dmsg_handler);
-			k_event_schedule(&dmsg->ev, K_MSEC(delay_ms));
+			ret = k_event_schedule(&dmsg->ev, K_MSEC(delay_ms));
 		}
-	} else {
-		return -EINVAL;
 	}
 
-	return 0;
+	return ret;
 }
 
 struct caniot_drivers_api drivers = {
