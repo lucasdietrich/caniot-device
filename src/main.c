@@ -1,4 +1,3 @@
-
 #include <avrtos/kernel.h>
 #include <avrtos/debug.h>
 #include <avrtos/misc/uart.h>
@@ -10,12 +9,16 @@
 #include "dev.h"
 #include "can.h"
 
+extern void device_init(void);
+
 int main(void)
 {
 	hw_ll_init();
 	usart_init();
 	led_init();
 	can_init();
+
+	device_init();
 
 	k_thread_dump_all();
 	print_indentification();

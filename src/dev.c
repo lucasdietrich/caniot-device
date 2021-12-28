@@ -6,7 +6,6 @@
 
 #include <caniot.h>
 #include <device.h>
-#include <class.h>
 
 #include "can.h"
 #include "dev.h"
@@ -22,49 +21,6 @@ static const struct caniot_identification identification PROGMEM =
 	.version = __FIRMWARE_VERSION__,
 	.name = __DEVICE_NAME__,
 	.magic_number = __MAGIC_NUMBER__,
-};
-
-static struct caniot_config config = {
-	.telemetry = {
-		.period = 60,
-		// .delay = CANIOT_TELEMETRY_DELAY_DEFAULT,
-		.delay_min = 1000,
-		.delay_max = 5000,
-	},
-	.flags = {
-		.error_response = 1u,
-		.telemetry_delay_rdm = 1u,
-		.telemetry_endpoint = CANIOT_TELEMETRY_ENDPOINT_DEFAULT
-	}
-};
-
-static int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
-{
-	ARG_UNUSED(dev);
-
-	if (ep == 0) {
-		*((uint32_t *)buf) = k_uptime_get_ms32();
-		*len = 4;
-	} else {
-		*len = 0;
-	}
-
-	return 0;
-}
-
-
-const struct caniot_api dev_api = {
-	.update_time = NULL,
-	.config = {
-		.on_read = NULL,
-		.written = NULL,
-	},
-	.custom_attr = {
-		.read = NULL,
-		.write = NULL,
-	},
-	.command_handler = NULL,
-	.telemetry = telemetry_handler
 };
 
 void entropy(uint8_t *buf, size_t len)
@@ -171,10 +127,13 @@ struct caniot_drivers_api drivers = {
 	.send = caniot_send,
 };
 
+extern struct caniot_config config;
+extern const struct caniot_api api;
+
 struct caniot_device device = {
 	.identification = &identification,
 	.config = &config,
-	.api = &dev_api,
+	.api = &api,
 	.driv = &drivers,
 	.flags = {
 		.request_telemetry = 0,
