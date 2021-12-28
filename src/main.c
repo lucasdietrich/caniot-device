@@ -25,7 +25,7 @@ int main(void)
 	int ret;
 
 	for (;;) {
-		k_poll_signal(&caniot_process_sig, K_FOREVER);
+		k_poll_signal(&caniot_process_sig, K_SECONDS(10));
 		K_SIGNAL_SET_UNREADY(&caniot_process_sig);
 
 		do {
@@ -35,7 +35,5 @@ int main(void)
 			caniot_show_error(ret);
 
 		} while (ret != -CANIOT_EAGAIN);
-		
-		caniot_schedule_event();
 	}
 }

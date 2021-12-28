@@ -123,8 +123,9 @@ int can_txq_message(can_message *msg)
 // print can_message
 void can_print_msg(can_message *msg)
 {
-	printf_P(PSTR("id: %08lx, isext: %d, rtr: %d, len: %d\n"),
+	printf_P(PSTR("id: %08lx, isext: %d, rtr: %d, len: %d : "),
 		 msg->id, msg->isext, msg->rtr, msg->len);
+		 
 	for (int i = 0; i < msg->len; i++) {
 		printf_P(PSTR("%02x "), msg->buf[i]);
 	}

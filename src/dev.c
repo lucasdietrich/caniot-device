@@ -26,7 +26,7 @@ static const struct caniot_identification identification PROGMEM =
 
 static struct caniot_config config = {
 	.telemetry = {
-		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT,
+		.period = 60,
 		// .delay = CANIOT_TELEMETRY_DELAY_DEFAULT,
 		.delay_min = 1000,
 		.delay_max = 5000,
@@ -203,18 +203,4 @@ struct delayed_frame
 int caniot_process(void)
 {
 	return caniot_device_process(&device);
-}
-
-static void schedule_event_cb(struct k_event *ev)
-{
-	caniot_trigger_event();
-}
-
-K_EVENT_DEFINE(sig_event, schedule_event_cb);
-
-void caniot_schedule_event(void)
-{
-	uint32_t remaining = caniot_device_telemetry_remaining(&device);
-
-	k_event_schedule(&sig_event, K_MSEC(remaining));
 }
