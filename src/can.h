@@ -26,7 +26,7 @@ typedef struct
 
 void can_init(void);
 
-uint8_t can_recv(can_message *msg);
+int can_recv(can_message *msg);
 
 int can_txq_message(can_message *msg);
 

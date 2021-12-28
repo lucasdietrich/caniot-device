@@ -28,14 +28,19 @@ int main(void)
 	int ret;
 
 	for (;;) {
-		k_poll_signal(&caniot_process_sig, K_SECONDS(10));
+		/* estimate time to next periodic telemetry event */
+		const uint32_t timeout = get_timeout();
+
+		k_poll_signal(&caniot_process_sig, K_MSEC(timeout));
 		K_SIGNAL_SET_UNREADY(&caniot_process_sig);
 
 		do {
 			ret = caniot_process();
 
-			// show error
-			caniot_show_error(ret);
+			if (ret != -CANIOT_EAGAIN) {
+				// show error
+				caniot_show_error(ret);
+			}
 
 		} while (ret != -CANIOT_EAGAIN);
 	}

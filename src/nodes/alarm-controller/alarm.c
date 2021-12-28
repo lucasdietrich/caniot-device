@@ -10,10 +10,10 @@
 
 struct caniot_config config = {
 	.telemetry = {
-		.period = 60,
+		.period = 120,
 		// .delay = CANIOT_TELEMETRY_DELAY_DEFAULT,
-		.delay_min = 100,
-		.delay_max = 2000,
+		.delay_min = 50,
+		.delay_max = 500,
 	},
 	.flags = {
 		.error_response = 1u,

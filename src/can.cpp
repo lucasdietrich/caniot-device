@@ -5,6 +5,8 @@
 #include <mcp2515_can.h>
 #include <mcp2515_can_dfs.h>
 
+#include <device.h>
+
 #include "dev.h"
 
 #define K_MODULE_CAN    0x21
@@ -17,8 +19,6 @@
 
 static mcp2515_can can(SPI_CS_PIN);
 
-// K_THREAD_DEFINE(can_rx_thread, can_rx_entry, 0x64, K_COOPERATIVE, NULL, 'R');
-
 /* maybe unecessary */
 static K_MUTEX_DEFINE(can_mutex_if);
 
@@ -27,24 +27,23 @@ void can_init(void)
         k_mutex_lock(&can_mutex_if, K_FOREVER);
 
         while (CAN_OK != can.begin(CAN_SPEEDSET, CAN_CLOCKSET)) {
-                printf_P(PSTR("can begin failed retry ..\n"));
+                printf_P(PSTR("can init failed\n"));
                 k_sleep(K_MSEC(500));
         }
 
-	// TODO configure masks and filters
-        // can.init_Mask(0, CAN_EXTID, cfg->masks[0]);
-        // if (cfg->masks[0]) {
-        //         can.init_Filt(0, CAN_EXTID, cfg->filters[0]);
-        //         can.init_Filt(1, CAN_EXTID, cfg->filters[1]);
-        // }
+	const unsigned long mask = caniot_device_get_mask();
+	const unsigned long filter_self = caniot_device_get_filter(did);
+	const unsigned long filter_broadcast = caniot_device_get_filter_broadcast(did);
 
-        // can.init_Mask(1, CAN_EXTID, cfg->masks[1]);
-        // if (cfg->masks[0]) {
-        //         can.init_Filt(2, CAN_EXTID, cfg->filters[2]);
-        //         can.init_Filt(3, CAN_EXTID, cfg->filters[3]);
-        //         can.init_Filt(4, CAN_EXTID, cfg->filters[4]);
-        //         can.init_Filt(5, CAN_EXTID, cfg->filters[5]);
-        // }
+        can.init_Mask(0, CAN_STDID, mask);
+	can.init_Filt(0, CAN_STDID, filter_self);
+	can.init_Filt(1, CAN_STDID, filter_self);
+
+	can.init_Mask(1, CAN_STDID, mask);
+	can.init_Filt(2, CAN_STDID, filter_broadcast);
+	can.init_Filt(3, CAN_STDID, filter_broadcast);
+	can.init_Filt(4, CAN_STDID, filter_broadcast);
+	can.init_Filt(5, CAN_STDID, filter_broadcast);
 
 	/* configure interrupt on falling on INT0 */
         EICRA |= 1 << ISC01;
@@ -59,13 +58,12 @@ ISR(INT0_vect)
 	caniot_trigger_event();
 }
 
-uint8_t can_recv(can_message *msg)
+int can_recv(can_message *msg)
 {
 	__ASSERT_NOTNULL(msg);
 
-	uint8_t rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
+	int rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
 	if (rc == 0) {
-		rc = -1;
 		if (can.checkReceive() == CAN_MSGAVAIL) {
 			uint8_t isext, rtr;
 			rc = can.readMsgBufID(can.readRxTxStatus(),
@@ -75,17 +73,19 @@ uint8_t can_recv(can_message *msg)
 				msg->isext = isext ? CAN_EXTID : CAN_STDID;
 				msg->rtr = rtr ? 1 : 0;
 			}
+		} else {
+			rc = -EAGAIN;
 		}
 		k_mutex_unlock(&can_mutex_if);
 	}
 	return rc;
 }
 
-static uint8_t can_send(can_message *msg)
+static int can_send(can_message *msg)
 {
 	__ASSERT_NOTNULL(msg);
 
-	uint8_t rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
+	int rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
 	if (rc == 0) {
 		rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len,
 				    msg->buf, true);

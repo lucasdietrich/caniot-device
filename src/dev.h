@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+extern const union deviceid did;
+
 extern struct k_signal caniot_process_sig;
 
 void print_indentification(void);
@@ -20,7 +22,7 @@ static inline void caniot_trigger_event(void)
 
 int caniot_process(void);
 
-void caniot_schedule_event(void);
+uint32_t get_timeout(void);
 
 #ifdef __cplusplus
 }

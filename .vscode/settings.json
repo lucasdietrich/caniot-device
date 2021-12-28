@@ -18,6 +18,9 @@
         "defines.h": "c",
         "common.h": "c",
         "class.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "stdint.h": "c",
+        "tcn75.h": "c",
+        "board.h": "c"
     }
 }

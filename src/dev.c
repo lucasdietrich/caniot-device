@@ -12,6 +12,11 @@
 
 K_SIGNAL_DEFINE(caniot_process_sig);
 
+const union deviceid did = {
+	.cls = __DEVICE_CLS__,
+	.sid = __DEVICE_SID__
+};
+
 static const struct caniot_identification identification PROGMEM =
 {
 	.did = {
@@ -65,15 +70,18 @@ static void msg2caniot(struct caniot_frame *frame, const can_message *msg)
 
 static int caniot_recv(struct caniot_frame *frame)
 {
+	int ret;
 	can_message req;
-	if (can_recv(&req) != 0) {
-		return -1;
+
+	ret = can_recv(&req);
+	if (ret == 0) {
+		can_print_msg(&req);
+		msg2caniot(frame, &req);
+	} else if (ret == -EAGAIN) {
+		ret = -CANIOT_EAGAIN;
 	}
 
-	can_print_msg(&req);
-	msg2caniot(frame, &req);
-
-	return 0;
+	return ret;
 }
 
 struct delayed_msg
@@ -98,7 +106,7 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 {
 	int ret = -EINVAL;
 
-	printf_P(PSTR("caniot_send delay = %lu\n"), delay_ms);
+	CANIOT_DBG(PSTR("send delay = %lu\n"), delay_ms);
 
 	if (delay_ms == 0) {
 		can_message msg;
@@ -162,4 +170,9 @@ struct delayed_frame
 int caniot_process(void)
 {
 	return caniot_device_process(&device);
+}
+
+uint32_t get_timeout(void)
+{
+	return caniot_device_telemetry_remaining(&device);
 }
