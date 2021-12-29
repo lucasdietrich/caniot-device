@@ -5,25 +5,42 @@
 
 #include <device.h>
 
+#include "custompcb/board.h"
+
 #include "hw.h"
 #include "dev.h"
 #include "can.h"
+
+#define K_MODULE K_MODULE_APPLICATION
 
 extern void device_init(void);
 
 int main(void)
 {
+	/* General initialisation */
 	hw_ll_init();
 	usart_init();
 	led_init();
-	can_init();
 
+	/* Following initialization require interrupts to be enabled
+	 * because they use Arduino millis()/micros() functions to calculate delays.
+	 */	
+	irq_enable();
+
+	/* as we don't use mutex/semaphore to synchronize threads 
+	 * we need the initialization to not be preemptive.
+	 */
+	__ASSERT_SCHED_LOCKED();
+
+	custompcb_hw_init();
+	can_init();
+	
+	/* Specific application initialization */
 	device_init();
 
+	/* LOG */
 	k_thread_dump_all();
 	print_indentification();
-
-	irq_enable();
 
 	int ret;
 

@@ -52,7 +52,5 @@ const struct caniot_api api = {
 
 void device_init(void)
 {
-	custompcb_hw_init();
-
-	printf_P(PSTR("lights_controller_init()\n"));
+	
 }

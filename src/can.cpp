@@ -24,6 +24,8 @@ static K_MUTEX_DEFINE(can_mutex_if);
 
 void can_init(void)
 {
+	__ASSERT_INTERRUPT();
+
         k_mutex_lock(&can_mutex_if, K_FOREVER);
 
         while (CAN_OK != can.begin(CAN_SPEEDSET, CAN_CLOCKSET)) {
@@ -108,7 +110,7 @@ static void can_tx_entry(void *arg)
 	can_message msg;
 	while (1) {
 		if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
-			can_print_msg(&msg);
+			// can_print_msg(&msg);
 
 			can_send(&msg);
 		}

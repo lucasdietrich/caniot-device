@@ -75,8 +75,11 @@ static int caniot_recv(struct caniot_frame *frame)
 
 	ret = can_recv(&req);
 	if (ret == 0) {
-		can_print_msg(&req);
+		// can_print_msg(&req);
 		msg2caniot(frame, &req);
+		caniot_explain_frame(frame);
+		printf_P(PSTR("\n"));
+		
 	} else if (ret == -EAGAIN) {
 		ret = -CANIOT_EAGAIN;
 	}
@@ -107,6 +110,9 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 	int ret = -EINVAL;
 
 	CANIOT_DBG(PSTR("send delay = %lu\n"), delay_ms);
+
+	caniot_explain_frame(frame);
+	printf_P(PSTR("\n"));
 
 	if (delay_ms == 0) {
 		can_message msg;
