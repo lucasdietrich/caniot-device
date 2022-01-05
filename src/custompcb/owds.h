@@ -7,6 +7,8 @@
  * 
  * @copyright Copyright (c) 2021
  * 
+ * - https://www.pjrc.com/teensy/td_libs_OneWire.html
+ * 
  */
 
 // ROM = 28 bc 49 9c 32 20 1 83
@@ -17,6 +19,8 @@
 #ifndef _OW_DS_H_
 #define _OW_DS_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,9 +28,11 @@ extern "C" {
 /* PB1 */
 #define OW_ARDUINO_PIN	9
 
-void ll_ow_ds_init(void);
+bool ll_ow_ds_init(void);
 
-void ow_ds_read(void);
+bool ow_ds_read(int16_t *raw);
+
+float ow_ds_raw2float(int16_t raw);
 
 #ifdef __cplusplus
 }
