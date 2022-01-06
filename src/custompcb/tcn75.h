@@ -26,7 +26,7 @@ float tcn75_temp2float(uint8_t t1, uint8_t t2);
 
 int16_t tcn75_temp2int16(uint8_t t1, uint8_t t2);
 
-float tcn75_int162float(int16_t t);
+float tcn75_int16tofloat(int16_t t);
 
 #ifdef __cplusplus
 }

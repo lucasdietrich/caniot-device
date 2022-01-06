@@ -57,7 +57,7 @@ void can_init(void)
 
 ISR(INT0_vect)
 {
-	caniot_trigger_event();
+	trigger();
 }
 
 int can_recv(can_message *msg)
@@ -103,7 +103,7 @@ K_MSGQ_DEFINE(txq, buf, sizeof(can_message), CAN_MSGQ_SIZE);
 
 static void can_tx_entry(void *arg);
 
-K_THREAD_DEFINE(can_tx_thread, can_tx_entry, 0x64, K_COOPERATIVE, NULL, 'T');
+K_THREAD_DEFINE(can_tx_thread, can_tx_entry, 0x64, K_COOPERATIVE, NULL, 'C');
 
 static void can_tx_entry(void *arg)
 {

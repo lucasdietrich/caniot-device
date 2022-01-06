@@ -31,7 +31,7 @@ int16_t tcn75_temp2int16(uint8_t t1, uint8_t t2)
 	return scaled;
 }
 
-float tcn75_int162float(int16_t t)
+float tcn75_int16tofloat(int16_t t)
 {
 	return t / 100.0;
 }

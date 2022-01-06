@@ -13,7 +13,8 @@
 
 #define K_MODULE K_MODULE_APPLICATION
 
-extern void device_init(void);
+__attribute__ ((weak)) void device_init(void) { }
+__attribute__ ((weak)) void device_process(void) { }
 
 int main(void)
 {
@@ -38,6 +39,9 @@ int main(void)
 	/* Specific application initialization */
 	device_init();
 
+	/* send telemetry on startup */
+	request_telemetry();
+
 	/* LOG */
 	k_thread_dump_all();
 	print_indentification();
@@ -51,13 +55,18 @@ int main(void)
 		k_poll_signal(&caniot_process_sig, K_MSEC(timeout));
 		K_SIGNAL_SET_UNREADY(&caniot_process_sig);
 
+		device_process();
+
 		do {
 			ret = caniot_process();
 
-			if (ret != -CANIOT_EAGAIN) {
+			if (ret != 0 &&ret != -CANIOT_EAGAIN) {
 				// show error
 				caniot_show_error(ret);
 			}
+
+			/* let CAN TX thread to send pending CAN messages if any */
+			k_yield();
 
 		} while (ret != -CANIOT_EAGAIN);
 	}

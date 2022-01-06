@@ -6,15 +6,11 @@
 #include "owds.h"
 
 struct owdsdev {
-	OneWire api;
+	OneWire ow;
 	uint8_t addr[8];
 	uint8_t type;
 
 	uint8_t present;
-};
-
-static struct owdsdev ds = {
-	.api = OneWire(9)
 };
 
 /**
@@ -22,9 +18,9 @@ static struct owdsdev ds = {
  */
 static inline bool lookup_sensor(struct owdsdev *dev)
 {
-	ds.api.reset_search();
+	dev->ow.reset_search();
 
-	if (ds.api.search(dev->addr) == false) {
+	if (dev->ow.search(dev->addr) == false) {
 		// printf_P(PSTR("OW DS SEARCH failed\n"));
 		return false;
 	}
@@ -48,7 +44,7 @@ static inline bool lookup_sensor(struct owdsdev *dev)
 		dev->type = 1;
 		break;
 	case 0x28:
-		printf_P(PSTR(": DS18B20"));
+		printf_P(PSTR(": DS18B20")); // current
 		dev->type = 0;
 		break;
 	case 0x22:
@@ -67,22 +63,22 @@ static inline bool lookup_sensor(struct owdsdev *dev)
 
 static inline bool read_temperature(struct owdsdev *dev, int16_t *raw)
 {
-	dev->api.reset();
-	dev->api.select(dev->addr);
-	dev->api.write(0x44, 1);        // start conversion, with parasite power on at the end
+	dev->ow.reset();
+	dev->ow.select(dev->addr);
+	dev->ow.write(0x44, 1);        // start conversion, with parasite power on at the end
 
 	k_sleep(K_MSEC(1000)); // maybe 750ms is enough, maybe not
 
 	// we might do a ds.depower() here, but the reset will take care of it.
 
-	dev->present = dev->api.reset();
-	dev->api.select(dev->addr);
-	dev->api.write(0xBE);         // Read Scratchpad
+	dev->present = dev->ow.reset();
+	dev->ow.select(dev->addr);
+	dev->ow.write(0xBE);         // Read Scratchpad
 
 	// we need 9 bytes
 	uint8_t data[9];
 	for (int i = 0; i < 9; i++) {
-		data[i] = dev->api.read();
+		data[i] = dev->ow.read();
 	}
 
 	// Check CRC
@@ -119,6 +115,10 @@ float ow_ds_raw2float(int16_t raw)
 {
 	return (float)raw / 16.0;
 }
+
+static struct owdsdev ds = {
+	.ow = OneWire(9)
+};
 
 bool ll_ow_ds_init(void)
 {

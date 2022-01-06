@@ -15,7 +15,9 @@ void print_indentification(void);
 
 uint32_t get_magic_number(void);
 
-static inline void caniot_trigger_event(void)
+void request_telemetry(void);
+
+static inline void trigger(void)
 {
 	k_signal_raise(&caniot_process_sig, 0);
 }

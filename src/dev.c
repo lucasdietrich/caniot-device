@@ -94,7 +94,7 @@ struct delayed_msg
 };
 
 
-K_MEM_SLAB_DEFINE(dmsg_slab, sizeof(struct delayed_msg), 4);
+K_MEM_SLAB_DEFINE(dmsg_slab, sizeof(struct delayed_msg), 8);
 
 static void dmsg_handler(struct k_event *ev)
 {
@@ -181,4 +181,11 @@ int caniot_process(void)
 uint32_t get_timeout(void)
 {
 	return caniot_device_telemetry_remaining(&device);
+}
+
+void request_telemetry(void)
+{
+	device.flags.request_telemetry = 1;
+
+	trigger();
 }

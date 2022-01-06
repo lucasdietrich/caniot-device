@@ -8,9 +8,14 @@
 
 #include "custompcb/board.h"
 
+ISR(PCINT2_vect)
+{
+	usart_transmit('!');
+}
+
 struct caniot_config config = {
 	.telemetry = {
-		.period = 120,
+		.period = 15,
 		// .delay = CANIOT_TELEMETRY_DELAY_DEFAULT,
 		.delay_min = 50,
 		.delay_max = 500,
@@ -52,5 +57,10 @@ const struct caniot_api api = {
 
 void device_init(void)
 {
-	
+	ll_inputs_enable_pcint(BIT(IN0) | BIT(IN1) | BIT(IN2) | BIT(IN3));
+}
+
+void device_process(void)
+{
+	printf_P(PSTR("device_process()\n"));	
 }

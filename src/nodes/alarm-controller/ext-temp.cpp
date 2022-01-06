@@ -5,13 +5,11 @@
 
 #include <avrtos/kernel.h>
 
-static OneWire ds(9);
+static void thread(void *ctx);
 
-void thread(void *ctx);
+K_THREAD_DEFINE(text, thread, 0x60, K_COOPERATIVE, NULL, '3');
 
-K_THREAD_DEFINE(tm2, thread, 0x60, K_COOPERATIVE, NULL, '3');
-
-void thread(void *ctx)
+static void thread(void *ctx)
 {
 	int16_t raw;
 
@@ -24,7 +22,7 @@ void thread(void *ctx)
 		if (ow_ds_read(&raw)) {
 			float temperature = ow_ds_raw2float(raw);
 
-			printf_P(PSTR("DS18B20: Temperature = %.2f °C\n"), temperature);
+			printf_P(PSTR("DS18B20: Temperature : %.2f °C\n"), temperature);
 		} else {
 			printf_P(PSTR("OW DS read failed\n"));
 		}
