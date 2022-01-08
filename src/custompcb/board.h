@@ -57,6 +57,7 @@ uint8_t ll_relays_read(void);
 
 void ll_oc_set(uint8_t state);
 void ll_oc_set_mask(uint8_t state, uint8_t mask);
+void ll_oc_toggle_mask(uint8_t mask);
 uint8_t ll_oc_read(void);
 
 uint8_t ll_inputs_read(void);

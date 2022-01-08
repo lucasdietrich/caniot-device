@@ -29,11 +29,11 @@ typedef enum {
 
 struct door
 {
-	door_state_t state: 1;
-	uint8_t inx: 2;
-	uint8_t rx: 1;
-	uint8_t controllable: 1;
-	struct k_event event;
+	door_state_t state: 1; /* open/close */
+	uint8_t inx: 2; /* input */
+	uint8_t rx: 1; /* relay */
+	uint8_t controllable: 1; /* can be controlled */
+	struct k_event event; /* internal event for pulse */
 };
 
 /* print door struct */
@@ -114,6 +114,7 @@ K_THREAD_DEFINE(meast, inputs_polling_loop, 0x100, K_COOPERATIVE, NULL, 'M');
 void inputs_polling_loop(void *ctx)
 {
 	for (;;) {
+		/* atomic */
 		if (inputs_changed == true) {
 			// custompcb_print_io(dio);
 
@@ -131,6 +132,7 @@ void inputs_polling_loop(void *ctx)
 				}
 			}
 
+			/* atomic */
 			inputs_changed = false;
 		}
 
@@ -148,7 +150,7 @@ static int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, u
 	int16_t temperature = dev_int_temperature();
 	AS_CRTHPT(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);
 
-	print_T16(temperature);
+	// print_T16(temperature);
 
 	/* TODO required ? */
 	*len = 8;
@@ -156,30 +158,6 @@ static int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, u
 	return 0;
 }
 
-const struct caniot_api api = {
-	.update_time = NULL,
-	.config = {
-		.on_read = NULL,
-		.written = NULL,
-	},
-	.custom_attr = {
-		.read = NULL,
-		.write = NULL,
-	},
-	.command_handler = command_handler,
-	.telemetry = telemetry_handler
-};
+const struct caniot_api api = CANIOT_API_MIN_INIT(command_handler, telemetry_handler);
 
-struct caniot_config config = {
-	.telemetry = {
-		.period = 60,
-		// .delay = CANIOT_TELEMETRY_DELAY_DEFAULT,
-		.delay_min = 100,
-		.delay_max = 2000,
-	},
-	.flags = {
-		.error_response = 1u,
-		.telemetry_delay_rdm = 1u,
-		.telemetry_endpoint = CANIOT_TELEMETRY_ENDPOINT_DEFAULT
-	}
-};
+struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();

@@ -70,17 +70,19 @@ static inline void ll_oc_init(void)
 
 static inline void ll_inputs_init()
 {
-	/* inputs PD3, PD4, PD5, PD6 */
-	DDRD &= ~((1 << DDD3) | (1 << DDD4)
+	/* inputs PB0, PD4, PD5, PD6 */
+	DDRD &= ~((1 << DDD4)
 		  | (1 << DDD5) | (1 << DDD6));
+	DDRB &= ~(1 << DDB0);
 
 	/* disable pull-up */
-	// PORTD &= ~((1 << PORTD3) | (1 << PORTD4)
+	// PORTD &= ~((1 << PORTD4)
 	// 	   | (1 << PORTD5) | (1 << PORTD6));
 
 	/* enable pull-up */
-	PORTD |= (1 << PORTD3) | (1 << PORTD4)
-		| (1 << PORTD5) | (1 << PORTD6);
+	PORTD |= (1 << PORTD4) | (1 << PORTD5) | (1 << PORTD6);
+	PORTB |= (1 << PORTB0);
+	
 }
 
 void ll_inputs_enable_pcint(uint8_t mask)
@@ -106,8 +108,10 @@ void ll_inputs_enable_pcint(uint8_t mask)
 /* optocoupler */
 uint8_t ll_inputs_read(void)
 {
-	return (PIND & ((1 << PIND3) | (1 << PIND4)
-		       | (1 << PIND5) | (1 << PIND6))) >> PIND3;
+	const uint8_t portd = PIND & ((1 << PIND4) | (1 << PIND5) | (1 << PIND6));
+	const uint8_t portb = PINB & (1 << PINB0);
+
+	return ((portd >> PIND4) << 1) | (portb >> PINB0);
 }
 
 void ll_oc_set(uint8_t state)
@@ -123,6 +127,11 @@ void ll_oc_set_mask(uint8_t state, uint8_t mask)
 uint8_t ll_oc_read(void)
 {
 	return (ll_portc_read() & ((1 << PINC0) | (1 << PINC1))) >> PINC0;
+}
+
+void ll_oc_toggle_mask(uint8_t mask)
+{
+	ll_portc_set_mask(~ll_portc_read(), mask);
 }
 
 struct board_dio ll_read(void)
