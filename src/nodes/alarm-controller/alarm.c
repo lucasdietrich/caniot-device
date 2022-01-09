@@ -8,6 +8,8 @@
 
 #include "custompcb/board.h"
 
+#include "dev.h"
+
 static void show_uptime(void)
 {
         struct timespec ts;
@@ -115,7 +117,7 @@ static void siren_state_machine(void)
 /*___________________________________________________________________________*/
 
 void alarm_loop(void *ctx);
-K_THREAD_DEFINE(talarm, alarm_loop, 0x100, K_COOPERATIVE, NULL, 'A');
+K_THREAD_DEFINE(talarm, alarm_loop, 0xA0, K_COOPERATIVE, NULL, 'A');
 
 K_SEM_DEFINE(reset_sem, 0, 1);
 
@@ -172,6 +174,9 @@ static void set_state(alarm_state_t state)
 
 		/* do action in transition */
 		alarm_state = state;
+		
+		/* request telemetry on alarm state change */
+		request_telemetry();
 	}
 }
 

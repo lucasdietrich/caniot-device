@@ -134,7 +134,7 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 	return ret;
 }
 
-struct caniot_drivers_api drivers = {
+const struct caniot_drivers_api drivers = {
 	.entropy = entropy,
 	.get_time = get_time,
 	.recv = caniot_recv,
@@ -163,15 +163,6 @@ uint32_t get_magic_number(void)
 {
 	return (uint32_t) pgm_read_dword(&device.identification->magic_number);
 }
-
-struct delayed_frame
-{
-	union {
-		struct k_event _ev;
-		void *tie;
-	};
-	struct caniot_frame *frame;
-};
 
 int caniot_process(void)
 {

@@ -69,5 +69,9 @@ int main(void)
 			k_yield();
 
 		} while (ret != -CANIOT_EAGAIN);
+
+#if DEBUG
+		dump_stack_canaries();
+#endif /* DEBUG */
 	}
 }
