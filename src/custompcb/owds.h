@@ -34,6 +34,8 @@ bool ow_ds_read(int16_t *raw);
 
 float ow_ds_raw2float(int16_t raw);
 
+int16_t ow_ds_raw_to_T16(int16_t raw);
+
 #ifdef __cplusplus
 }
 #endif

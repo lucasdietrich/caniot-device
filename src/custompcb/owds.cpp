@@ -116,6 +116,12 @@ float ow_ds_raw2float(int16_t raw)
 	return (float)raw / 16.0;
 }
 
+int16_t ow_ds_raw_to_T16(int16_t raw)
+{
+
+	return (100LU * ((int32_t)raw)) / 16;
+}
+
 static struct owdsdev ds = {
 	.ow = OneWire(9)
 };

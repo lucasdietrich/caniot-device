@@ -51,9 +51,16 @@ int main(void)
 	for (;;) {
 		/* estimate time to next periodic telemetry event */
 		const uint32_t timeout = get_timeout();
-
+		
+		/* set unready after processing,
+		 * as some functions called may trigger the signal 
+		 * in order to request telemetry
+		 */
+		if (telemetry_requested() == false) {
+			K_SIGNAL_SET_UNREADY(&caniot_process_sig);
+		}
+		
 		k_poll_signal(&caniot_process_sig, K_MSEC(timeout));
-		K_SIGNAL_SET_UNREADY(&caniot_process_sig);
 
 		device_process();
 

@@ -15,6 +15,8 @@ void print_indentification(void);
 
 uint32_t get_magic_number(void);
 
+bool telemetry_requested(void);
+
 void request_telemetry(void);
 
 static inline void trigger(void)
