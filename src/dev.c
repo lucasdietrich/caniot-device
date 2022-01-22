@@ -42,15 +42,15 @@ void get_time(uint32_t *sec, uint16_t *ms)
 		return;
 	}
 
-	struct timespec ts;
-
-	k_timespec_get(&ts);
-
-	*sec = ts.tv_sec;
+	*sec = k_time_get();
 
 	if (ms != NULL) {
-		*ms = ts.tv_msec;
+		*ms = 0x0000U;
 	}
+
+#if DEBUG
+	printf_P(PSTR("get_time: sec=%lu sec\n"), *sec);
+#endif /* DEBUG */
 }
 
 static void caniot2msg(can_message *msg, const struct caniot_frame *frame)
@@ -140,6 +140,7 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 const struct caniot_drivers_api drivers = {
 	.entropy = entropy,
 	.get_time = get_time,
+	.set_time = k_time_set,
 	.recv = caniot_recv,
 	.send = caniot_send,
 };
