@@ -11,6 +11,8 @@
 #include "dev.h"
 #include "app_utils.h"
 
+#include <time.h>
+
 K_SIGNAL_DEFINE(caniot_process_sig);
 
 const union deviceid did = {

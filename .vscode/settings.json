@@ -22,6 +22,7 @@
         "stdint.h": "c",
         "tcn75.h": "c",
         "board.h": "c",
-        "app_utils.h": "c"
+        "app_utils.h": "c",
+        "time.h": "c"
     }
 }
