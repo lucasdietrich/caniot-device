@@ -2,13 +2,13 @@
 #define _ALARM_CONTROLLER_EXT_TEMP_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern volatile int16_t ow_ext_tmp;
-
+bool ow_ext_get(int16_t *temp);
 
 #ifdef __cplusplus
 }

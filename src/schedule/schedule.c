@@ -4,32 +4,24 @@
 
 #include "schedule.h"
 
-
-static void scheduling_process(void *ctx);
-
-
-// void            localtime_r(const time_t * timer, struct tm * timeptr);
-
-K_THREAD_DEFINE(tschedule, scheduling_process, 0x80, K_COOPERATIVE, NULL, 'S');
-
-static void scheduling_process(void *ctx)
+static void print_datetime_process(struct k_work *w)
 {
 	static struct tm time;
+	const time_t ktime = k_time_get() - UNIX_OFFSET;
 
-	set_zone(+1 * ONE_HOUR);
+	localtime_r(&ktime, &time);
 
-	for (;;) {
-		const time_t ktime = k_time_get() - UNIX_OFFSET;
+	k_show_uptime();
 
-		localtime_r(&ktime, &time);
+	// print tm structure 
+	printf_P(PSTR("%d-%d-%d %d:%d:%d\n"), time.tm_year + 1900,
+		 time.tm_mon + 1, time.tm_mday, time.tm_hour,
+		 time.tm_min, time.tm_sec);
+}
 
-		k_show_uptime();
+K_WORK_DEFINE(datetime_work, print_datetime_process);
 
-		// print tm structure 
-		printf_P(PSTR("%d-%d-%d %d:%d:%d\n"), time.tm_year + 1900,
-			 time.tm_mon + 1, time.tm_mday, time.tm_hour,
-			 time.tm_min, time.tm_sec);
-
-		k_sleep(K_SECONDS(10));
-	}
+void schedule_print_datetime(void)
+{
+	k_system_workqueue_submit(&datetime_work);
 }

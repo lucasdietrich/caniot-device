@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-
+void schedule_print_datetime(void);
 
 #ifdef __cplusplus
 }

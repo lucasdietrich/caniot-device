@@ -7,6 +7,10 @@
 
 #include "custompcb/board.h"
 
+#include <time.h>
+#include <avr/io.h>
+
+
 #include "hw.h"
 #include "dev.h"
 #include "can.h"
@@ -15,6 +19,9 @@
 
 __attribute__ ((weak)) void device_init(void) { }
 __attribute__ ((weak)) void device_process(void) { }
+
+/* Max interval between two device_process() calls (ms) */
+const uint32_t max_process_interval = 3000;
 
 int main(void)
 {
@@ -35,6 +42,9 @@ int main(void)
 
 	custompcb_hw_init();
 	can_init();
+
+	/* todo, make it configurable */
+	set_zone(+1 * ONE_HOUR);
 	
 	/* Specific application initialization */
 	device_init();
@@ -49,8 +59,10 @@ int main(void)
 	int ret;
 
 	for (;;) {
-		/* estimate time to next periodic telemetry event */
-		const uint32_t timeout = get_timeout();
+		/* Estimate time to next periodic telemetry event.
+		 * - Timeout is majorated by the maximum interval between two device_process() calls.
+		 */
+		const uint32_t timeout_ms = MAX(get_timeout(), max_process_interval);
 		
 		/* set unready after processing,
 		 * as some functions called may trigger the signal 
@@ -60,7 +72,7 @@ int main(void)
 			K_SIGNAL_SET_UNREADY(&caniot_process_sig);
 		}
 		
-		k_poll_signal(&caniot_process_sig, K_MSEC(timeout));
+		k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
 
 		device_process();
 
@@ -76,24 +88,5 @@ int main(void)
 			k_yield();
 
 		} while (ret != -CANIOT_EAGAIN);
-
-#if DEBUG
-		dump_stack_canaries();
-#endif /* DEBUG */
 	}
 }
-
-#if THREAD_CANARIES
-
-void monitor_thread(void *ctx)
-{
-	for(;;) {
-		dump_stack_canaries();
-
-		k_sleep(K_SECONDS(30));
-	}
-}
-
-K_THREAD_DEFINE(tmonitor, monitor_thread, 0x50, K_COOPERATIVE, NULL, '#');
-
-#endif

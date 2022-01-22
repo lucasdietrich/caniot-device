@@ -8,8 +8,9 @@
 #include <avr/pgmspace.h>
 
 #include "custompcb/board.h"
+#include "custompcb/ext_temp.h"
+
 #include "alarm.h"
-#include "ext_temp.h"
 
 #define OUTDOOR_LIGHT_1 	OC1
 #define OUTDOOR_LIGHT_2 	OC2
@@ -64,8 +65,13 @@ static int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, u
 
 	const int16_t temperature = dev_int_temperature();
 	AS_CRTHPT(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);
-	AS_CRTHPT(buf)->ext_temperature = caniot_dt_T16_to_Temp(ow_ext_tmp);
-	// AS_CRTHPT(buf)->ext_temperature = caniot_dt_T16_to_Temp(temperature);
+
+	int16_t temp;
+	if (ow_ext_get(&temp)) {
+		AS_CRTHPT(buf)->ext_temperature = caniot_dt_T16_to_Temp(temp);
+	} else {
+		AS_CRTHPT(buf)->ext_temperature = CANIOT_DT_T10_INVALID;
+	}
 
 	*len = 8;
 
@@ -154,14 +160,19 @@ static int command_handler(struct caniot_device *dev, uint8_t ep, char *buf, uin
 	return 0;
 }
 
+#define OW_EXT_TMP_RETRY_PERIOD 5000LU
+#define OW_EXT_TMP_MEASURE_PERIOD 5000LU
+
 void device_init(void)
-{
+{	
 	// ll_inputs_enable_pcint(BIT(IN0) | BIT(IN1) | BIT(IN2) | BIT(IN3));
+
+	ow_ext_get(NULL);
 }
 
 void device_process(void)
 {
-
+	ow_ext_get(NULL);
 }
 
 struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();

@@ -103,7 +103,7 @@ K_MSGQ_DEFINE(txq, buf, sizeof(can_message), CAN_MSGQ_SIZE);
 
 static void can_tx_entry(void *arg);
 
-K_THREAD_DEFINE(can_tx_thread, can_tx_entry, 0x64, K_COOPERATIVE, NULL, 'C');
+K_THREAD_DEFINE(can_tx_thread, can_tx_entry, 110, K_COOPERATIVE, NULL, 'C');
 
 static void can_tx_entry(void *arg)
 {

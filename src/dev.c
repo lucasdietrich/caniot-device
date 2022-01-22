@@ -9,7 +9,6 @@
 
 #include "can.h"
 #include "dev.h"
-#include "app_utils.h"
 
 #include <time.h>
 
@@ -80,7 +79,7 @@ static int caniot_recv(struct caniot_frame *frame)
 	if (ret == 0) {
 		// can_print_msg(&req);
 		msg2caniot(frame, &req);
-		show_uptime();
+		k_show_uptime();
 		caniot_explain_frame(frame);
 		printf_P(PSTR("\n"));
 		
@@ -115,7 +114,7 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 
 	CANIOT_DBG(PSTR("send delay = %lu\n"), delay_ms);
 
-	show_uptime();
+	k_show_uptime();
 	caniot_explain_frame(frame);
 	printf_P(PSTR("\n"));
 

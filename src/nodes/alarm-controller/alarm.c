@@ -9,7 +9,6 @@
 #include "custompcb/board.h"
 
 #include "dev.h"
-#include "app_utils.h"
 
 static K_SIGNAL_DEFINE(alarm_process_signal);
 
@@ -203,7 +202,7 @@ static void set_state(alarm_state_t state)
 		strcpy_P(next, state_str(state));
 
 		/* TODO remove */
-		show_uptime();
+		k_show_uptime();
 
 		printf_P(PSTR("alarm: %s -> %s\n"), cur, next);
 
