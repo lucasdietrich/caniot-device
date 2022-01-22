@@ -21,7 +21,7 @@
 
 void measurement_loop(void *ctx);
 
-K_THREAD_DEFINE(tmeasurement, measurement_loop, 0x100, K_COOPERATIVE, NULL, '?');
+K_THREAD_DEFINE(tmeasurement, measurement_loop, 0x80, K_COOPERATIVE, NULL, '?');
 
 volatile int16_t ow_ext_tmp = 0;
 

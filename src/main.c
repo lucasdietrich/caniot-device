@@ -82,3 +82,18 @@ int main(void)
 #endif /* DEBUG */
 	}
 }
+
+#if THREAD_CANARIES
+
+void monitor_thread(void *ctx)
+{
+	for(;;) {
+		dump_stack_canaries();
+
+		k_sleep(K_SECONDS(30));
+	}
+}
+
+K_THREAD_DEFINE(tmonitor, monitor_thread, 0x50, K_COOPERATIVE, NULL, '#');
+
+#endif

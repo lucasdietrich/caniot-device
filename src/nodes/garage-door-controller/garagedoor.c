@@ -109,7 +109,7 @@ static int command_handler(struct caniot_device *dev,
 
 void inputs_polling_loop(void *ctx);
 
-K_THREAD_DEFINE(meast, inputs_polling_loop, 0x100, K_COOPERATIVE, NULL, 'M');
+K_THREAD_DEFINE(meast, inputs_polling_loop, 64, K_COOPERATIVE, NULL, 'M');
 
 void inputs_polling_loop(void *ctx)
 {
