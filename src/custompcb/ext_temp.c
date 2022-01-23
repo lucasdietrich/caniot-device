@@ -112,6 +112,8 @@ bool ow_ext_get(int16_t *temp)
 		}
 		break;
 	case OW_EXT_STATE_ERROR:
+		/* retry */
+		state = OW_EXT_STATE_INIT;
 		break;
 	default:
 		break;

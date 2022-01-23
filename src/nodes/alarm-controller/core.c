@@ -15,11 +15,6 @@
 #define OUTDOOR_LIGHT_1 	OC1
 #define OUTDOOR_LIGHT_2 	OC2
 
-ISR(PCINT2_vect)
-{
-	usart_transmit('!');
-}
-
 struct caniot_CRTHPT_ALARM {
 	union {
 		struct {
@@ -165,8 +160,6 @@ static int command_handler(struct caniot_device *dev, uint8_t ep, char *buf, uin
 
 void device_init(void)
 {	
-	// ll_inputs_enable_pcint(BIT(IN0) | BIT(IN1) | BIT(IN2) | BIT(IN3));
-
 	ow_ext_get(NULL);
 }
 

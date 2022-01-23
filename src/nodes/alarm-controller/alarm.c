@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <avr/pgmspace.h>
+#include <util/delay.h>
 
 #include "custompcb/board.h"
 
@@ -15,12 +16,20 @@ static K_SIGNAL_DEFINE(alarm_process_signal);
 #define RELAY_ALARM_MASK	BIT(RELAY1)
 // #define RELAY_WARN_MASK		RELAY2
 
-#define INPUT_MASK		(BIT(IN0) | BIT(IN1) | BIT(IN2) | BIT(IN3))
-#define INPUT_ACCEPT_FILTER	(0b0000U)
+#define ALARM_INPUT_ACCEPT_MASK		(BIT(IN0) | BIT(IN1) | BIT(IN2) | BIT(IN3))
+#define ALARM_INPUT_ACCEPT_FILTER	(0b0000U)
 
 typedef enum { init = 0, ringing, waiting, terminated } siren_state_t; 
 
 static siren_state_t siren_state;
+
+#define MAX_ANOMALY_COUNT		(2)
+#define MEASUREMENTS_ON_ANOMALY		(10)
+#define MEASUREMENTS_PERIOD_US		(200)
+
+#if MAX_ANOMALY_COUNT >= MEASUREMENTS_ON_ANOMALY
+#	error invalid alarm configuration (MAX_ANOMALY_COUNT)
+#endif
 
 #if DEBUG_ALARM
 
@@ -86,6 +95,22 @@ static void siren_reset(void)
 	siren_enabled = false;
 }
 
+static void siren_set_state(siren_state_t state)
+{
+	if (state != siren_state) {
+
+		if (state == ringing) {
+			sound();
+		} else {
+			stop_sound();
+		}
+
+		request_telemetry();
+
+		siren_state = state;
+	}
+}
+
 static void siren_state_machine(void)
 {
 	static uint8_t cycles_counter;
@@ -99,16 +124,15 @@ static void siren_state_machine(void)
 	{
 		cycles_counter = 0;
 
-		sound();
 		marker = now;
-		siren_state = ringing;
+
+		siren_set_state(ringing);
 
 		break;
 	}
 	case ringing:
 	{
 		if (now - marker > RINGING_DURATION) {
-			stop_sound();
 			marker = now;
 
 			cycles_counter++;
@@ -117,9 +141,10 @@ static void siren_state_machine(void)
 					cycles_counter % MAX_SUCCESSIVE_CYCLES == 0 ?
 					SUCCESSIVE_CYCLES_WAITING_DURATION :
 					CYCLE_WAITING_DURATION;
-				siren_state = waiting;
+				
+				siren_set_state(waiting);
 			} else {
-				siren_state = terminated;
+				siren_set_state(terminated);
 			}
 		}
 		break;
@@ -127,9 +152,9 @@ static void siren_state_machine(void)
 	case waiting:
 	{
 		if (now - marker > waiting_duration) {
-			sound();
 			marker = now;
-			siren_state = ringing;
+
+			siren_set_state(ringing);
 		}
 		break;
 	}
@@ -157,10 +182,24 @@ static void alarm_reset(void)
 	siren_reset();
 }
 
+ISR(PCINT0_vect) {
+	usart_transmit('*');
+
+	k_signal_raise(&alarm_process_signal, PCINT0_vect_num);
+}
+
+ISR(PCINT2_vect) {
+	usart_transmit('$');
+
+	k_signal_raise(&alarm_process_signal, PCINT2_vect_num);
+}
+
 
 void alarm_init(void)
 {
 	alarm_reset();
+
+	ll_inputs_enable_pcint(ALARM_INPUT_ACCEPT_MASK);
 
 	mode = ALARM_MODE_NORMAL;
 
@@ -171,11 +210,37 @@ void alarm_init(void)
 	alarm_initialized = true;
 }
 
+static bool measure_inputs(void)
+{
+	uint8_t inputs = ll_inputs_read();
+
+	return (inputs & ALARM_INPUT_ACCEPT_MASK) == ALARM_INPUT_ACCEPT_FILTER;
+}
+
 static bool verify_status(void)
 {
-	const uint8_t inputs = ll_inputs_read();
+	bool status = measure_inputs();
 	
-	return (inputs & INPUT_MASK) == INPUT_ACCEPT_FILTER;
+	/* normal state */
+	if (status == true) {
+		return true;
+	}
+
+	/* anomaly measured */
+	uint16_t anomaly_counter = 0U;
+	for (uint16_t i = 0; i < MEASUREMENTS_ON_ANOMALY; i++) {
+		if (measure_inputs() == false) {
+			anomaly_counter++;
+		}
+
+		if (anomaly_counter > MAX_ANOMALY_COUNT) {
+			return false;
+		}
+
+		_delay_us(MEASUREMENTS_PERIOD_US);
+	}
+
+	return anomaly_counter <= MAX_ANOMALY_COUNT;
 }
 
 static const char *state_str(alarm_state_t state)
@@ -214,14 +279,6 @@ static void set_state(alarm_state_t state)
 	}
 }
 
-// static inline void transition(alarm_state_t state)
-// {
-// 	// switch(state) {
-	
-// 	// }
-// 	set_state(state);
-// }
-
 static int alarm_state_machine(void)
 {
 	static uint64_t recovering_time;
@@ -252,11 +309,10 @@ static int alarm_state_machine(void)
 	case observing:
 	{
 		if (verify_status() == false) {
-			sound();
-
 			set_state(sounding);
+		} else {
+			break;
 		}
-		break;
 	}
 
 	case sounding:

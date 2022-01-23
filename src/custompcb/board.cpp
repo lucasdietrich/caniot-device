@@ -94,14 +94,15 @@ void ll_inputs_enable_pcint(uint8_t mask)
 	 * 	-page 74 - 13.2.6
 	 * 	-page 73 - 13.2.4
 	 */
-		mask <<= PCINT19;
-		mask &= (1 << PCINT19) | (1 << PCINT20) |
-			(1 << PCINT21) | (1 << PCINT22);
-		PCMSK2 |= mask;
-
-		SET_BIT(PCICR, BIT(PCIE2));
-	} else {
-		CLR_BIT(PCICR, BIT(PCIE2));
+		if (mask & BIT(IN0)) {
+			PCMSK0 |= BIT(PCINT0);
+			SET_BIT(PCICR, BIT(PCIE0));
+		}
+		if (mask & (BIT(IN1) | BIT(IN2) | BIT(IN3))) {
+			mask <<= (PCINT20 - 1);
+			PCMSK2 |= mask;
+			SET_BIT(PCICR, BIT(PCIE2));
+		}
 	}
 }
 

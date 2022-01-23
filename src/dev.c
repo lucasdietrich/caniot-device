@@ -110,21 +110,17 @@ static void dmsg_handler(struct k_event *ev)
 
 static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 {
-	int ret = -EINVAL;
+	int ret;
 
 	CANIOT_DBG(PSTR("send delay = %lu\n"), delay_ms);
 
-	k_show_uptime();
-	caniot_explain_frame(frame);
-	printf_P(PSTR("\n"));
-
-	if (delay_ms == 0) {
+	if (delay_ms < KERNEL_TICK_PERIOD_MS) {
 		can_message msg;
 
 		caniot2msg(&msg, frame);
 
 		ret = can_txq_message(&msg);
-	} else if (delay_ms > 0) {
+	} else {
 		struct delayed_msg *dmsg;
 		
 		ret = k_mem_slab_alloc(&dmsg_slab, (void **)&dmsg, K_NO_WAIT);
@@ -132,7 +128,16 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 			caniot2msg(&dmsg->msg, frame);
 			k_event_init(&dmsg->ev, dmsg_handler);
 			ret = k_event_schedule(&dmsg->ev, K_MSEC(delay_ms));
+			if (ret != 0) {
+				k_mem_slab_free(&dmsg_slab, (void*) dmsg);
+			}
 		}
+	}
+
+	if (ret == 0) {
+		k_show_uptime();
+		caniot_explain_frame(frame);
+		printf_P(PSTR("\n"));
 	}
 
 	return ret;

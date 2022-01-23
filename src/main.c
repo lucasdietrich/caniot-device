@@ -21,7 +21,7 @@ __attribute__ ((weak)) void device_init(void) { }
 __attribute__ ((weak)) void device_process(void) { }
 
 /* Max interval between two device_process() calls (ms) */
-const uint32_t max_process_interval = 3000;
+const uint32_t max_process_interval = 10000;
 
 int main(void)
 {
@@ -62,7 +62,7 @@ int main(void)
 		/* Estimate time to next periodic telemetry event.
 		 * - Timeout is majorated by the maximum interval between two device_process() calls.
 		 */
-		const uint32_t timeout_ms = MAX(get_timeout(), max_process_interval);
+		const uint32_t timeout_ms = MIN(get_timeout(), max_process_interval);
 		
 		/* set unready after processing,
 		 * as some functions called may trigger the signal 
