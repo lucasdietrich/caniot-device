@@ -1,6 +1,7 @@
 #include "device.h"
 
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 
 #include <avrtos/kernel.h>
 
@@ -112,8 +113,6 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 {
 	int ret;
 
-	CANIOT_DBG(PSTR("send delay = %lu\n"), delay_ms);
-
 	if (delay_ms < KERNEL_TICK_PERIOD_MS) {
 		can_message msg;
 
@@ -151,7 +150,10 @@ const struct caniot_drivers_api drivers = {
 	.send = caniot_send,
 };
 
+/* contain default config */
 extern struct caniot_config config;
+
+
 extern const struct caniot_api api;
 
 struct caniot_device device = {
@@ -194,4 +196,86 @@ void request_telemetry(void)
 	device.flags.request_telemetry = 1;
 
 	trigger();
+}
+
+// compute CRC8
+static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
+{
+	uint8_t crc = 0;
+
+	while (len--) {
+		uint8_t inbyte = *buf++;
+		uint8_t i;
+
+		for (i = 0x80; i > 0; i >>= 1) {
+			uint8_t mix = (crc ^ inbyte) & i;
+			crc = (crc >> 1) ^ (mix ? 0x8C : 0x00);
+		}
+	}
+
+	return crc;
+}
+
+/**
+ * @brief Indicates whether the configuration is still valid or not.
+ */
+static bool config_dirty = true;
+
+int config_on_read(struct caniot_device *dev,
+		   struct caniot_config *config)
+{
+	if (config_dirty == true) {
+		uint8_t checksum = eeprom_read_byte(0x0000U);
+
+		eeprom_read_block(config, (const void *)0x0001U,
+				  sizeof(struct caniot_config));
+
+		uint8_t calculated_checksum = checksum_crc8((const uint8_t *)config,
+							    sizeof(struct caniot_config));
+
+		if (checksum != calculated_checksum) {
+			return -EINVAL;
+		}
+
+		config_dirty = false;
+	}
+
+	return 0;
+}
+
+int config_on_write(struct caniot_device *dev,
+		    struct caniot_config *config)
+{
+	eeprom_update_block((const void *)config,
+			    (void *)0x0001U, sizeof(struct caniot_config));
+
+	uint8_t calculated_checksum = checksum_crc8((const uint8_t *)config,
+						    sizeof(struct caniot_config));
+
+	eeprom_update_byte((uint8_t*) 0x0000U, calculated_checksum);
+
+	config_dirty = true;
+
+	return 0;
+}
+
+void config_init(void)
+{
+	/* sanity check on EEPROM :
+	 * read config from EEPROM, without overwriting current configuration */
+	struct caniot_config tmp;
+	if (config_on_read(&device, &tmp) != 0) {
+		printf_P(PSTR("Config reset ... \n"));
+		config_on_write(&device, &config);
+	}
+
+	/* EEPROM config is valid, we can overwrite the current config */
+	memcpy(&config, &tmp, sizeof(struct caniot_config));
+}
+
+void caniot_init(void)
+{
+	config_init();
+	
+	caniot_device_init(&device);
 }

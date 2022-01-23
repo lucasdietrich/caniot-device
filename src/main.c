@@ -42,6 +42,7 @@ int main(void)
 
 	custompcb_hw_init();
 	can_init();
+	caniot_init();
 
 	/* todo, make it configurable */
 	set_zone(+1 * ONE_HOUR);
@@ -53,7 +54,7 @@ int main(void)
 	request_telemetry();
 
 	/* LOG */
-	k_thread_dump_all();
+	// k_thread_dump_all();
 	print_indentification();
 
 	int ret;

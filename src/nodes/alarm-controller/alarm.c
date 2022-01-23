@@ -203,7 +203,7 @@ void alarm_init(void)
 
 	mode = ALARM_MODE_NORMAL;
 
-	alarm_enabled = true; /* TODO set to false */
+	alarm_enabled = false;
 
 	/* TODO read alarm_enabled from config (EEPROM) */
 

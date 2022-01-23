@@ -3,6 +3,8 @@
 
 #include "can.h"
 
+#include <device.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +29,16 @@ static inline void trigger(void)
 int caniot_process(void);
 
 uint32_t get_timeout(void);
+						  
+int config_on_read(struct caniot_device *dev,
+		   struct caniot_config *config);
+
+int config_on_write(struct caniot_device *dev,
+		   struct caniot_config *config);
+
+void config_init(void);
+
+void caniot_init(void);
 
 #ifdef __cplusplus
 }

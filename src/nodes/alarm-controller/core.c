@@ -10,6 +10,8 @@
 #include "custompcb/board.h"
 #include "custompcb/ext_temp.h"
 
+#include "dev.h"
+
 #include "alarm.h"
 
 #define OUTDOOR_LIGHT_1 	OC1
@@ -170,4 +172,5 @@ void device_process(void)
 
 struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();
 
-const struct caniot_api api = CANIOT_API_MIN_INIT(command_handler, telemetry_handler);
+const struct caniot_api api = CANIOT_API_CFG_INIT(command_handler, telemetry_handler,
+						  config_on_read, config_on_write);

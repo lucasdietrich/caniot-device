@@ -40,7 +40,7 @@ const struct caniot_api api = {
 	.update_time = NULL,
 	.config = {
 		.on_read = NULL,
-		.written = NULL,
+		.on_write = NULL,
 	},
 	.custom_attr = {
 		.read = NULL,
