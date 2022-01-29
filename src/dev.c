@@ -7,6 +7,7 @@
 
 #include <caniot.h>
 #include <device.h>
+#include <datatype.h>
 
 #include "can.h"
 #include "dev.h"
@@ -150,11 +151,45 @@ const struct caniot_drivers_api drivers = {
 	.send = caniot_send,
 };
 
+extern caniot_telemetry_handler_t telemetry_handler;
+
+extern const caniot_command_handler_t command_handler;
+
+static void reset_work_handler(struct k_work *w)
+{	
+	printf_P(PSTR("Reset in 1 SEC\n"));
+	k_sleep(K_SECONDS(1));
+	printf_P(PSTR("Resetting ...\n"));
+	k_sys_reset();
+}
+
+struct k_work reset_work = K_WORK_INIT(reset_work_handler);
+
+static int control_handler(struct caniot_device *dev,
+			   char *buf,
+			   uint8_t len)
+{
+	int ret;
+
+	if (AS_CONTROL_CMD(buf)->reset == CANIOT_OS_CMD_SET) {
+		ret = k_system_workqueue_submit(&reset_work) == true ? 0 : -EINVAL;
+	}
+
+	if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_ON) {
+		// k_wdt_enable();
+	} else if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_OFF) {
+		// k_wdt_disable();
+	}
+
+	return ret;
+}
+
+
 /* contain default config */
 extern struct caniot_config config;
 
-
-extern const struct caniot_api api;
+const struct caniot_api api = CANIOT_API_STD_INIT(command_handler, telemetry_handler, control_handler,
+						  config_on_read, config_on_write);
 
 struct caniot_device device = {
 	.identification = &identification,
@@ -216,6 +251,14 @@ static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
 	return crc;
 }
 
+static int config_apply_changes(struct caniot_device *dev,
+				struct caniot_config *config)
+{
+	set_zone(config->timezone);
+
+	return 0;
+}
+
 /**
  * @brief Indicates whether the configuration is still valid or not.
  */
@@ -256,7 +299,7 @@ int config_on_write(struct caniot_device *dev,
 
 	config_dirty = true;
 
-	return 0;
+	return config_apply_changes(dev, config);
 }
 
 void config_init(void)
@@ -276,6 +319,9 @@ void config_init(void)
 void caniot_init(void)
 {
 	config_init();
+
+	/* we prepare the system according to the config */
+	set_zone(device.config->timezone);
 	
 	caniot_device_init(&device);
 }

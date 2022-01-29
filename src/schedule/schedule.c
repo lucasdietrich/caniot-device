@@ -17,6 +17,7 @@ static void print_datetime_process(struct k_work *w)
 	printf_P(PSTR("%d-%d-%d %d:%d:%d\n"), time.tm_year + 1900,
 		 time.tm_mon + 1, time.tm_mday, time.tm_hour,
 		 time.tm_min, time.tm_sec);
+		 
 }
 
 K_WORK_DEFINE(datetime_work, print_datetime_process);

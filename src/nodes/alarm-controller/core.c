@@ -51,7 +51,7 @@ struct caniot_CRTHPT_ALARM {
 #define INTERPRET_CMD(buf) \
 	AS(buf, caniot_CRTHPT_ALARM)
 
-static int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
+int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
 {
 	const uint8_t lights = ll_oc_read();
 	INTERPRET_CMD(buf)->status.light1 = (lights >> OUTDOOR_LIGHT_1) & 1;
@@ -141,7 +141,7 @@ static void command_siren(caniot_twostate_cmd_t cmd)
 	}
 }
 
-static int command_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t len)
+int command_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t len)
 {
 	ARG_UNUSED(dev);
 
@@ -171,6 +171,3 @@ void device_process(void)
 }
 
 struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();
-
-const struct caniot_api api = CANIOT_API_CFG_INIT(command_handler, telemetry_handler,
-						  config_on_read, config_on_write);

@@ -43,9 +43,6 @@ int main(void)
 	custompcb_hw_init();
 	can_init();
 	caniot_init();
-
-	/* todo, make it configurable */
-	set_zone(+1 * ONE_HOUR);
 	
 	/* Specific application initialization */
 	device_init();

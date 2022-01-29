@@ -6,7 +6,7 @@
 static void timer_handler(struct k_timer *tim);
 static void work_handler(struct k_work *work);
 
-// K_TIMER_DEFINE(monitor_timer, timer_handler, K_SECONDS(30), 30000U);
+K_TIMER_DEFINE(monitor_timer, timer_handler, K_SECONDS(30), 30000U);
 K_WORK_DEFINE(monitor_work, work_handler);
 
 static void timer_handler(struct k_timer *timer)

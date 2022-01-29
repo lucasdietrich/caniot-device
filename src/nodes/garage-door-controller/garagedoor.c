@@ -94,7 +94,7 @@ static void actuate_door(struct door *door)
 	}
 }
 
-static int command_handler(struct caniot_device *dev,
+int command_handler(struct caniot_device *dev,
 			   uint8_t ep, char *buf,
 			   uint8_t len)
 {
@@ -140,7 +140,7 @@ void inputs_polling_loop(void *ctx)
 	}
 }
 
-static int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
+int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
 {
 	ARG_UNUSED(dev);
 
@@ -157,7 +157,5 @@ static int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, u
 
 	return 0;
 }
-
-const struct caniot_api api = CANIOT_API_MIN_INIT(command_handler, telemetry_handler);
 
 struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();
