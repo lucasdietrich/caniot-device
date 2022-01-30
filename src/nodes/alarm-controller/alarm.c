@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
+#include <avr/wdt.h>
 
 #include "custompcb/board.h"
 
@@ -356,6 +357,8 @@ void alarm_loop(void *ctx)
 		if (k_poll_signal(&alarm_process_signal, K_MSEC(500)) == 0) {
 			K_SIGNAL_SET_UNREADY(&alarm_process_signal);
 		}
+
+		wdt_reset();
 
 		if (alarm_state_machine() != 0) {
 			__fault(K_FAULT); /* what to do ? */

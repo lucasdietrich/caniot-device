@@ -2,12 +2,15 @@
 
 #include <avr/pgmspace.h>
 #include <avr/eeprom.h>
+#include <avr/wdt.h>
 
 #include <avrtos/kernel.h>
 
 #include <caniot.h>
 #include <device.h>
 #include <datatype.h>
+
+#include <util/delay.h>
 
 #include "can.h"
 #include "dev.h"
@@ -155,15 +158,27 @@ extern caniot_telemetry_handler_t telemetry_handler;
 
 extern const caniot_command_handler_t command_handler;
 
-static void reset_work_handler(struct k_work *w)
+static void sw_reset_work_handler(struct k_work *w)
 {	
-	printf_P(PSTR("Reset in 1 SEC\n"));
+	printf_P(PSTR("Reset (SW) in 1 SEC\n"));
 	k_sleep(K_SECONDS(1));
-	printf_P(PSTR("Resetting ...\n"));
-	k_sys_reset();
+	printf_P(PSTR("Resetting (SW) ...\n"));
+	k_sys_sw_reset();
 }
 
-struct k_work reset_work = K_WORK_INIT(reset_work_handler);
+static void wdt_reset_work_handler(struct k_work *w)
+{	
+	printf_P(PSTR("Reset (WDT) in 1 SEC\n"));
+	k_sleep(K_SECONDS(1));
+	printf_P(PSTR("Resetting (WDT) ...\n"));
+	
+	k_sched_lock();
+	for(;;) { }
+}
+
+static struct k_work sw_reset_work = K_WORK_INIT(sw_reset_work_handler);
+
+static struct k_work wdt_reset_work = K_WORK_INIT(wdt_reset_work_handler);
 
 static int control_handler(struct caniot_device *dev,
 			   char *buf,
@@ -171,14 +186,22 @@ static int control_handler(struct caniot_device *dev,
 {
 	int ret;
 
-	if (AS_CONTROL_CMD(buf)->reset == CANIOT_OS_CMD_SET) {
-		ret = k_system_workqueue_submit(&reset_work) == true ? 0 : -EINVAL;
-	}
-
-	if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_ON) {
-		// k_wdt_enable();
+	if (AS_CONTROL_CMD(buf)->watchdog_reset == CANIOT_OS_CMD_SET ||
+	    AS_CONTROL_CMD(buf)->reset == CANIOT_OS_CMD_SET) {
+		if (WDTCSR & BIT(WDE)) {
+			ret = k_system_workqueue_submit(&wdt_reset_work) == true ? 0 : -EINVAL;
+		} else {
+			printf_P(PSTR("Watchdog not enabled\n"));
+			ret = -EINVAL;
+		}
+	} else 	if (AS_CONTROL_CMD(buf)->software_reset == CANIOT_OS_CMD_SET) {
+		ret = k_system_workqueue_submit(&sw_reset_work) == true ? 0 : -EINVAL;
+	} else if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_ON) {
+		wdt_enable(WDTO_8S);
+		ret = 0;
 	} else if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_OFF) {
-		// k_wdt_disable();
+		wdt_disable();
+		ret = 0;
 	}
 
 	return ret;

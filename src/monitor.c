@@ -11,7 +11,7 @@ K_WORK_DEFINE(monitor_work, work_handler);
 
 static void timer_handler(struct k_timer *timer)
 {
-	k_system_workqueue_submit(&monitor_work);
+	// k_system_workqueue_submit(&monitor_work);
 
 	schedule_print_datetime();
 }

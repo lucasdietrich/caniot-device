@@ -9,7 +9,8 @@
 
 #include <time.h>
 #include <avr/io.h>
-
+#include <avr/wdt.h>
+#include <avr/sleep.h>
 
 #include "hw.h"
 #include "dev.h"
@@ -20,8 +21,11 @@
 __attribute__ ((weak)) void device_init(void) { }
 __attribute__ ((weak)) void device_process(void) { }
 
-/* Max interval between two device_process() calls (ms) */
-const uint32_t max_process_interval = 10000;
+/* 
+ * Max interval between two device_process() calls (ms)
+ * Note: Should be choiced carefully, because of the watchdog timer.
+ */
+const uint32_t max_process_interval = 1000;
 
 int main(void)
 {
@@ -29,6 +33,9 @@ int main(void)
 	hw_ll_init();
 	usart_init();
 	led_init();
+
+	/* Enable watchdog */
+	wdt_enable(WDTO_8S);
 
 	/* Following initialization require interrupts to be enabled
 	 * because they use Arduino millis()/micros() functions to calculate delays.
@@ -72,9 +79,13 @@ int main(void)
 		
 		k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
 
+		wdt_reset();
+
 		device_process();
 
 		do {
+			wdt_reset();
+
 			ret = caniot_process();
 
 			if (ret != 0 &&ret != -CANIOT_EAGAIN) {
