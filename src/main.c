@@ -27,6 +27,8 @@ __attribute__ ((weak)) void device_process(void) { }
  */
 const uint32_t max_process_interval = 1000;
 
+K_KERNEL_INIT();
+
 int main(void)
 {
 	/* General initialisation */

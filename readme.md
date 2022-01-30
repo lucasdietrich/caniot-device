@@ -68,3 +68,5 @@ version = c8
 [M] CANARIES until @061D [found 65], MAX usage = 184 / 249 + 1 (sentinel)
 [I] CANARIES until @0220 [found 17], MAX usage = 41 / 58 + 1 (sentinel)
 ```
+
+## Bootloader
