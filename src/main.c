@@ -25,9 +25,9 @@ __attribute__ ((weak)) void device_process(void) { }
  * Max interval between two device_process() calls (ms)
  * Note: Should be choiced carefully, because of the watchdog timer.
  */
-const uint32_t max_process_interval = 1000;
+uint32_t max_process_interval = 1000;
 
-K_KERNEL_INIT();
+K_KERNEL_LINK_INIT();
 
 int main(void)
 {

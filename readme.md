@@ -70,3 +70,19 @@ version = c8
 ```
 
 ## Bootloader
+
+- https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
+- https://arduino.stackexchange.com/questions/36071/how-does-avrdude-burn-a-bootloader-much-quicker-than-the-arduino-ide
+- https://www.avrfreaks.net/forum/cannot-connect-avrdude-mega2560
+- https://github.com/MCUdude/MiniCore
+- https://github.com/MCUdude/MiniCore/blob/master/PlatformIO.md
+- https://github.com/MCUdude/MiniCore/tree/master/avr/bootloaders/optiboot_flash/bootloaders/atmega328pb/16000000L
+- https://community.platformio.org/t/upload-and-debug-for-atmega328p-with-atmel-ice/18796
+- https://community.platformio.org/t/burn-bootloader-for-a-custom-atmega328p-board/22587
+- https://community.platformio.org/t/minicore-atmega328p/9042
+- https://docs.platformio.org/en/latest/frameworks/arduino.html#minicore-mightycore-megacore
+- https://www.avrfreaks.net/forum/watchdog-reset-or-any-other-software-reset
+- https://www.avrfreaks.net/forum/software-reset-6
+- https://www.avrfreaks.net/forum/how-use-avr-watchdog
+
+- https://www.avrfreaks.net/comment/178013#comment-178013

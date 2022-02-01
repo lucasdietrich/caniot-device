@@ -25,8 +25,8 @@ struct caniot_CRTHPT_ALARM {
 			alarm_state_t alarm_state : 2;
 			uint8_t alarm_mode : 1;
 			uint8_t siren : 1;
-
-			uint8_t _unused1: 2;
+			uint8_t alarm_inputs_status: 1;
+			uint8_t _unused1: 1;
 			uint8_t _unused: 8;
 		} status;
 		struct {
@@ -59,6 +59,7 @@ int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t 
 	INTERPRET_CMD(buf)->status.alarm_state = alarm_get_state();
 	INTERPRET_CMD(buf)->status.alarm_mode = alarm_get_mode();
 	INTERPRET_CMD(buf)->status.siren = alarm_get_siren_state();
+	INTERPRET_CMD(buf)->status.alarm_inputs_status = alarm_inputs_status() ? 1 : 0;
 
 	const int16_t temperature = dev_int_temperature();
 	AS_CRTHPT(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);

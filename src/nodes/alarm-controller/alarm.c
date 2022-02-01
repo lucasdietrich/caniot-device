@@ -218,7 +218,7 @@ static bool measure_inputs(void)
 	return (inputs & ALARM_INPUT_ACCEPT_MASK) == ALARM_INPUT_ACCEPT_FILTER;
 }
 
-static bool verify_status(void)
+bool alarm_inputs_status(void)
 {
 	bool status = measure_inputs();
 	
@@ -294,7 +294,7 @@ static int alarm_state_machine(void)
 	case inactive:
 	{
 		if (alarm_enabled && alarm_initialized) {
-			if (verify_status()) {
+			if (alarm_inputs_status()) {
 				siren_reset();
 				set_state(observing);
 			} else {
@@ -309,7 +309,7 @@ static int alarm_state_machine(void)
 
 	case observing:
 	{
-		if (verify_status() == false) {
+		if (alarm_inputs_status() == false) {
 			set_state(sounding);
 		} else {
 			break;
@@ -320,7 +320,7 @@ static int alarm_state_machine(void)
 	{	
 		siren_state_machine();
 
-		if (siren_state == waiting && verify_status() == true) {
+		if (siren_state == waiting && alarm_inputs_status() == true) {
 			set_state(observing);
 		} else if (siren_state == terminated) {
 			recovering_time = k_uptime_get_ms64();
@@ -337,7 +337,7 @@ static int alarm_state_machine(void)
 		    (k_uptime_get_ms64() - recovering_time > AUTO_RESET_DURATION)) {
 			siren_reset();
 
-			set_state(verify_status() ? observing : inactive);
+			set_state(alarm_inputs_status() ? observing : inactive);
 		}
 		break;
 	}

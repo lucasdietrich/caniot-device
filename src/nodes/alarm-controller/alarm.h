@@ -61,6 +61,8 @@ void alarm_test_siren_toggle(void);
 
 bool alarm_get_siren_state(void);
 
+bool alarm_inputs_status(void);
+
 #ifdef __cplusplus
 }
 #endif
