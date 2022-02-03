@@ -9,6 +9,9 @@
 extern "C" {
 #endif
 
+#define WATCHDOG_TIMEOUT_MS 	8000
+#define WATCHDOG_TIMEOUT_WDTO 	WDTO_8S
+
 extern const union deviceid did;
 
 extern struct k_signal caniot_process_sig;
@@ -19,9 +22,9 @@ uint32_t get_magic_number(void);
 
 bool telemetry_requested(void);
 
-void request_telemetry(void);
+void trigger_telemetry(void);
 
-static inline void trigger(void)
+static inline void trigger_process(void)
 {
 	k_signal_raise(&caniot_process_sig, 0);
 }

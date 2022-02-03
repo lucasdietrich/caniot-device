@@ -10,6 +10,7 @@
 
 #include "custompcb/board.h"
 
+#include "supervision.h"
 #include "dev.h"
 
 static K_SIGNAL_DEFINE(alarm_process_signal);
@@ -106,7 +107,7 @@ static void siren_set_state(siren_state_t state)
 			stop_sound();
 		}
 
-		request_telemetry();
+		trigger_telemetry();
 
 		siren_state = state;
 	}
@@ -276,7 +277,7 @@ static void set_state(alarm_state_t state)
 		alarm_state = state;
 		
 		/* request telemetry on alarm state change */
-		request_telemetry();
+		trigger_telemetry();
 	}
 }
 
@@ -351,14 +352,17 @@ static int alarm_state_machine(void)
 
 void alarm_loop(void *ctx)
 {
+	const uint8_t tid = critical_thread_register();
+
 	alarm_init();
 
 	for (;;) {
-		if (k_poll_signal(&alarm_process_signal, K_MSEC(500)) == 0) {
+		if (k_poll_signal(&alarm_process_signal,
+				  K_MSEC(MIN(500, WATCHDOG_TIMEOUT_MS))) == 0) {
 			K_SIGNAL_SET_UNREADY(&alarm_process_signal);
 		}
 
-		wdt_reset();
+		alive(tid);
 
 		if (alarm_state_machine() != 0) {
 			__fault(K_FAULT); /* what to do ? */

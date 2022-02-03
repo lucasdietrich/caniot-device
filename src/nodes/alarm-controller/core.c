@@ -65,11 +65,8 @@ int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t 
 	AS_CRTHPT(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);
 
 	int16_t temp;
-	if (ow_ext_get(&temp)) {
-		AS_CRTHPT(buf)->ext_temperature = caniot_dt_T16_to_Temp(temp);
-	} else {
-		AS_CRTHPT(buf)->ext_temperature = CANIOT_DT_T10_INVALID;
-	}
+	AS_CRTHPT(buf)->ext_temperature = ow_ext_get(&temp) ?
+		caniot_dt_T16_to_Temp(temp) : CANIOT_DT_T10_INVALID;
 
 	*len = 8;
 
@@ -161,14 +158,24 @@ int command_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t le
 #define OW_EXT_TMP_RETRY_PERIOD 5000LU
 #define OW_EXT_TMP_MEASURE_PERIOD 5000LU
 
+static bool last_ext_temp_status = false;
+
 void device_init(void)
 {	
-	ow_ext_get(NULL);
+	last_ext_temp_status = ow_ext_wait_init(K_SECONDS(10));
+
+	printf_P(PSTR("<drv> Ext temp sensor "));
+	printf_P(last_ext_temp_status ? PSTR("FOUND\n") : PSTR("NOT found\n"));
 }
 
 void device_process(void)
 {
-	ow_ext_get(NULL);
+	if (last_ext_temp_status != ow_ext_get(NULL)) {
+		last_ext_temp_status = !last_ext_temp_status;
+
+		trigger_telemetry();
+	}
+	
 }
 
 struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();

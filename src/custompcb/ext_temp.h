@@ -10,6 +10,8 @@ extern "C" {
 
 bool ow_ext_get(int16_t *temp);
 
+bool ow_ext_wait_init(k_timeout_t timeout);
+
 #ifdef __cplusplus
 }
 #endif

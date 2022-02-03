@@ -57,7 +57,7 @@ void can_init(void)
 
 ISR(INT0_vect)
 {
-	trigger();
+	trigger_process();
 }
 
 int can_recv(can_message *msg)
@@ -66,6 +66,9 @@ int can_recv(can_message *msg)
 
 	int rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
 	if (rc == 0) {
+#if DEBUG_DRV_CAN
+		printf_P(PSTR("[R"));
+#endif /* DEBUG_DRV_CAN */
 		if (can.checkReceive() == CAN_MSGAVAIL) {
 			uint8_t isext, rtr;
 			rc = can.readMsgBufID(can.readRxTxStatus(),
@@ -78,7 +81,14 @@ int can_recv(can_message *msg)
 		} else {
 			rc = -EAGAIN;
 		}
+#if DEBUG_DRV_CAN
+		usart_transmit(']');
+#endif /* DEBUG_DRV_CAN */
 		k_mutex_unlock(&can_mutex_if);
+	} else {
+#if DEBUG_DRV_CAN
+		printf_P(PSTR("mutex lock failed\n"));
+#endif /* DEBUG_DRV_CAN */
 	}
 	return rc;
 }
@@ -89,9 +99,14 @@ static int can_send(can_message *msg)
 
 	int rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
 	if (rc == 0) {
+#if DEBUG_DRV_CAN
+		printf_P(PSTR("[T"));
+#endif /* DEBUG_DRV_CAN */
 		rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len,
 				    msg->buf, true);
-
+#if DEBUG_DRV_CAN
+		usart_transmit(']');
+#endif /* DEBUG_DRV_CAN */
 		k_mutex_unlock(&can_mutex_if);
 	}
 	return rc;

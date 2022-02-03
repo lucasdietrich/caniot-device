@@ -128,7 +128,7 @@ void inputs_polling_loop(void *ctx)
 				if (prev != cur) {
 					d->state = cur;
 
-					request_telemetry();
+					trigger_telemetry();
 				}
 			}
 

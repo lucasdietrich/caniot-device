@@ -15,6 +15,7 @@
 #include "hw.h"
 #include "dev.h"
 #include "can.h"
+#include "supervision.h"
 
 #define K_MODULE K_MODULE_APPLICATION
 
@@ -25,19 +26,21 @@ __attribute__ ((weak)) void device_process(void) { }
  * Max interval between two device_process() calls (ms)
  * Note: Should be choiced carefully, because of the watchdog timer.
  */
-uint32_t max_process_interval = 1000;
+uint32_t max_process_interval = MIN(1000, WATCHDOG_TIMEOUT_MS);
 
 K_KERNEL_LINK_INIT();
 
 int main(void)
 {
+	const uint8_t tid = critical_thread_register();
+
 	/* General initialisation */
 	hw_ll_init();
 	usart_init();
 	led_init();
 
 	/* Enable watchdog */
-	wdt_enable(WDTO_8S);
+	wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 
 	/* Following initialization require interrupts to be enabled
 	 * because they use Arduino millis()/micros() functions to calculate delays.
@@ -57,7 +60,7 @@ int main(void)
 	device_init();
 
 	/* send telemetry on startup */
-	request_telemetry();
+	trigger_telemetry();
 
 	/* LOG */
 	// k_thread_dump_all();
@@ -81,12 +84,12 @@ int main(void)
 		
 		k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
 
-		wdt_reset();
+		alive(tid);
 
 		device_process();
 
 		do {
-			wdt_reset();
+			alive(tid);
 
 			ret = caniot_process();
 

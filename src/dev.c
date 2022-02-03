@@ -54,9 +54,9 @@ void get_time(uint32_t *sec, uint16_t *ms)
 		*ms = 0x0000U;
 	}
 
-#if DEBUG
-	printf_P(PSTR("get_time: sec=%lu sec\n"), *sec);
-#endif /* DEBUG */
+// #if DEBUG
+// 	printf_P(PSTR("get_time: sec=%lu sec\n"), *sec);
+// #endif /* DEBUG */
 }
 
 static void caniot2msg(can_message *msg, const struct caniot_frame *frame)
@@ -197,7 +197,7 @@ static int control_handler(struct caniot_device *dev,
 	} else 	if (AS_CONTROL_CMD(buf)->software_reset == CANIOT_OS_CMD_SET) {
 		ret = k_system_workqueue_submit(&sw_reset_work) == true ? 0 : -EINVAL;
 	} else if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_ON) {
-		wdt_enable(WDTO_8S);
+		wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 		ret = 0;
 	} else if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_OFF) {
 		wdt_disable();
@@ -249,11 +249,11 @@ bool telemetry_requested(void)
 	return device.flags.request_telemetry == 1;
 }
 
-void request_telemetry(void)
+void trigger_telemetry(void)
 {
 	device.flags.request_telemetry = 1;
 
-	trigger();
+	trigger_process();
 }
 
 // compute CRC8

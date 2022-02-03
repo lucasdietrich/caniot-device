@@ -9,8 +9,6 @@ struct owdsdev {
 	OneWire ow;
 	uint8_t addr[8];
 	uint8_t type;
-
-	uint8_t present;
 };
 
 /**
@@ -32,27 +30,37 @@ static inline bool lookup_sensor(struct owdsdev *dev)
 	}
 
 	// print ROM
+#if DEBUG
 	printf_P(PSTR("ROM ="));
 	for (int i = 0; i < 8; i++) {
 		printf_P(PSTR(" %hhx"), (uint8_t)dev->addr[i]);
 	}
+#endif /* DEBUG */
 
 	// the first ROM byte indicates which chip
 	switch (dev->addr[0]) {
 	case 0x10:
+#if DEBUG
 		printf_P(PSTR(": DS18S20"));  // or old DS1820
+#endif
 		dev->type = 1;
 		break;
 	case 0x28:
+#if DEBUG
 		printf_P(PSTR(": DS18B20")); // current
+#endif
 		dev->type = 0;
 		break;
 	case 0x22:
+#if DEBUG
 		printf_P(PSTR(": DS1822"));
+#endif
 		dev->type = 0;
 		break;
 	default:
+#if DEBUG
 		printf_P(PSTR(": DS???"));
+#endif
 		return false;
 	}
 
@@ -63,7 +71,10 @@ static inline bool lookup_sensor(struct owdsdev *dev)
 
 static inline bool read_temperature(struct owdsdev *dev, int16_t *raw)
 {
-	dev->ow.reset();
+	if (dev->ow.reset() != 1U) {
+		return false;
+	}
+
 	dev->ow.select(dev->addr);
 	dev->ow.write(0x44, 1);        // start conversion, with parasite power on at the end
 
@@ -71,14 +82,24 @@ static inline bool read_temperature(struct owdsdev *dev, int16_t *raw)
 
 	// we might do a ds.depower() here, but the reset will take care of it.
 
-	dev->present = dev->ow.reset();
+	if (dev->ow.reset() != 1U) {
+		return false;
+	}
+	
 	dev->ow.select(dev->addr);
 	dev->ow.write(0xBE);         // Read Scratchpad
 
 	// we need 9 bytes
 	uint8_t data[9];
+	byte dataor = 0x00U;
 	for (int i = 0; i < 9; i++) {
 		data[i] = dev->ow.read();
+		dataor |= data[i];
+	}
+
+	/* if all bytes are null, then the read failed */
+	if (dataor == 0x00U) {
+		return false;
 	}
 
 	// Check CRC
