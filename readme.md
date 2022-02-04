@@ -14,6 +14,7 @@
 
 ## Todo
 
+- Set pullup to inputs and INT0
 - Define specific device configuration, add support for configuration in persistant memory
 - Add documentation for data types
   - Use endpoints for specific uses (normal, configuration, ...)

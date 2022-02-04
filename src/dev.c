@@ -330,19 +330,18 @@ void config_init(void)
 	/* sanity check on EEPROM :
 	 * read config from EEPROM, without overwriting current configuration */
 	struct caniot_config tmp;
-	if (config_on_read(&device, &tmp) != 0) {
+	if (config_on_read(&device, &tmp) == 0) {
+		/* EEPROM config is valid, we can overwrite the current config */
+		memcpy(&config, &tmp, sizeof(struct caniot_config));
+	} else {
 		printf_P(PSTR("Config reset ... \n"));
+		
 		config_on_write(&device, &config);
 	}
-
-	/* EEPROM config is valid, we can overwrite the current config */
-	memcpy(&config, &tmp, sizeof(struct caniot_config));
 }
 
 void caniot_init(void)
-{
-	config_init();
-
+{	
 	/* we prepare the system according to the config */
 	set_zone(device.config->timezone);
 	

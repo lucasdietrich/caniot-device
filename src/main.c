@@ -54,6 +54,8 @@ int main(void)
 
 	custompcb_hw_init();
 	can_init();
+	config_init();
+
 	caniot_init();
 	
 	/* Specific application initialization */
