@@ -34,7 +34,7 @@ int main(void)
 {
 	const uint8_t tid = critical_thread_register();
 
-	/* General initialisation */
+	/* General low-level initialisation */
 	hw_ll_init();
 	usart_init();
 	led_init();
@@ -55,7 +55,6 @@ int main(void)
 	custompcb_hw_init();
 	can_init();
 	config_init();
-
 	caniot_init();
 	
 	/* Specific application initialization */
@@ -69,7 +68,6 @@ int main(void)
 	print_indentification();
 
 	int ret;
-
 	for (;;) {
 		/* Estimate time to next periodic telemetry event.
 		 * - Timeout is majorated by the maximum interval between two device_process() calls.
@@ -86,15 +84,14 @@ int main(void)
 		
 		k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
 
+		/* I'm alive ! */
 		alive(tid);
 
+		/* Application specific processing before CANIOT process*/
 		device_process();
 
 		do {
-			alive(tid);
-
 			ret = caniot_process();
-
 			if (ret != 0 &&ret != -CANIOT_EAGAIN) {
 				// show error
 				caniot_show_error(ret);
@@ -102,6 +99,9 @@ int main(void)
 
 			/* let CAN TX thread to send pending CAN messages if any */
 			k_yield();
+			
+			/* I'm alive ! */
+			alive(tid);
 
 		} while (ret != -CANIOT_EAGAIN);
 	}
