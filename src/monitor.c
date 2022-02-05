@@ -3,10 +3,10 @@
 
 #include "schedule/schedule.h"
 
+#if DEBUG_MONITOR || DEBUG_TIME
+
 static void timer_handler(struct k_timer *tim);
 static void work_handler(struct k_work *work);
-
-#if DEBUG_MONITOR || DEBUG_TIME
 
 K_TIMER_DEFINE(monitor_timer, timer_handler, K_SECONDS(30), 30000U);
 K_WORK_DEFINE(monitor_work, work_handler);
