@@ -2,10 +2,13 @@
 #include <device.h>
 #include <datatype.h>
 
+
 #include <avrtos/kernel.h>
 
 #include <stdio.h>
 #include <avr/pgmspace.h>
+
+#include "core.h"
 
 #include "custompcb/board.h"
 #include "custompcb/ext_temp.h"
@@ -73,7 +76,7 @@ int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t 
 	return 0;
 }
 
-static void command_light(uint8_t oc, caniot_light_cmd_t cmd)
+static void command_lights(uint8_t oc, caniot_light_cmd_t cmd)
 {
 	const uint8_t mask = BIT(oc);
 	switch (cmd) {
@@ -89,6 +92,25 @@ static void command_light(uint8_t oc, caniot_light_cmd_t cmd)
 	default:
 		break;
 	}
+}
+
+static enum ctrl_source lights_control_source = SRC_USER;
+
+void commands_lights_from(uint8_t oc, caniot_light_cmd_t cmd, enum ctrl_source src)
+{
+	if ((src == SRC_ALARM_CONTROLLER) && (cmd == 0)
+	    && (lights_control_source == SRC_USER)) {
+		return; /* to nothing */
+	}
+
+	lights_control_source = src;
+
+	command_lights(oc, cmd);
+}
+
+enum ctrl_source lights_get_last_ctrl_source(void)
+{
+	return lights_control_source;
 }
 
 static void command_alarm(alarm_cmd_t cmd)
@@ -143,8 +165,8 @@ int command_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t le
 {
 	ARG_UNUSED(dev);
 
-	command_light(OUTDOOR_LIGHT_1, INTERPRET_CMD(buf)->commands.light1);
-	command_light(OUTDOOR_LIGHT_2, INTERPRET_CMD(buf)->commands.light2);
+	commands_lights_from(OUTDOOR_LIGHT_1, INTERPRET_CMD(buf)->commands.light1, SRC_USER);
+	commands_lights_from(OUTDOOR_LIGHT_2, INTERPRET_CMD(buf)->commands.light2, SRC_USER);
 	command_alarm(INTERPRET_CMD(buf)->commands.alarm);
 	command_alarm_mode(INTERPRET_CMD(buf)->commands.alarm_mode);
 	command_siren(INTERPRET_CMD(buf)->commands.siren);

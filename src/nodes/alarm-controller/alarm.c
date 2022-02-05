@@ -1,12 +1,15 @@
 #include "alarm.h"
 
 #include <avrtos/kernel.h>
+#include <datatype.h>
 
 #include <string.h>
 #include <stdio.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include <avr/wdt.h>
+
+#include "core.h"
 
 #include "custompcb/board.h"
 
@@ -315,6 +318,9 @@ static int alarm_state_machine(void)
 	case observing:
 	{
 		if (alarm_inputs_status() == false) {
+			commands_lights_from(OC1, CANIOT_LIGHT_CMD_ON, SRC_ALARM_CONTROLLER);
+			commands_lights_from(OC2, CANIOT_LIGHT_CMD_ON, SRC_ALARM_CONTROLLER);
+
 			set_state(sounding);
 		} else {
 			break;
@@ -326,6 +332,9 @@ static int alarm_state_machine(void)
 		siren_state_machine();
 
 		if (siren_state == waiting && alarm_inputs_status() == true) {
+			commands_lights_from(OC1, CANIOT_LIGHT_CMD_OFF, SRC_ALARM_CONTROLLER);
+			commands_lights_from(OC1, CANIOT_LIGHT_CMD_OFF, SRC_ALARM_CONTROLLER);
+
 			set_state(observing);
 		} else if (siren_state == terminated) {
 			recovering_time = k_uptime_get_ms64();
@@ -341,6 +350,9 @@ static int alarm_state_machine(void)
 		if ((k_sem_take(&recover_sem, K_NO_WAIT) == 0) ||
 		    (k_uptime_get_ms64() - recovering_time > AUTO_RESET_DURATION)) {
 			siren_reset();
+			
+			commands_lights_from(OC1, CANIOT_LIGHT_CMD_OFF, SRC_ALARM_CONTROLLER);
+			commands_lights_from(OC1, CANIOT_LIGHT_CMD_OFF, SRC_ALARM_CONTROLLER);
 
 			set_state(alarm_inputs_status() ? observing : inactive);
 		}
