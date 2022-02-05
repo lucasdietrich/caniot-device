@@ -68,21 +68,28 @@ static inline void ll_oc_init(void)
 	PORTC &= ~((1 << PORTC0) | (1 << PORTC1));
 }
 
-static inline void ll_inputs_init()
+static inline void ll_inputs_init(bool pullup)
 {
 	/* inputs PB0, PD4, PD5, PD6 */
 	DDRD &= ~((1 << DDD4)
 		  | (1 << DDD5) | (1 << DDD6));
 	DDRB &= ~(1 << DDB0);
 
-	/* disable pull-up */
-	// PORTD &= ~((1 << PORTD4)
-	// 	   | (1 << PORTD5) | (1 << PORTD6));
-
-	/* enable pull-up */
-	PORTD |= (1 << PORTD4) | (1 << PORTD5) | (1 << PORTD6);
-	PORTB |= (1 << PORTB0);
-	
+	/* COnfigure pullup (Datasheet page 76) :
+	 * 
+	 * "If PORTxn is written logic one when the pin is configured as an input pin, 
+	 * the pull-up resistor is activated. To switch the pull-up resistor off, 
+	 * PORTxn has to be written logic zero or the pin has to be configured as 
+	 * an output pin. The port pins are tri-stated when reset condition 
+	 * becomes active, even if no clocks are running."
+	 */
+	if (pullup) {
+		PORTD |= (1 << PORTD4) | (1 << PORTD5) | (1 << PORTD6);
+		PORTB |= (1 << PORTB0);
+	} else {
+		PORTD &= ~((1 << PORTD4) | (1 << PORTD5) | (1 << PORTD6));
+		PORTB &= ~(1 << PORTB0);
+	}
 }
 
 void ll_inputs_enable_pcint(uint8_t mask)
@@ -194,10 +201,52 @@ void print_T16(int16_t temp)
 	printf_P(PSTR("Int Temp (TCN75) : %.1f °C\n"), tcn75_int16tofloat(temp));
 }
 
+static void ll_int0_init(bool pullup)
+{
+	/* INT0 is PortD bit 2 = PD2 */
+	DDRD &= ~(1 << DDD2);
+
+	/* COnfigure pullup (Datasheet page 76) :
+	 * 
+	 * "If PORTxn is written logic one when the pin is configured as an input pin, 
+	 * the pull-up resistor is activated. To switch the pull-up resistor off, 
+	 * PORTxn has to be written logic zero or the pin has to be configured as 
+	 * an output pin. The port pins are tri-stated when reset condition 
+	 * becomes active, even if no clocks are running."
+	 */
+	if (pullup) {
+		PORTD |= (1 << PORTD2);
+	} else {
+		PORTD &= ~(1 << PORTD2);
+	}
+}
+
+static void ll_int1_init(bool pullup)
+{
+	/* INT0 is PortD bit 3 = PD3 */
+	DDRD &= ~(1 << DDD3);
+
+	/* COnfigure pullup (Datasheet page 76) :
+	 * 
+	 * "If PORTxn is written logic one when the pin is configured as an input pin, 
+	 * the pull-up resistor is activated. To switch the pull-up resistor off, 
+	 * PORTxn has to be written logic zero or the pin has to be configured as 
+	 * an output pin. The port pins are tri-stated when reset condition 
+	 * becomes active, even if no clocks are running."
+	 */
+	if (pullup) {
+		PORTD |= (1 << PORTD3);
+	} else {
+		PORTD &= ~(1 << PORTD3);
+	}
+}
+
 void custompcb_hw_init(void)
 {
 	ll_relays_init();
-	ll_inputs_init();
+	ll_inputs_init(true);
+	ll_int0_init(true);
+	ll_int1_init(true); /* INT1 is unused */
 	ll_oc_init();
 	ll_i2c_init();
 	dev_tcn75_init();

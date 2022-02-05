@@ -18,6 +18,9 @@ static volatile struct board_dio dio;
 
 ISR(PCINT2_vect)
 {
+#if DEBUG_INT
+	usart_transmit('@');
+#endif 
 	inputs_changed = true;
 	dio.inputs = ll_inputs_read();
 }

@@ -58,6 +58,10 @@ void can_init(void)
 ISR(INT0_vect)
 {
 	trigger_process();
+
+#if DEBUG_INT
+	usart_transmit('%');
+#endif 
 }
 
 int can_recv(can_message *msg)
