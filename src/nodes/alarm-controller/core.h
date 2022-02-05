@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+#define OUTDOOR_LIGHT_1 	OC1
+#define OUTDOOR_LIGHT_2 	OC2
+
 /* tells who was the last to control the lights */
 enum ctrl_source
 {
@@ -19,8 +22,6 @@ enum ctrl_source
 };
 
 void commands_lights_from(uint8_t oc, caniot_light_cmd_t cmd, enum ctrl_source src);
-
-enum ctrl_source lights_get_last_ctrl_source(void);
 
 #ifdef __cplusplus
 }

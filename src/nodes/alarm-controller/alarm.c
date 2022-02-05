@@ -318,8 +318,10 @@ static int alarm_state_machine(void)
 	case observing:
 	{
 		if (alarm_inputs_status() == false) {
-			commands_lights_from(OC1, CANIOT_LIGHT_CMD_ON, SRC_ALARM_CONTROLLER);
-			commands_lights_from(OC2, CANIOT_LIGHT_CMD_ON, SRC_ALARM_CONTROLLER);
+			commands_lights_from(OUTDOOR_LIGHT_1, CANIOT_LIGHT_CMD_ON,
+					     SRC_ALARM_CONTROLLER);
+			commands_lights_from(OUTDOOR_LIGHT_2, CANIOT_LIGHT_CMD_ON,
+					     SRC_ALARM_CONTROLLER);
 
 			set_state(sounding);
 		} else {
@@ -332,8 +334,10 @@ static int alarm_state_machine(void)
 		siren_state_machine();
 
 		if (siren_state == waiting && alarm_inputs_status() == true) {
-			commands_lights_from(OC1, CANIOT_LIGHT_CMD_OFF, SRC_ALARM_CONTROLLER);
-			commands_lights_from(OC1, CANIOT_LIGHT_CMD_OFF, SRC_ALARM_CONTROLLER);
+			commands_lights_from(OUTDOOR_LIGHT_1, CANIOT_LIGHT_CMD_OFF,
+					     SRC_ALARM_CONTROLLER);
+			commands_lights_from(OUTDOOR_LIGHT_2, CANIOT_LIGHT_CMD_OFF,
+					     SRC_ALARM_CONTROLLER);
 
 			set_state(observing);
 		} else if (siren_state == terminated) {
@@ -351,8 +355,10 @@ static int alarm_state_machine(void)
 		    (k_uptime_get_ms64() - recovering_time > AUTO_RESET_DURATION)) {
 			siren_reset();
 			
-			commands_lights_from(OC1, CANIOT_LIGHT_CMD_OFF, SRC_ALARM_CONTROLLER);
-			commands_lights_from(OC1, CANIOT_LIGHT_CMD_OFF, SRC_ALARM_CONTROLLER);
+			commands_lights_from(OUTDOOR_LIGHT_1, CANIOT_LIGHT_CMD_OFF,
+					     SRC_ALARM_CONTROLLER);
+			commands_lights_from(OUTDOOR_LIGHT_2, CANIOT_LIGHT_CMD_OFF,
+					     SRC_ALARM_CONTROLLER);
 
 			set_state(alarm_inputs_status() ? observing : inactive);
 		}
@@ -425,9 +431,15 @@ void alarm_set_mode(alarm_mode_t new_mode)
 	}
 
 	switch (new_mode) {
+
+	/* changing mode to normal resets the state of the alarm state machine
+	 * but keep the alarm enable if it was enabled */
 	case ALARM_MODE_NORMAL:
-		alarm_reset(); /* reset alarm */
+		alarm_reset();
 		break;
+	
+	/* set alarm to silent mode, keep the state machine 
+	 * running but mute the siren */
 	case ALARM_MODE_SILENT:
 		stop_sound();
 		break;

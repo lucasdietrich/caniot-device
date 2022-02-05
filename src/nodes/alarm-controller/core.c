@@ -17,9 +17,6 @@
 
 #include "alarm.h"
 
-#define OUTDOOR_LIGHT_1 	OC1
-#define OUTDOOR_LIGHT_2 	OC2
-
 struct caniot_CRTHPT_ALARM {
 	union {
 		struct {
@@ -94,23 +91,25 @@ static void command_lights(uint8_t oc, caniot_light_cmd_t cmd)
 	}
 }
 
-static enum ctrl_source lights_control_source = SRC_USER;
+static enum ctrl_source lights_control_source[3] = {SRC_USER, SRC_USER, SRC_USER};
 
 void commands_lights_from(uint8_t oc, caniot_light_cmd_t cmd, enum ctrl_source src)
 {
-	if ((src == SRC_ALARM_CONTROLLER) && (cmd == 0)
-	    && (lights_control_source == SRC_USER)) {
-		return; /* to nothing */
+	/* CANIOT_LIGHT_CMD_NONE command has no effect so is ignored */
+	if ((oc > OC2) || (cmd == CANIOT_LIGHT_CMD_NONE)) {
+		return;
 	}
 
-	lights_control_source = src;
+	/* alarm don't have the priority over user */
+	if ((src == SRC_ALARM_CONTROLLER) && (cmd == CANIOT_LIGHT_CMD_OFF)
+	    && (lights_control_source[oc] == SRC_USER)) {
+		    printf_P(PSTR("alarm don't have the priority over user\n"));
+		return;
+	}
+
+	lights_control_source[oc] = src;
 
 	command_lights(oc, cmd);
-}
-
-enum ctrl_source lights_get_last_ctrl_source(void)
-{
-	return lights_control_source;
 }
 
 static void command_alarm(alarm_cmd_t cmd)
