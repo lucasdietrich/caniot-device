@@ -5,7 +5,7 @@ HOSTNAME = "192.168.10.154"
 USER = "pi"
 PASSWORD = "pip23"
 
-project_name = "RELEASE-AlarmController"
+project_name = "AlarmController" # RELEASE-AlarmController
 
 files = {
 	"hex":
@@ -39,7 +39,7 @@ for file in files.values():
 
 
 # flash
-flash_command = f"avrdude -c wiring -p {board} -P {port} -U flash:w:{files['hex']['remote']}"
+flash_command = f"avrdude -c arduino -p {board} -P {port} -U flash:w:{files['hex']['remote']}"
 result = conn.sudo(flash_command, hide=True, warn=True)
 
 if result.return_code != 0:

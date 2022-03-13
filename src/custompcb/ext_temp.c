@@ -128,6 +128,7 @@ bool ow_ext_get(int16_t *temp)
 		break;
 	}
 
+	// check if measured value is outdated
 	if (ow_ext_tmp != OW_EXT_INVALID_VALUE) {
 		if (now - last_meas < OW_EXT_TMP_MEASURE_OUTDATED_SEC) {
 			if (temp != NULL) {

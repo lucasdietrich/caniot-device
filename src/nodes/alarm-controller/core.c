@@ -62,10 +62,14 @@ int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t 
 	INTERPRET_CMD(buf)->status.alarm_inputs_status = alarm_inputs_status() ? 1 : 0;
 
 	const int16_t temperature = dev_int_temperature();
-	AS_CRTHPT(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);
+	INTERPRET_CMD(buf)->measurements.int_temperature = caniot_dt_T16_to_Temp(temperature);
+
+#if DEBUG
+	print_T16(temperature);
+#endif /* DEBUG */
 
 	int16_t temp;
-	AS_CRTHPT(buf)->ext_temperature = ow_ext_get(&temp) ?
+	INTERPRET_CMD(buf)->measurements.ext_temperature = ow_ext_get(&temp) ?
 		caniot_dt_T16_to_Temp(temp) : CANIOT_DT_T10_INVALID;
 
 	*len = 8;

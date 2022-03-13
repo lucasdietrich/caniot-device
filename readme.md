@@ -21,6 +21,14 @@
 - ~~Implement precision uptime~~
 - Implement invalid value handling for telemetry (e.g. temperature, etc...)
 
+## Monitor using screen (on linux)
+
+```
+screen /dev/ttyACM0 115200
+```
+
+Exit screen with shortcuts : `Ctrl + A` and `Ctrl + \` meaning (AltGr + 8), then `y`.
+
 ## 1. Garage Door Controller
 
 ## 2. Alarm Controller
