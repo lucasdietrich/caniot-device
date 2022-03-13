@@ -64,7 +64,7 @@ static void measurement_handler(struct k_work *w)
 
 	if (ow_ds_read(&raw) == true) {
 		ctx->temperature = ow_ds_raw_to_T16(raw);
-#if DEBUG
+#if DEBUG_OW
 		printf_P(PSTR("DS18B20: Temperature : %.2f °C\n"),
 			      ow_ds_raw2float(raw));
 #endif /* DEBUG */
@@ -84,7 +84,7 @@ bool ow_ext_get(int16_t *temp)
 
 	static unsigned int tries_remaining = OW_EXT_RETRIES_ON_ERROR;
 
-#if DEBUG
+#if DEBUG_OW
 	printf_P(PSTR("OW DS: state = %d now = %lu last_meas = %lu ow_ext_tmp = %d\n"),
 		 state, now, last_meas, ow_ext_tmp);
 #endif 

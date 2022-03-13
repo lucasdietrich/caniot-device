@@ -172,30 +172,6 @@ static inline void ll_i2c_init(void)
 	Wire.begin();
 }
 
-static inline void dev_tcn75_init(void)
-{
-	__ASSERT_INTERRUPT();
-
-	Wire.beginTransmission(TCN75_ADDR);
-	Wire.write((uint8_t)TCN75_TEMPERATURE_REGISTER);
-	Wire.endTransmission();
-}
-
-int16_t dev_tcn75_read(void)
-{
-	uint8_t data[2];
-	int16_t temperature;
-
-	Wire.requestFrom(TCN75_ADDR, 2);
-
-	data[0] = Wire.read();
-	data[1] = Wire.read();
-
-	temperature = tcn75_temp2int16(data[0], data[1]);
-
-	return temperature;
-}
-
 void print_T16(int16_t temp)
 {
 	printf_P(PSTR("Int Temp (TCN75) : %.1f °C\n"), tcn75_int16tofloat(temp));
@@ -249,7 +225,8 @@ void custompcb_hw_init(void)
 	ll_int1_init(true); /* INT1 is unused */
 	ll_oc_init();
 	ll_i2c_init();
-	dev_tcn75_init();
+
+	tcn75_init();
 }
 
 /* print board_dio struct */

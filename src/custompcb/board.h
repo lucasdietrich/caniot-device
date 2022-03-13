@@ -67,10 +67,11 @@ struct board_dio ll_read(void);
 void ll_set(struct board_dio state);
 void ll_set_mask(struct board_dio state, struct board_dio mask);
 
-int16_t dev_tcn75_read(void);
+int16_t tcn75_read(void);
+
 static inline int16_t dev_int_temperature(void)
 {
-	return dev_tcn75_read();
+	return tcn75_read();
 }
 
 void print_T16(int16_t temp);

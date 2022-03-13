@@ -64,7 +64,7 @@ int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t 
 	const int16_t temperature = dev_int_temperature();
 	INTERPRET_CMD(buf)->measurements.int_temperature = caniot_dt_T16_to_Temp(temperature);
 
-#if DEBUG
+#if DEBUG_TCN75
 	print_T16(temperature);
 #endif /* DEBUG */
 

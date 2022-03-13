@@ -30,7 +30,7 @@ static inline bool lookup_sensor(struct owdsdev *dev)
 	}
 
 	// print ROM
-#if DEBUG
+#if DEBUG_OW
 	printf_P(PSTR("ROM ="));
 	for (int i = 0; i < 8; i++) {
 		printf_P(PSTR(" %hhx"), (uint8_t)dev->addr[i]);
@@ -40,25 +40,25 @@ static inline bool lookup_sensor(struct owdsdev *dev)
 	// the first ROM byte indicates which chip
 	switch (dev->addr[0]) {
 	case 0x10:
-#if DEBUG
+#if DEBUG_OW
 		printf_P(PSTR(": DS18S20"));  // or old DS1820
 #endif
 		dev->type = 1;
 		break;
 	case 0x28:
-#if DEBUG
+#if DEBUG_OW
 		printf_P(PSTR(": DS18B20")); // current
 #endif
 		dev->type = 0;
 		break;
 	case 0x22:
-#if DEBUG
+#if DEBUG_OW
 		printf_P(PSTR(": DS1822"));
 #endif
 		dev->type = 0;
 		break;
 	default:
-#if DEBUG
+#if DEBUG_OW
 		printf_P(PSTR(": DS???"));
 #endif
 		return false;
