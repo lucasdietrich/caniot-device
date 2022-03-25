@@ -4,6 +4,7 @@
 #include "can.h"
 
 #include <device.h>
+#include <datatype.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,6 +43,10 @@ int config_on_write(struct caniot_device *dev,
 void config_init(void);
 
 void caniot_init(void);
+
+void command_relay(uint8_t relay, caniot_twostate_cmd_t cmd);
+
+void command_opencollector(uint8_t oc, caniot_twostate_cmd_t cmd);
 
 #ifdef __cplusplus
 }

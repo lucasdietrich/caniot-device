@@ -9,23 +9,21 @@ extern "C" {
 
 #define RL1	0
 #define RL2	1
-#define IN0	0
-#define IN1	1
-#define IN2	2
-#define IN3	3
+#define IN1	0
+#define IN2	1
+#define IN3	2
+#define IN4	3
 #define OC1	0
 #define OC2	1
-#define OC3	2
 
-#define RELAY1 0
-#define RELAY2 1
-#define INPUT0 0
-#define INPUT1 1
-#define INPUT2 2
-#define INPUT3 3
-#define OPENCOLLECTOR1 0
-#define OPENCOLLECTOR2 1
-#define OPENCOLLECTOR3 1
+#define RELAY1 RL1
+#define RELAY2 RL2
+#define INPUT1 IN1
+#define INPUT2 IN2
+#define INPUT3 IN3
+#define INPUT4 IN4
+#define OPENCOLLECTOR1 OC1
+#define OPENCOLLECTOR2 OC2
 
 	struct board_dio
 	{
@@ -38,10 +36,10 @@ extern "C" {
 			struct {
 				uint8_t r1 : 1;
 				uint8_t r2 : 1;
-				uint8_t in0 : 1;
 				uint8_t in1 : 1;
 				uint8_t in2 : 1;
 				uint8_t in3 : 1;
+				uint8_t in4 : 1;
 				uint8_t oc1 : 1;
 				uint8_t oc2 : 1;
 			};
@@ -54,6 +52,7 @@ void custompcb_hw_init(void);
 void ll_relays_set(uint8_t state);
 void ll_relays_set_mask(uint8_t state, uint8_t mask);
 uint8_t ll_relays_read(void);
+void ll_relays_toggle_mask(uint8_t mask);
 
 void ll_oc_set(uint8_t state);
 void ll_oc_set_mask(uint8_t state, uint8_t mask);

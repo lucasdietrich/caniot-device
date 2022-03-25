@@ -65,9 +65,9 @@ static union {
 		struct door gate;
 	};
 } doors = {
-	.right = GARAGE_DOOR_INIT(IN3, RL2),
-	.left = GARAGE_DOOR_INIT(IN2, RL1),
-	.gate = GATE_DOOR_INIT(IN1),
+	.right = GARAGE_DOOR_INIT(IN4, RL2),
+	.left = GARAGE_DOOR_INIT(IN3, RL1),
+	.gate = GATE_DOOR_INIT(IN2),
 };
 
 
@@ -83,7 +83,7 @@ void device_init(void)
 		door->state = dio.inputs & BIT(door->inx) ? open : close;
 	}
 
-	ll_inputs_enable_pcint(BIT(IN1) | BIT(IN2) | BIT(IN3));
+	ll_inputs_enable_pcint(BIT(IN2) | BIT(IN3) | BIT(IN4));
 }
 
 static void actuate_door(struct door *door)
@@ -97,9 +97,9 @@ static void actuate_door(struct door *door)
 	}
 }
 
-int command_handler(struct caniot_device *dev,
-			   uint8_t ep, char *buf,
-			   uint8_t len)
+int app_command_handler(struct caniot_device *dev,
+				uint8_t ep, char *buf,
+				uint8_t len)
 {
 	if (AS_CRTHPT(buf)->r1) 
 		actuate_door(&doors.left);
@@ -143,7 +143,7 @@ void inputs_polling_loop(void *ctx)
 	}
 }
 
-int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
+int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
 {
 	ARG_UNUSED(dev);
 

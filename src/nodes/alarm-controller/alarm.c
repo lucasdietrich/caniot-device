@@ -21,7 +21,7 @@ static K_SIGNAL_DEFINE(alarm_process_signal);
 #define RELAY_ALARM_MASK	BIT(RELAY1)
 // #define RELAY_WARN_MASK		RELAY2
 
-#define ALARM_INPUT_ACCEPT_MASK		(BIT(IN0) | BIT(IN1) | BIT(IN2) | BIT(IN3))
+#define ALARM_INPUT_ACCEPT_MASK		(BIT(IN1) | BIT(IN2) | BIT(IN3) | BIT(IN4))
 #define ALARM_INPUT_ACCEPT_FILTER	(0b0000U)
 
 typedef enum { init = 0, ringing, waiting, terminated } siren_state_t; 

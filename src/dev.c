@@ -14,6 +14,7 @@
 
 #include "can.h"
 #include "dev.h"
+#include "custompcb/board.h"
 
 #include <time.h>
 
@@ -154,10 +155,6 @@ const struct caniot_drivers_api drivers = {
 	.send = caniot_send,
 };
 
-extern caniot_telemetry_handler_t telemetry_handler;
-
-extern const caniot_command_handler_t command_handler;
-
 static void sw_reset_work_handler(struct k_work *w)
 {	
 	printf_P(PSTR("Reset (SW) in 1 SEC\n"));
@@ -180,26 +177,93 @@ static struct k_work sw_reset_work = K_WORK_INIT(sw_reset_work_handler);
 
 static struct k_work wdt_reset_work = K_WORK_INIT(wdt_reset_work_handler);
 
-static int control_handler(struct caniot_device *dev,
-			   char *buf,
-			   uint8_t len)
+// usage command_relay(RL1, CANIOT_TS_CMD_TOGGLE);
+void command_relay(uint8_t relay, caniot_twostate_cmd_t cmd)
+{
+	switch (cmd) {
+	case CANIOT_TS_CMD_ON:
+		ll_relays_set_mask(1, BIT(relay));
+		break;
+	case CANIOT_TS_CMD_OFF:
+		ll_relays_set_mask(0, BIT(relay));
+		break;
+	case CANIOT_TS_CMD_TOGGLE:
+		ll_relays_toggle_mask(BIT(relay));
+		break;
+	default:
+		break;
+	}
+}
+
+// usage command_opencollector(OC2, CANIOT_TS_CMD_TOGGLE);
+void command_opencollector(uint8_t oc, caniot_twostate_cmd_t cmd)
+{
+	switch (cmd) {
+	case CANIOT_TS_CMD_ON:
+		ll_oc_set_mask(1, BIT(oc));
+		break;
+	case CANIOT_TS_CMD_OFF:
+		ll_oc_set_mask(0, BIT(oc));
+		break;
+	case CANIOT_TS_CMD_TOGGLE:
+		ll_oc_toggle_mask(BIT(oc));
+		break;
+	default:
+		break;
+	}
+}
+
+static int board_control_telemetry_handler(struct caniot_device *dev,
+					 char *buf,
+					 uint8_t *len)
+{
+	struct board_dio dio = ll_read();
+
+	AS_BOARD_CONTROL_TELEMETRY(buf)->r1 = dio.r1;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->r2 = dio.r2;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->oc1 = dio.oc1;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->oc2 = dio.oc2;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->in1 = dio.in1;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->in2 = dio.in2;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->in3 = dio.in3;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->in4 = dio.in4;
+
+	const int16_t temperature = dev_int_temperature();
+	AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);
+
+	// todo
+	AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature = CANIOT_DT_T10_INVALID;
+
+	*len = sizeof(struct caniot_board_control_telemetry);
+
+	return 0;
+}
+
+static int board_control_command_handler(struct caniot_device *dev,
+				       char *buf,
+				       uint8_t len)
 {
 	int ret;
 
-	if (AS_CONTROL_CMD(buf)->watchdog_reset == CANIOT_OS_CMD_SET ||
-	    AS_CONTROL_CMD(buf)->reset == CANIOT_OS_CMD_SET) {
+	command_relay(RL1, AS_BOARD_CONTROL_CMD(buf)->r1);
+	command_relay(RL2, AS_BOARD_CONTROL_CMD(buf)->r2);
+	command_opencollector(OC1, AS_BOARD_CONTROL_CMD(buf)->oc1);
+	command_opencollector(OC2, AS_BOARD_CONTROL_CMD(buf)->oc2);
+
+	if (AS_BOARD_CONTROL_CMD(buf)->watchdog_reset == CANIOT_SS_CMD_SET ||
+	    AS_BOARD_CONTROL_CMD(buf)->reset == CANIOT_SS_CMD_SET) {
 		if (WDTCSR & BIT(WDE)) {
 			ret = k_system_workqueue_submit(&wdt_reset_work) == true ? 0 : -EINVAL;
 		} else {
 			printf_P(PSTR("Watchdog not enabled\n"));
 			ret = -EINVAL;
 		}
-	} else 	if (AS_CONTROL_CMD(buf)->software_reset == CANIOT_OS_CMD_SET) {
+	} else 	if (AS_BOARD_CONTROL_CMD(buf)->software_reset == CANIOT_SS_CMD_SET) {
 		ret = k_system_workqueue_submit(&sw_reset_work) == true ? 0 : -EINVAL;
-	} else if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_ON) {
+	} else if (AS_BOARD_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_ON) {
 		wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 		ret = 0;
-	} else if (AS_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_OFF) {
+	} else if (AS_BOARD_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_OFF) {
 		wdt_disable();
 		ret = 0;
 	}
@@ -207,11 +271,37 @@ static int control_handler(struct caniot_device *dev,
 	return ret;
 }
 
+extern const caniot_telemetry_handler_t app_telemetry_handler;
+
+extern const caniot_command_handler_t app_command_handler;
+
+int telemetry_handler(struct caniot_device *dev,
+		      uint8_t ep, char *buf,
+		      uint8_t *len)
+{
+	if (ep == endpoint_board_control) {
+		return board_control_telemetry_handler(dev, buf, len);
+	} else {
+		return app_telemetry_handler(dev, ep, buf, len);
+	}
+}
+
+int command_handler(struct caniot_device *dev,
+		    uint8_t ep,
+		    char *buf,
+		    uint8_t len)
+{
+	if (ep == endpoint_board_control) {
+		return board_control_command_handler(dev, buf, len);
+	} else {
+		return app_command_handler(dev, ep, buf, len);
+	}
+}
 
 /* contain default config */
 extern struct caniot_config config;
 
-const struct caniot_api api = CANIOT_API_STD_INIT(command_handler, telemetry_handler, control_handler,
+const struct caniot_api api = CANIOT_API_STD_INIT(command_handler, telemetry_handler,
 						  config_on_read, config_on_write);
 
 struct caniot_device device = {

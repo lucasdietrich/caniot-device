@@ -24,6 +24,7 @@
         "board.h": "c",
         "app_utils.h": "c",
         "time.h": "c",
-        "wdt.h": "c"
+        "wdt.h": "c",
+        "caniot_errors.h": "c"
     }
 }

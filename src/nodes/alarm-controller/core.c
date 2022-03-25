@@ -51,7 +51,7 @@ struct caniot_CRTHPT_ALARM {
 #define INTERPRET_CMD(buf) \
 	AS(buf, caniot_CRTHPT_ALARM)
 
-int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
+int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
 {
 	const uint8_t lights = ll_oc_read();
 	INTERPRET_CMD(buf)->status.light1 = (lights >> OUTDOOR_LIGHT_1) & 1;
@@ -77,24 +77,6 @@ int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t 
 	return 0;
 }
 
-static void command_lights(uint8_t oc, caniot_light_cmd_t cmd)
-{
-	const uint8_t mask = BIT(oc);
-	switch (cmd) {
-	case CANIOT_LIGHT_CMD_ON:
-		ll_oc_set_mask(mask, mask);
-		break;
-	case CANIOT_LIGHT_CMD_OFF:
-		ll_oc_set_mask(0, mask);
-		break;
-	case CANIOT_LIGHT_CMD_TOGGLE:
-		ll_oc_toggle_mask(mask);
-		break;
-	default:
-		break;
-	}
-}
-
 static enum ctrl_source lights_control_source[3] = {SRC_USER, SRC_USER, SRC_USER};
 
 void commands_lights_from(uint8_t oc, caniot_light_cmd_t cmd, enum ctrl_source src)
@@ -113,7 +95,7 @@ void commands_lights_from(uint8_t oc, caniot_light_cmd_t cmd, enum ctrl_source s
 
 	lights_control_source[oc] = src;
 
-	command_lights(oc, cmd);
+	command_opencollector(oc, cmd);
 }
 
 static void command_alarm(alarm_cmd_t cmd)
@@ -164,7 +146,10 @@ static void command_siren(caniot_twostate_cmd_t cmd)
 	}
 }
 
-int command_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t len)
+int app_command_handler(struct caniot_device *dev,
+				uint8_t ep,
+				char *buf,
+				uint8_t len)
 {
 	ARG_UNUSED(dev);
 
@@ -200,7 +185,6 @@ void device_process(void)
 
 		trigger_telemetry();
 	}
-	
 }
 
 struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();
