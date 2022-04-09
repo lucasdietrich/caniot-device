@@ -28,6 +28,9 @@ extern "C" {
 /* PB1 */
 #define OW_ARDUINO_PIN	9
 
+#define OW_EXT_TMP_RETRY_PERIOD 5000LU
+#define OW_EXT_TMP_MEASURE_PERIOD 5000LU
+
 bool ll_ow_ds_init(void);
 
 bool ow_ds_read(int16_t *raw);

@@ -1,10 +1,24 @@
 #ifndef _CANIOT_DEV_DEV_H_
 #define _CANIOT_DEV_DEV_H_
 
-#include "can.h"
+#include <time.h>
 
+#include <avr/pgmspace.h>
+#include <avr/eeprom.h>
+#include <avr/wdt.h>
+#include <util/delay.h>
+
+#include <avrtos/kernel.h>
+
+#include <caniot.h>
 #include <device.h>
 #include <datatype.h>
+
+#include "can.h"
+#include "custompcb/board.h"
+#include "custompcb/ext_temp.h"
+
+#include "config.h"
 
 #ifdef __cplusplus
 extern "C" {

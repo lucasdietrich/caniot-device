@@ -6,6 +6,7 @@
 #include <device.h>
 
 #include "custompcb/board.h"
+#include "custompcb/ext_temp.h"
 
 #include <time.h>
 #include <avr/io.h>
@@ -17,6 +18,8 @@
 #include "can.h"
 #include "supervision.h"
 
+#include "config.h"
+
 #define K_MODULE K_MODULE_APPLICATION
 
 __attribute__ ((weak)) void device_init(void) { }
@@ -26,7 +29,7 @@ __attribute__ ((weak)) void device_process(void) { }
  * Max interval between two device_process() calls (ms)
  * Note: Should be choiced carefully, because of the watchdog timer.
  */
-uint32_t max_process_interval = MIN(1000, WATCHDOG_TIMEOUT_MS);
+uint32_t max_process_interval = MIN(1000, WATCHDOG_TIMEOUT_MS / 2);
 
 K_KERNEL_LINK_INIT();
 
@@ -56,7 +59,7 @@ int main(void)
 	can_init();
 	config_init();
 	caniot_init();
-	
+
 	/* Specific application initialization */
 	device_init();
 
@@ -86,6 +89,8 @@ int main(void)
 
 		/* I'm alive ! */
 		alive(tid);
+
+		custompcb_hw_process();
 
 		/* Application specific processing before CANIOT process*/
 		device_process();

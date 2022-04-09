@@ -25,6 +25,10 @@
         "app_utils.h": "c",
         "time.h": "c",
         "wdt.h": "c",
-        "caniot_errors.h": "c"
+        "caniot_errors.h": "c",
+        "debug.h": "c",
+        "uart.h": "c",
+        "supervision.h": "c",
+        "config.h": "c"
     }
 }

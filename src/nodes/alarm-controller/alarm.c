@@ -191,6 +191,7 @@ ISR(PCINT0_vect) {
 #if DEBUG_INT
 	usart_transmit('*');
 #endif 
+	trigger_telemetry();
 
 	k_signal_raise(&alarm_process_signal, PCINT0_vect_num);
 }
@@ -199,7 +200,8 @@ ISR(PCINT2_vect) {
 #if DEBUG_INT
 	usart_transmit('$');
 #endif 
-
+	trigger_telemetry();
+	
 	k_signal_raise(&alarm_process_signal, PCINT2_vect_num);
 }
 

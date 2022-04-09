@@ -68,9 +68,14 @@ int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint
 	print_T16(temperature);
 #endif /* DEBUG */
 
+#if CONFIG_APP_OW_EXTTEMP
 	int16_t temp;
-	INTERPRET_CMD(buf)->measurements.ext_temperature = ow_ext_get(&temp) ?
+	const bool ow_status = ow_ext_get(&temp);
+	INTERPRET_CMD(buf)->measurements.ext_temperature = ow_status ?
 		caniot_dt_T16_to_Temp(temp) : CANIOT_DT_T10_INVALID;
+#else
+	INTERPRET_CMD(buf)->measurements.ext_temperature = CANIOT_DT_T10_INVALID;
+#endif 
 
 	*len = 8;
 
@@ -165,26 +170,20 @@ int app_command_handler(struct caniot_device *dev,
 	return 0;
 }
 
-#define OW_EXT_TMP_RETRY_PERIOD 5000LU
-#define OW_EXT_TMP_MEASURE_PERIOD 5000LU
-
-static bool last_ext_temp_status = false;
-
-void device_init(void)
-{	
-	last_ext_temp_status = ow_ext_wait_init(K_SECONDS(10));
-
-	printf_P(PSTR("<drv> Ext temp sensor "));
-	printf_P(last_ext_temp_status ? PSTR("FOUND\n") : PSTR("NOT found\n"));
-}
-
-void device_process(void)
-{
-	if (last_ext_temp_status != ow_ext_get(NULL)) {
-		last_ext_temp_status = !last_ext_temp_status;
-
-		trigger_telemetry();
-	}
-}
-
-struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();
+struct caniot_config config = {
+	.telemetry = {
+		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT,
+		.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,
+		.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT,
+	},
+	.flags = {
+		.error_response = 1u,
+		.telemetry_delay_rdm = 1u,
+		.telemetry_endpoint = endpoint_app
+	},
+	.timezone = CANIOT_TIMEZONE_DEFAULT,
+	.location = {
+		.region = CANIOT_LOCATION_REGION_DEFAULT,
+		.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
+	}, 
+};

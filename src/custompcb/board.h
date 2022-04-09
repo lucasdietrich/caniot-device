@@ -49,6 +49,8 @@ extern "C" {
 
 void custompcb_hw_init(void);
 
+void custompcb_hw_process(void);
+
 void ll_relays_set(uint8_t state);
 void ll_relays_set_mask(uint8_t state, uint8_t mask);
 uint8_t ll_relays_read(void);

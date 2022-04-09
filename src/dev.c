@@ -1,22 +1,4 @@
-#include "device.h"
-
-#include <avr/pgmspace.h>
-#include <avr/eeprom.h>
-#include <avr/wdt.h>
-
-#include <avrtos/kernel.h>
-
-#include <caniot.h>
-#include <device.h>
-#include <datatype.h>
-
-#include <util/delay.h>
-
-#include "can.h"
 #include "dev.h"
-#include "custompcb/board.h"
-
-#include <time.h>
 
 K_SIGNAL_DEFINE(caniot_process_sig);
 
@@ -182,7 +164,7 @@ void command_relay(uint8_t relay, caniot_twostate_cmd_t cmd)
 {
 	switch (cmd) {
 	case CANIOT_TS_CMD_ON:
-		ll_relays_set_mask(1, BIT(relay));
+		ll_relays_set_mask(BIT(relay), BIT(relay));
 		break;
 	case CANIOT_TS_CMD_OFF:
 		ll_relays_set_mask(0, BIT(relay));
@@ -200,7 +182,7 @@ void command_opencollector(uint8_t oc, caniot_twostate_cmd_t cmd)
 {
 	switch (cmd) {
 	case CANIOT_TS_CMD_ON:
-		ll_oc_set_mask(1, BIT(oc));
+		ll_oc_set_mask(BIT(oc), BIT(oc));
 		break;
 	case CANIOT_TS_CMD_OFF:
 		ll_oc_set_mask(0, BIT(oc));
@@ -231,10 +213,16 @@ static int board_control_telemetry_handler(struct caniot_device *dev,
 	const int16_t temperature = dev_int_temperature();
 	AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);
 
-	// todo
-	AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature = CANIOT_DT_T10_INVALID;
-
-	*len = sizeof(struct caniot_board_control_telemetry);
+	int16_t temp;
+	if (CONFIG_APP_OW_EXTTEMP && (ow_ext_get(&temp) == true)) {
+		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature =
+			caniot_dt_T16_to_Temp(temp);
+	} else {
+		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature = 
+			CANIOT_DT_T10_INVALID;
+	}
+	
+	*len = 8U;
 
 	return 0;
 }
