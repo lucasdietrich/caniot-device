@@ -86,7 +86,7 @@ int main(void)
 				get_telemetry_timeout(),
 				pulse_remaining()
 			));
-		printf_P(PSTR("timeout_ms = %lu\n"), timeout_ms);
+		// printf_P(PSTR("timeout_ms = %lu\n"), timeout_ms);
 		
 		/* set unready after processing,
 		 * as some functions called may trigger the signal 
@@ -113,7 +113,7 @@ int main(void)
 
 		do {
 			ret = caniot_process();
-			if (ret != 0 &&ret != -CANIOT_EAGAIN) {
+			if (ret != 0 && ret != -CANIOT_EAGAIN) {
 				// show error
 				caniot_show_error(ret);
 			}
