@@ -22,7 +22,11 @@
 #define K_MODULE_LL    0x22
 #define K_MODULE K_MODULE_LL
 
-#define PORTC_OUTPUT_MASK ((1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3))
+// TODO enable DDC2 !!!!
+#warning TODO enable DDC2
+// #define PORTC_OUTPUT_MASK ((1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3))
+
+#define PORTC_OUTPUT_MASK ((1 << DDC0) | (1 << DDC1) | (1 << DDC3))
 
 void ll_outputs_init(void)
 {

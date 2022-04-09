@@ -42,4 +42,11 @@ bool pulse_is_active(output_t pin);
  */
 void pulse_process(uint32_t time_passed_ms);
 
+/**
+ * @brief Get time until next event
+ * 
+ * @return uint32_t 
+ */
+uint32_t pulse_remaining(void);
+
 #endif /* _CUSTOMPCB_PULSE_H_ */

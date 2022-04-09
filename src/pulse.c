@@ -7,6 +7,8 @@
 
 #include <avr/io.h>
 
+#include "dev.h"
+
 #define K_MODULE K_MODULE_APPLICATION
 
 #if CONFIG_GPIO_PULSE_SUPPORT
@@ -42,7 +44,7 @@ static struct pulse_event *get_event(output_t pin)
 
 static inline void output_set_state(output_t pin, bool state)
 {
-	ll_outputs_set_mask(BIT(pin), state ? BIT(pin) : 0U);
+	ll_outputs_set_mask(state ? BIT(pin) : 0U, BIT(pin));
 }
 
 /**
@@ -121,18 +123,42 @@ void pulse_process(uint32_t time_passed_ms)
 	PULSE_CONTEXT_LOCK();
 
 	struct titem *tie = NULL;
+	bool trigger = false;
 
 	tqueue_shift(&ev_queue, time_passed_ms);
 
 	while ((tie = tqueue_pop(&ev_queue)) != NULL) {
 		struct pulse_event *ev = EVENT_FROM_TIE(tie);
+
 		ev->scheduled = 0U;
 		output_set_state(EVENT_TO_PIN(ev),
 				 (bool)ev->reset_state);
+		
+		trigger = true;
+	}
+	
+	/* if at least one event has been dequeue, request telemetry */
+	if (trigger == true) {
+		trigger_telemetry();
 	}
 
 
 	PULSE_CONTEXT_UNLOCK();
+}
+
+uint32_t pulse_remaining(void)
+{
+	uint32_t remaining = -1;
+
+	PULSE_CONTEXT_LOCK();
+
+	if (ev_queue != NULL) {
+		remaining = (*ev_queue).timeout;
+	}
+
+	PULSE_CONTEXT_UNLOCK();
+
+	return remaining;
 }
 
 #endif

@@ -30,7 +30,7 @@ __attribute__ ((weak)) void app_process(void) { }
  * Max interval between two app_process() calls (ms)
  * Note: Should be choiced carefully, because of the watchdog timer.
  */
-uint32_t max_process_interval = MIN(1000, WATCHDOG_TIMEOUT_MS / 2);
+const uint32_t max_process_interval = MIN(1000, WATCHDOG_TIMEOUT_MS / 2);
 
 K_KERNEL_LINK_INIT();
 
@@ -72,12 +72,21 @@ int main(void)
 	// k_thread_dump_all();
 	print_indentification();
 
+	uint32_t pulse_process_time = k_uptime_get_ms32();
+
 	int ret;
 	for (;;) {
-		/* Estimate time to next periodic telemetry event.
-		 * - Timeout is majorated by the maximum interval between two app_process() calls.
+		/* Estimate time to next event :
+		 * - Thread alive (for watchdog timeout)
+		 * - Caniot telemetry
+		 * - Pulse event
 		 */
-		const uint32_t timeout_ms = MIN(get_timeout(), max_process_interval);
+		const uint32_t timeout_ms = MIN(
+			max_process_interval, MIN(
+				get_telemetry_timeout(),
+				pulse_remaining()
+			));
+		printf_P(PSTR("timeout_ms = %lu\n"), timeout_ms);
 		
 		/* set unready after processing,
 		 * as some functions called may trigger the signal 
@@ -92,9 +101,12 @@ int main(void)
 		/* I'm alive ! */
 		alive(tid);
 
-		// custompcb_hw_process();
-
-		// device_process();
+		uint32_t now_ms = k_uptime_get_ms32();
+		pulse_process(now_ms - pulse_process_time);
+		pulse_process_time = now_ms;
+			
+		/* any processing related to the custom PCB */
+		custompcb_hw_process();
 
 		/* Application specific processing before CANIOT process*/
 		app_process();

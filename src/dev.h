@@ -47,7 +47,7 @@ static inline void trigger_process(void)
 
 int caniot_process(void);
 
-uint32_t get_timeout(void);
+uint32_t get_telemetry_timeout(void);
 						  
 int config_on_read(struct caniot_device *dev,
 		   struct caniot_config *config);

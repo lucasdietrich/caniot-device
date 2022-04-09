@@ -201,7 +201,7 @@ static int board_control_command_handler(struct caniot_device *dev,
 					 char *buf,
 					 uint8_t len)
 {
-	int ret;
+	int ret = 0;
 
 	command_output(OC1, AS_BOARD_CONTROL_CMD(buf)->coc1);
 	command_output(OC2, AS_BOARD_CONTROL_CMD(buf)->coc2);
@@ -294,7 +294,7 @@ void command_output(output_t pin, caniot_complex_digital_cmd_t cmd)
 		ll_outputs_set_mask(BIT(pin), BIT(pin));
 		break;
 	case CANIOT_XPS_SET_OFF:
-		ll_outputs_set_mask(BIT(pin), 0U);
+		ll_outputs_set_mask(0U, BIT(pin));
 		break;
 	case CANIOT_XPS_TOGGLE:
 		ll_outputs_toggle_mask(BIT(pin));
@@ -338,7 +338,7 @@ int caniot_process(void)
 	return caniot_device_process(&device);
 }
 
-uint32_t get_timeout(void)
+uint32_t get_telemetry_timeout(void)
 {
 	return caniot_device_telemetry_remaining(&device);
 }
@@ -445,14 +445,4 @@ void caniot_init(void)
 	set_zone(device.config->timezone);
 	
 	caniot_app_init(&device);
-}
-
-void device_init(void)
-{
-	
-}
-
-void device_process(void)
-{
-
 }
