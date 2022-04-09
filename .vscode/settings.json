@@ -29,6 +29,7 @@
         "debug.h": "c",
         "uart.h": "c",
         "supervision.h": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "tqueue.h": "c"
     }
 }

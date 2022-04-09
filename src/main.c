@@ -17,16 +17,17 @@
 #include "dev.h"
 #include "can.h"
 #include "supervision.h"
+#include "pulse.h"
 
 #include "config.h"
 
 #define K_MODULE K_MODULE_APPLICATION
 
-__attribute__ ((weak)) void device_init(void) { }
-__attribute__ ((weak)) void device_process(void) { }
+__attribute__ ((weak)) void app_init(void) { }
+__attribute__ ((weak)) void app_process(void) { }
 
 /* 
- * Max interval between two device_process() calls (ms)
+ * Max interval between two app_process() calls (ms)
  * Note: Should be choiced carefully, because of the watchdog timer.
  */
 uint32_t max_process_interval = MIN(1000, WATCHDOG_TIMEOUT_MS / 2);
@@ -45,23 +46,24 @@ int main(void)
 	/* Enable watchdog */
 	wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 
+	/* as we don't (always) use mutex/semaphore to synchronize threads 
+	 * we need the initialization to not be preempted.
+	 */
+	__ASSERT_SCHED_LOCKED();
+
 	/* Following initialization require interrupts to be enabled
 	 * because they use Arduino millis()/micros() functions to calculate delays.
 	 */	
 	irq_enable();
 
-	/* as we don't use mutex/semaphore to synchronize threads 
-	 * we need the initialization to not be preemptive.
-	 */
-	__ASSERT_SCHED_LOCKED();
-
 	custompcb_hw_init();
+	pulse_init();
 	can_init();
 	config_init();
 	caniot_init();
 
 	/* Specific application initialization */
-	device_init();
+	app_init();
 
 	/* send telemetry on startup */
 	trigger_telemetry();
@@ -73,7 +75,7 @@ int main(void)
 	int ret;
 	for (;;) {
 		/* Estimate time to next periodic telemetry event.
-		 * - Timeout is majorated by the maximum interval between two device_process() calls.
+		 * - Timeout is majorated by the maximum interval between two app_process() calls.
 		 */
 		const uint32_t timeout_ms = MIN(get_timeout(), max_process_interval);
 		
@@ -90,10 +92,12 @@ int main(void)
 		/* I'm alive ! */
 		alive(tid);
 
-		custompcb_hw_process();
+		// custompcb_hw_process();
+
+		// device_process();
 
 		/* Application specific processing before CANIOT process*/
-		device_process();
+		app_process();
 
 		do {
 			ret = caniot_process();
@@ -102,11 +106,13 @@ int main(void)
 				caniot_show_error(ret);
 			}
 
-			/* let CAN TX thread to send pending CAN messages if any */
-			k_yield();
-			
 			/* I'm alive ! */
 			alive(tid);
+
+			/* let CAN TX thread send pending CAN messages if any 
+			 * before handling the next message
+			 */
+			k_yield();
 
 		} while (ret != -CANIOT_EAGAIN);
 	}

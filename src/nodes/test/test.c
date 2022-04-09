@@ -27,14 +27,14 @@ static int telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, u
 	return 0;
 }
 
-void device_init(void)
+void app_init(void)
 {
 	ll_inputs_enable_pcint(BIT(IN1) | BIT(IN2) | BIT(IN3) | BIT(IN4));
 }
 
-void device_process(void)
+void app_process(void)
 {
-	printf_P(PSTR("device_process()\n"));	
+	printf_P(PSTR("app_process()\n"));	
 }
 
 struct caniot_config config = CANIOT_CONFIG_DEFAULT_INIT();

@@ -50,7 +50,7 @@ const struct caniot_api api = {
 	.telemetry = telemetry_handler
 };
 
-void device_init(void)
+void app_init(void)
 {
 	
 }

@@ -22,13 +22,14 @@
 #define K_MODULE_LL    0x22
 #define K_MODULE K_MODULE_LL
 
-static inline void ll_relays_init(void)
+#define PORTC_OUTPUT_MASK ((1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3))
+
+void ll_outputs_init(void)
 {
-	/* relays PC2, PC3 */
-	DDRC |= (1 << DDC2) | (1 << DDC3);
+	DDRC |= (1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3);
 
 	/* initial state low */
-	PORTC &= ~((1 << PORTC2) | (1 << PORTC3));
+	PORTC &= ~((1 << PORTC0) | (1 << PORTC1) | (1 << PORTC2) | (1 << PORTC3));
 }
 
 static void ll_portc_set_mask(uint8_t state, uint8_t mask)
@@ -47,33 +48,29 @@ static inline uint8_t ll_portc_read()
 	return PINC;
 }
 
-void ll_relays_set(uint8_t state)
+void ll_outputs_set(uint8_t state)
 {
-	ll_portc_set_mask(state << PORTC2, (1 << PORTC2) | (1 << PORTC3));
+	ll_portc_set_mask(state << PORTC0, PORTC_OUTPUT_MASK);
 }
 
-void ll_relays_set_mask(uint8_t state, uint8_t mask)
+void ll_outputs_reset(uint8_t state)
 {
-	ll_portc_set_mask(state << PORTC2, mask << PORTC2);
+	ll_portc_set_mask(state << PORTC0, 0U);
 }
 
-uint8_t ll_relays_read(void)
+void ll_outputs_set_mask(uint8_t state, uint8_t mask)
 {
-	return (ll_portc_read() & ((1 << PINC2) | (1 << PINC3))) >> PORTC2;
+	ll_portc_set_mask(state << PORTC0, mask & PORTC_OUTPUT_MASK);
 }
 
-void ll_relays_toggle_mask(uint8_t mask)
+uint8_t ll_outputs_read(void)
 {
-	ll_portc_set_mask(~ll_portc_read(), mask);
+	return (ll_portc_read() & PORTC_OUTPUT_MASK) >> PORTC0;
 }
 
-static inline void ll_oc_init(void)
+void ll_outputs_toggle_mask(uint8_t mask)
 {
-	/* output PC0, PC1 */
-	DDRC |= (1 << DDC0) | (1 << DDC1);
-
-	/* initial state low */
-	PORTC &= ~((1 << PORTC0) | (1 << PORTC1));
+	ll_outputs_set_mask(~ll_portc_read(), mask);
 }
 
 static inline void ll_inputs_init(bool pullup)
@@ -102,12 +99,14 @@ static inline void ll_inputs_init(bool pullup)
 
 extern "C" void trigger_telemetry(void);
 
-#if CONFIG_APP_PCINT_MASK
+#if CONFIG_INPUTS_INT_MASK & BIT(IN1)
 ISR(PCINT0_vect)
 {
 	trigger_telemetry();
 }
+#endif 
 
+#if CONFIG_INPUTS_INT_MASK & (BIT(IN2) | BIT(IN3) | BIT(IN4))
 ISR(PCINT2_vect)
 {
 	trigger_telemetry();
@@ -117,12 +116,12 @@ ISR(PCINT2_vect)
 void ll_inputs_enable_pcint(uint8_t mask)
 {
 	if (mask != 0) {
-	/* enable Pin Change interrupt for inputs
-	 * - See ATmega328P datasheet :
-	 * 	-page 88 - table 14-9
-	 * 	-page 74 - 13.2.6
-	 * 	-page 73 - 13.2.4
-	 */
+		/* enable Pin Change interrupt for inputs
+		* - See ATmega328P datasheet :
+		* 	-page 88 - table 14-9
+		* 	-page 74 - 13.2.6
+		* 	-page 73 - 13.2.4
+		*/
 		if (mask & BIT(IN1)) {
 			PCMSK0 |= BIT(PCINT0);
 			SET_BIT(PCICR, BIT(PCIE0));
@@ -144,49 +143,14 @@ uint8_t ll_inputs_read(void)
 	return ((portd >> PIND4) << 1) | (portb >> PINB0);
 }
 
-void ll_oc_set(uint8_t state)
-{
-	ll_portc_set_mask(state << PORTC0, (1 << PORTC0) | (1 << PORTC1));
-}
-
-void ll_oc_set_mask(uint8_t state, uint8_t mask)
-{
-	ll_portc_set_mask(state << PORTC0, mask << PORTC0);
-}
-
-uint8_t ll_oc_read(void)
-{
-	return (ll_portc_read() & ((1 << PINC0) | (1 << PINC1))) >> PINC0;
-}
-
-void ll_oc_toggle_mask(uint8_t mask)
-{
-	ll_portc_set_mask(~ll_portc_read(), mask);
-}
-
 struct board_dio ll_read(void)
 {
 	struct board_dio s;
 
-	const uint8_t pinc = ll_portc_read();
-
-	s.relays = (pinc & ((1 << PINC2) | (1 << PINC3))) >> PINC2;
+	s.outputs = ll_outputs_read();
 	s.inputs = ll_inputs_read();
-	s.opencollectors = (pinc & ((1 << PINC0) | (1 << PINC1))) >> PINC0;
 
 	return s;
-}
-
-void ll_set(struct board_dio state)
-{
-	ll_relays_set(state.relays);
-	ll_oc_set(state.opencollectors);
-}
-
-void ll_set_mask(struct board_dio state, struct board_dio mask)
-{
-	ll_relays_set_mask(state.relays, mask.relays);
-	ll_oc_set_mask(state.opencollectors, mask.opencollectors);
 }
 
 static inline void ll_i2c_init(void)
@@ -245,17 +209,16 @@ static bool ow_status = false;
 
 void custompcb_hw_init(void)
 {
-	ll_relays_init();
+	ll_outputs_init();
 	ll_inputs_init(true);
 	ll_int0_init(true);
 	ll_int1_init(true); /* INT1 is unused */
-	ll_oc_init();
 	ll_i2c_init();
 
 	tcn75_init();
 
 	/* enable interrupts on input changes */
-	ll_inputs_enable_pcint(CONFIG_APP_PCINT_MASK);
+	ll_inputs_enable_pcint(CONFIG_INPUTS_INT_MASK);
 
 #if CONFIG_APP_OW_EXTTEMP
 	/* initialize OW */
@@ -285,6 +248,6 @@ void custompcb_hw_process(void)
 /* print board_dio struct */
 void custompcb_print_io(struct board_dio io)
 {
-	printf_P(PSTR("relays: %hhx, inputs: %hhx, oc: %hhx\n"),
-		 io.relays, io.inputs, io.opencollectors);
+	printf_P(PSTR("outputs: %hhx, inputs: %hhx"),
+		 io.outputs, io.inputs);
 }

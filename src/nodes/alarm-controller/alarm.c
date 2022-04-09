@@ -18,7 +18,7 @@
 
 static K_SIGNAL_DEFINE(alarm_process_signal);
 
-#define RELAY_ALARM_MASK	BIT(RELAY1)
+#define RELAY_ALARM_MASK		BIT(RELAY1)
 // #define RELAY_WARN_MASK		RELAY2
 
 #define ALARM_INPUT_ACCEPT_MASK		(BIT(IN1) | BIT(IN2) | BIT(IN3) | BIT(IN4))
@@ -67,12 +67,12 @@ static inline void ll_start_siren(void)
 {
 	siren_enabled = true;
 
-	ll_relays_set_mask(RELAY_ALARM_MASK, RELAY_ALARM_MASK);
+	ll_outputs_set_mask(RELAY_ALARM_MASK, RELAY_ALARM_MASK);
 }
 
 static inline void ll_stop_siren(void)
 {
-	ll_relays_set_mask(0, RELAY_ALARM_MASK);
+	ll_outputs_set_mask(0U, RELAY_ALARM_MASK);
 
 	siren_enabled = false;
 }
@@ -187,6 +187,7 @@ static void alarm_reset(void)
 	siren_reset();
 }
 
+/*
 ISR(PCINT0_vect) {
 #if DEBUG_INT
 	usart_transmit('*');
@@ -204,6 +205,7 @@ ISR(PCINT2_vect) {
 	
 	k_signal_raise(&alarm_process_signal, PCINT2_vect_num);
 }
+*/
 
 
 void alarm_init(void)

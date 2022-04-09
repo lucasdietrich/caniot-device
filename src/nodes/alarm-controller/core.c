@@ -53,7 +53,7 @@ struct caniot_CRTHPT_ALARM {
 
 int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
 {
-	const uint8_t lights = ll_oc_read();
+	const uint8_t lights = ll_outputs_read() & (BIT(OC1) | BIT(OC2));
 	INTERPRET_CMD(buf)->status.light1 = (lights >> OUTDOOR_LIGHT_1) & 1;
 	INTERPRET_CMD(buf)->status.light2 = (lights >> OUTDOOR_LIGHT_2) & 1;
 	INTERPRET_CMD(buf)->status.alarm_state = alarm_get_state();
@@ -100,7 +100,8 @@ void commands_lights_from(uint8_t oc, caniot_light_cmd_t cmd, enum ctrl_source s
 
 	lights_control_source[oc] = src;
 
-	command_opencollector(oc, cmd);
+	
+	command_output(oc, (caniot_complex_digital_cmd_t) cmd);
 }
 
 static void command_alarm(alarm_cmd_t cmd)

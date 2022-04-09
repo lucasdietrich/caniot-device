@@ -14,11 +14,12 @@
 #include <device.h>
 #include <datatype.h>
 
-#include "can.h"
 #include "custompcb/board.h"
 #include "custompcb/ext_temp.h"
 
+#include "can.h"
 #include "config.h"
+#include "pulse.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,10 +59,9 @@ void config_init(void);
 
 void caniot_init(void);
 
-void command_relay(uint8_t relay, caniot_twostate_cmd_t cmd);
-
-void command_opencollector(uint8_t oc, caniot_twostate_cmd_t cmd);
-
+void command_output(output_t pin,
+		    caniot_complex_digital_cmd_t cmd);
+		    
 #ifdef __cplusplus
 }
 #endif

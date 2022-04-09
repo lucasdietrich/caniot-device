@@ -1,5 +1,6 @@
 #include "dev.h"
 
+
 K_SIGNAL_DEFINE(caniot_process_sig);
 
 const union deviceid did = {
@@ -159,56 +160,25 @@ static struct k_work sw_reset_work = K_WORK_INIT(sw_reset_work_handler);
 
 static struct k_work wdt_reset_work = K_WORK_INIT(wdt_reset_work_handler);
 
-// usage command_relay(RL1, CANIOT_TS_CMD_TOGGLE);
-void command_relay(uint8_t relay, caniot_twostate_cmd_t cmd)
-{
-	switch (cmd) {
-	case CANIOT_TS_CMD_ON:
-		ll_relays_set_mask(BIT(relay), BIT(relay));
-		break;
-	case CANIOT_TS_CMD_OFF:
-		ll_relays_set_mask(0, BIT(relay));
-		break;
-	case CANIOT_TS_CMD_TOGGLE:
-		ll_relays_toggle_mask(BIT(relay));
-		break;
-	default:
-		break;
-	}
-}
-
-// usage command_opencollector(OC2, CANIOT_TS_CMD_TOGGLE);
-void command_opencollector(uint8_t oc, caniot_twostate_cmd_t cmd)
-{
-	switch (cmd) {
-	case CANIOT_TS_CMD_ON:
-		ll_oc_set_mask(BIT(oc), BIT(oc));
-		break;
-	case CANIOT_TS_CMD_OFF:
-		ll_oc_set_mask(0, BIT(oc));
-		break;
-	case CANIOT_TS_CMD_TOGGLE:
-		ll_oc_toggle_mask(BIT(oc));
-		break;
-	default:
-		break;
-	}
-}
-
 static int board_control_telemetry_handler(struct caniot_device *dev,
 					 char *buf,
 					 uint8_t *len)
 {
 	struct board_dio dio = ll_read();
 
-	AS_BOARD_CONTROL_TELEMETRY(buf)->r1 = dio.r1;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->r2 = dio.r2;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->oc1 = dio.oc1;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->oc2 = dio.oc2;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->in1 = dio.in1;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->in2 = dio.in2;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->in3 = dio.in3;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->in4 = dio.in4;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->dio = dio.raw;
+
+#if CONFIG_GPIO_PULSE_SUPPORT
+	AS_BOARD_CONTROL_TELEMETRY(buf)->poc1 = pulse_is_active(OC1);
+	AS_BOARD_CONTROL_TELEMETRY(buf)->poc2 = pulse_is_active(OC2);
+	AS_BOARD_CONTROL_TELEMETRY(buf)->prl1 = pulse_is_active(RL1);
+	AS_BOARD_CONTROL_TELEMETRY(buf)->prl2 = pulse_is_active(RL2);
+#else
+	AS_BOARD_CONTROL_TELEMETRY(buf)->poc1 = 0U;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->poc2 = 0U;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->prl1 = 0U;
+	AS_BOARD_CONTROL_TELEMETRY(buf)->prl2 = 0U;
+#endif 
 
 	const int16_t temperature = dev_int_temperature();
 	AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);
@@ -228,15 +198,15 @@ static int board_control_telemetry_handler(struct caniot_device *dev,
 }
 
 static int board_control_command_handler(struct caniot_device *dev,
-				       char *buf,
-				       uint8_t len)
+					 char *buf,
+					 uint8_t len)
 {
 	int ret;
 
-	command_relay(RL1, AS_BOARD_CONTROL_CMD(buf)->r1);
-	command_relay(RL2, AS_BOARD_CONTROL_CMD(buf)->r2);
-	command_opencollector(OC1, AS_BOARD_CONTROL_CMD(buf)->oc1);
-	command_opencollector(OC2, AS_BOARD_CONTROL_CMD(buf)->oc2);
+	command_output(OC1, AS_BOARD_CONTROL_CMD(buf)->coc1);
+	command_output(OC2, AS_BOARD_CONTROL_CMD(buf)->coc2);
+	command_output(RL1, AS_BOARD_CONTROL_CMD(buf)->crl1);
+	command_output(RL2, AS_BOARD_CONTROL_CMD(buf)->crl2);
 
 	if (AS_BOARD_CONTROL_CMD(buf)->watchdog_reset == CANIOT_SS_CMD_SET ||
 	    AS_BOARD_CONTROL_CMD(buf)->reset == CANIOT_SS_CMD_SET) {
@@ -301,6 +271,57 @@ struct caniot_device device = {
 		.request_telemetry = 0,
 	},
 };
+
+#define GET_CUSTOM_GPIO_CONFIG() (device.config->custompcb.gpio)
+
+static uint32_t config_get_pulse_duration_ms(output_t pin)
+{
+	if (GPIO_VALID_OUTPUT_PIN(pin)) {
+		return GET_CUSTOM_GPIO_CONFIG().pulse_duration.array[pin];
+	}
+
+	return 0U;
+}
+
+void command_output(output_t pin, caniot_complex_digital_cmd_t cmd)
+{
+	if (!GPIO_VALID_OUTPUT_PIN(pin)) {
+		return;
+	}
+
+	switch (cmd) {
+	case CANIOT_XPS_SET_ON:
+		ll_outputs_set_mask(BIT(pin), BIT(pin));
+		break;
+	case CANIOT_XPS_SET_OFF:
+		ll_outputs_set_mask(BIT(pin), 0U);
+		break;
+	case CANIOT_XPS_TOGGLE:
+		ll_outputs_toggle_mask(BIT(pin));
+		break;
+
+#if CONFIG_GPIO_PULSE_SUPPORT
+	case CANIOT_XPS_PULSE_CANCEL:
+		pulse_cancel(pin);
+		break;
+	case CANIOT_XPS_PULSE_ON:
+		pulse_trigger(pin, true, config_get_pulse_duration_ms(pin));
+		break;
+	case CANIOT_XPS_PULSE_OFF:
+		pulse_trigger(pin, false, config_get_pulse_duration_ms(pin));
+		break;
+#endif 
+
+	case CANIOT_XPS_RESET:
+		pulse_cancel(pin);
+		ll_outputs_set_mask(
+			GET_CUSTOM_GPIO_CONFIG().mask.outputs_default.mask & BIT(pin),
+			BIT(pin));
+
+	default:
+		break;
+	}
+}
 
 void print_indentification(void)
 {
@@ -423,5 +444,15 @@ void caniot_init(void)
 	/* we prepare the system according to the config */
 	set_zone(device.config->timezone);
 	
-	caniot_device_init(&device);
+	caniot_app_init(&device);
+}
+
+void device_init(void)
+{
+	
+}
+
+void device_process(void)
+{
+
 }
