@@ -14,6 +14,8 @@
 
 #include "supervision.h"
 
+#if CONFIG_WATCHDOG
+
 #include <avrtos/kernel.h>
 #include <avr/wdt.h>
 
@@ -56,3 +58,4 @@ void alive(uint8_t thread_id)
 		wdt_reset();
 	}
 }
+#endif

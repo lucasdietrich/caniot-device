@@ -13,8 +13,13 @@
 #define K_MODULE K_MODULE_CAN
 
 #define SPI_CS_PIN  10
-#define CAN_INT 0
-#define CAN_CLOCKSET MCP_16MHz
+
+#if CONFIG_CAN_CLOCKSET_16MHZ
+#	define CAN_CLOCKSET MCP_16MHz
+#else
+#	define CAN_CLOCKSET MCP_8MHz
+#endif
+
 #define CAN_SPEEDSET CAN_500KBPS
 
 static mcp2515_can can(SPI_CS_PIN);
@@ -47,10 +52,14 @@ void can_init(void)
 	can.init_Filt(4, CAN_STDID, filter_broadcast);
 	can.init_Filt(5, CAN_STDID, filter_broadcast);
 
+#if CONFIG_CAN_INT == 0
 	/* configure interrupt on falling on INT0 */
         EICRA |= 1 << ISC01;
         EICRA &= ~(1 << ISC00);
         EIMSK |= 1 << INT0;
+#else
+#	error MCP2515 on INT1 not supported
+#endif
 
 	k_mutex_unlock(&can_mutex_if);
 }

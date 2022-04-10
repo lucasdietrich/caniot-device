@@ -20,4 +20,16 @@
 #	define CONFIG_GPIO_PULSE_SUPPORT 0U
 #endif 
 
+#if !defined(CONFIG_CAN_INT)
+#	define CONFIG_CAN_INT 0U
+#endif
+
+#if !defined(CONFIG_WATCHDOG)
+#	define CONFIG_WATCHDOG 1U
+#endif 
+
+#if !defined(CONFIG_CAN_CLOCKSET_16MHZ)
+#	define CONFIG_CAN_CLOCKSET_16MHZ 1U
+#endif 
+
 #endif /* _APP_CONFIG_H_ */

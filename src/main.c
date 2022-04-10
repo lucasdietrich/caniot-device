@@ -36,15 +36,18 @@ K_KERNEL_LINK_INIT();
 
 int main(void)
 {
-	const uint8_t tid = critical_thread_register();
-
 	/* General low-level initialisation */
 	hw_ll_init();
 	usart_init();
 	led_init();
 
+#if CONFIG_WATCHDOG
+	/* register the thread a critical, i.e. watchdog-protected thread */
+	const uint8_t tid = critical_thread_register();
+
 	/* Enable watchdog */
 	wdt_enable(WATCHDOG_TIMEOUT_WDTO);
+#endif 
 
 	/* as we don't (always) use mutex/semaphore to synchronize threads 
 	 * we need the initialization to not be preempted.
@@ -98,8 +101,10 @@ int main(void)
 		
 		k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
 
+#if CONFIG_WATCHDOG
 		/* I'm alive ! */
 		alive(tid);
+#endif /* CONFIG_WATCHDOG */
 
 		uint32_t now_ms = k_uptime_get_ms32();
 		pulse_process(now_ms - pulse_process_time);
@@ -118,8 +123,10 @@ int main(void)
 				caniot_show_error(ret);
 			}
 
+#if CONFIG_WATCHDOG
 			/* I'm alive ! */
 			alive(tid);
+#endif /* CONFIG_WATCHDOG */
 
 			/* let CAN TX thread send pending CAN messages if any 
 			 * before handling the next message

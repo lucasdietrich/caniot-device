@@ -11,31 +11,28 @@
 
 #include <dev.h>
 
-/*
-- right : IN4, RL2),
-- left  : IN3, RL1),
-- gate  : IN2,
-*/
-
-#define RELAY_PULSE_DURATION_MS     500U
+static uint64_t counter = 0;
 
 int app_command_handler(struct caniot_device *dev,
 			uint8_t ep, char *buf,
 			uint8_t len)
 {
-	if (AS_CRTHPT(buf)->r1)
-		command_output(RL1, CANIOT_XPS_SET_ON);
-
-	if (AS_CRTHPT(buf)->r2)
-		command_output(RL2, CANIOT_XPS_SET_ON);
-
+	uint64_t add = 0U;
+	memcpy(&add, buf, len);
+	
+	counter += add;
+	
 	return 0;
 }
 
 
 int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
 {
-	return -CANIOT_ENIMPL;
+	*((uint64_t*) buf) = counter;
+
+	*len = 8U;
+
+	return 0;
 }
 
 struct caniot_config config = {
@@ -57,21 +54,17 @@ struct caniot_config config = {
 	.custompcb = {
 		.gpio = {
 			.pulse_duration = {
-				.rl1 = RELAY_PULSE_DURATION_MS,
-				.rl2 = RELAY_PULSE_DURATION_MS,
-				.oc1 = 0U,
-				.oc2 = 0U,
+				.rl1 = 500U,
+				.rl2 = 1500U,
+				.oc1 = 5000U,
+				.oc2 = 30000U,
 			},
 			.mask = {
 				.outputs_default = {
 					.relays = 0U,
 				},
 				.telemetry_on_change = {
-					.rl1 = 1U,
-					.rl2 = 1U,
-					.in2 = 1U,
-					.in3 = 1U,
-					.in4 = 1U,
+					.mask = 0xFFFFFFFFLU
 				}
 			}
 		}
