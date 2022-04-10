@@ -24,8 +24,6 @@
 
 #define PORTC_OUTPUT_MASK ((1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3))
 
-#define PORTC_OUTPUT_MASK ((1 << DDC0) | (1 << DDC1) | (1 << DDC3))
-
 void ll_outputs_init(void)
 {
 	DDRC |= (1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3);
@@ -238,7 +236,7 @@ void custompcb_hw_process(void)
 	if (ow_status != ow_ext_get(NULL)) {
 		ow_status = !ow_status;
 
-		/* if OW thermocouple become available during runtime
+		/* if OW thermocouple become available during runtime,
 		 * telemetry should be triggered */
 		if (ow_status == true) {
 			trigger_telemetry();

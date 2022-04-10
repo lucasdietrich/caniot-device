@@ -37,10 +37,6 @@ void get_time(uint32_t *sec, uint16_t *ms)
 	if (ms != NULL) {
 		*ms = 0x0000U;
 	}
-
-// #if DEBUG
-// 	printf_P(PSTR("get_time: sec=%lu sec\n"), *sec);
-// #endif /* DEBUG */
 }
 
 static void caniot2msg(can_message *msg, const struct caniot_frame *frame)
