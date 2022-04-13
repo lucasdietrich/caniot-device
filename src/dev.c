@@ -276,6 +276,7 @@ struct caniot_device device = {
 
 #define GET_CUSTOM_GPIO_CONFIG() (device.config->custompcb.gpio)
 
+#if CONFIG_GPIO_PULSE_SUPPORT
 static uint32_t config_get_pulse_duration_ms(output_t pin)
 {
 	if (GPIO_VALID_OUTPUT_PIN(pin)) {
@@ -284,6 +285,7 @@ static uint32_t config_get_pulse_duration_ms(output_t pin)
 
 	return 0U;
 }
+#endif /* CONFIG_GPIO_PULSE_SUPPORT */
 
 void command_output(output_t pin, caniot_complex_digital_cmd_t cmd)
 {
