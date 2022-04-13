@@ -39,7 +39,7 @@ int16_t tcn75_read(void)
 	__ASSERT_INTERRUPT();
 
 	uint8_t data[2];
-	int16_t temperature = INT16_MIN;
+	int16_t temperature = INT16_MAX;
 
 	tcn75_select_data_register();
 

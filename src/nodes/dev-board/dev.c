@@ -25,7 +25,6 @@ int app_command_handler(struct caniot_device *dev,
 	return 0;
 }
 
-
 int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
 {
 	*((uint64_t*) buf) = counter;
@@ -37,7 +36,7 @@ int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint
 
 struct caniot_config config = {
 	.telemetry = {
-		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT,
+		.period = 10U,
 		.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,
 		.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT,
 	},

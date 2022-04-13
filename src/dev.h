@@ -55,13 +55,16 @@ int config_on_read(struct caniot_device *dev,
 int config_on_write(struct caniot_device *dev,
 		   struct caniot_config *config);
 
+int config_restore_default(struct caniot_device *dev,
+			   struct caniot_config *config);
+
 void config_init(void);
 
 void caniot_init(void);
 
 void command_output(output_t pin,
 		    caniot_complex_digital_cmd_t cmd);
-		    
+
 #ifdef __cplusplus
 }
 #endif

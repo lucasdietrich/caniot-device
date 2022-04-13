@@ -177,12 +177,18 @@ static int board_control_telemetry_handler(struct caniot_device *dev,
 #endif 
 
 	const int16_t temperature = dev_int_temperature();
-	AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature = caniot_dt_T16_to_Temp(temperature);
+	if (temperature != CANIOT_DT_T16_INVALID) {
+		AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature = 
+		caniot_dt_T16_to_T10(temperature);
+	} else {
+		AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature = 
+			CANIOT_DT_T10_INVALID;
+	}
 
 	int16_t temp;
 	if (CONFIG_APP_OW_EXTTEMP && (ow_ext_get(&temp) == true)) {
 		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature =
-			caniot_dt_T16_to_Temp(temp);
+			caniot_dt_T16_to_T10(temp);
 	} else {
 		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature = 
 			CANIOT_DT_T10_INVALID;
@@ -425,7 +431,8 @@ void config_init(void)
 	/* sanity check on EEPROM :
 	 * read config from EEPROM, without overwriting current configuration */
 	struct caniot_config tmp;
-	if (config_on_read(&device, &tmp) == 0) {
+	if ((CONFIG_RESTORE_DEFAULT_CONFIG == 0) && 
+	    config_on_read(&device, &tmp) == 0) {
 		/* EEPROM config is valid, we can overwrite the current config */
 		memcpy(&config, &tmp, sizeof(struct caniot_config));
 	} else {

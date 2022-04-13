@@ -32,4 +32,8 @@
 #	define CONFIG_CAN_CLOCKSET_16MHZ 1U
 #endif 
 
+#if !defined(CONFIG_RESTORE_DEFAULT_CONFIG)
+#	define CONFIG_RESTORE_DEFAULT_CONFIG 0U
+#endif
+
 #endif /* _APP_CONFIG_H_ */
