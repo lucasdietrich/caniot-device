@@ -3,7 +3,7 @@
 #include <avrtos/misc/uart.h>
 #include <avrtos/misc/led.h>
 
-#include <device.h>
+#include <caniot/device.h>
 
 #include "custompcb/board.h"
 #include "custompcb/ext_temp.h"

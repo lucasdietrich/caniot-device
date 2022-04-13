@@ -239,7 +239,7 @@ int telemetry_handler(struct caniot_device *dev,
 		      uint8_t ep, char *buf,
 		      uint8_t *len)
 {
-	if (ep == endpoint_board_control) {
+	if (ep == CANIOT_ENDPOINT_BOARD_CONTROL) {
 		return board_control_telemetry_handler(dev, buf, len);
 	} else {
 		return app_telemetry_handler(dev, ep, buf, len);
@@ -251,7 +251,7 @@ int command_handler(struct caniot_device *dev,
 		    char *buf,
 		    uint8_t len)
 {
-	if (ep == endpoint_board_control) {
+	if (ep == CANIOT_ENDPOINT_BOARD_CONTROL) {
 		return board_control_command_handler(dev, buf, len);
 	} else {
 		return app_command_handler(dev, ep, buf, len);

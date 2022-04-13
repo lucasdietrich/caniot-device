@@ -1,6 +1,6 @@
-#include <caniot.h>
-#include <device.h>
-#include <datatype.h>
+#include <caniot/caniot.h>
+#include <caniot/device.h>
+#include <caniot/datatype.h>
 
 #include <avrtos/kernel.h>
 
@@ -34,7 +34,7 @@ struct caniot_config config = {
 	.flags = {
 		.error_response = 1u,
 		.telemetry_delay_rdm = 1u,
-		.telemetry_endpoint = endpoint_board_control,
+		.telemetry_endpoint = CANIOT_ENDPOINT_BOARD_CONTROL,
 	},
 	.timezone = CANIOT_TIMEZONE_DEFAULT,
 	.location = {

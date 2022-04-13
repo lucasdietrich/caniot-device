@@ -15,8 +15,6 @@
 #include "tcn75.h"
 #include "ext_temp.h"
 
-#include <datatype.h>
-
 #include "config.h"
 
 #define K_MODULE_LL    0x22

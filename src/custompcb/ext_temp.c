@@ -16,8 +16,6 @@
 #include <custompcb/board.h>
 #include <custompcb/owds.h>
 
-#include <datatype.h>
-
 #include "ext_temp.h"
 
 /* Update measurement after 5 seconds if possible (in seconds) */
@@ -29,9 +27,9 @@
 #define OW_EXT_TMP_MEASURE_OUTDATED_SEC 60LU
 
 /* Describe an invalid/outdated measurement */
-#define OW_EXT_INVALID_VALUE CANIOT_DT_T16_INVALID
+#define OW_EXT_INVALID_VALUE INT16_MAX
 
-int16_t ow_ext_tmp = CANIOT_DT_T16_INVALID;
+int16_t ow_ext_tmp = INT16_MAX;
 
 enum ow_ext_state {
 	OW_EXT_STATE_INIT, /* being initialized */

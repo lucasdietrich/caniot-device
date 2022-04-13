@@ -10,9 +10,9 @@
 
 #include <avrtos/kernel.h>
 
-#include <caniot.h>
-#include <device.h>
-#include <datatype.h>
+#include <caniot/caniot.h>
+#include <caniot/device.h>
+#include <caniot/datatype.h>
 
 #include "custompcb/board.h"
 #include "custompcb/ext_temp.h"

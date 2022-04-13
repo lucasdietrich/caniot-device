@@ -30,6 +30,10 @@
         "uart.h": "c",
         "supervision.h": "c",
         "config.h": "c",
-        "tqueue.h": "c"
+        "tqueue.h": "c",
+        "led.h": "c",
+        "ext_temp.h": "c",
+        "datatype.h": "c",
+        "owds.h": "c"
     }
 }

@@ -5,7 +5,7 @@
 #include <mcp2515_can.h>
 #include <mcp2515_can_dfs.h>
 
-#include <device.h>
+#include <caniot/device.h>
 
 #include "dev.h"
 
