@@ -34,7 +34,7 @@ int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint
 	return 0;
 }
 
-struct caniot_config config = {
+const struct caniot_config default_config PROGMEM = {
 	.telemetry = {
 		.period = 10U,
 		.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,

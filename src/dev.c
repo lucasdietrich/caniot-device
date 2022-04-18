@@ -226,6 +226,8 @@ static int board_control_command_handler(struct caniot_device *dev,
 	} else if (AS_BOARD_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_OFF) {
 		wdt_disable();
 		ret = 0;
+	} else if (AS_BOARD_CONTROL_CMD(buf)->config_reset == CANIOT_SS_CMD_SET) {
+		ret = config_restore_default();
 	}
 
 	return ret;
@@ -258,15 +260,17 @@ int command_handler(struct caniot_device *dev,
 	}
 }
 
-/* contain default config */
-extern struct caniot_config config;
+__attribute__((section(".noinit"))) static struct caniot_config config;
+__STATIC_ASSERT(sizeof(config) <= 0xFF); /* EEPROM size depends on MCU */
+
+extern struct caniot_config default_config;
 
 const struct caniot_api api = CANIOT_API_STD_INIT(command_handler, telemetry_handler,
 						  config_on_read, config_on_write);
 
 struct caniot_device device = {
 	.identification = &identification,
-	.config = &config,
+	.config = &default_config,
 	.api = &api,
 	.driv = &drivers,
 	.flags = {
@@ -391,15 +395,15 @@ static int config_apply_changes(struct caniot_device *dev,
 static bool config_dirty = true;
 
 int config_on_read(struct caniot_device *dev,
-		   struct caniot_config *config)
+		   struct caniot_config *cfg)
 {
 	if (config_dirty == true) {
 		uint8_t checksum = eeprom_read_byte(0x0000U);
 
-		eeprom_read_block(config, (const void *)0x0001U,
+		eeprom_read_block(cfg, (const void *)0x0001U,
 				  sizeof(struct caniot_config));
 
-		uint8_t calculated_checksum = checksum_crc8((const uint8_t *)config,
+		uint8_t calculated_checksum = checksum_crc8((const uint8_t *)cfg,
 							    sizeof(struct caniot_config));
 
 		if (checksum != calculated_checksum) {
@@ -413,33 +417,45 @@ int config_on_read(struct caniot_device *dev,
 }
 
 int config_on_write(struct caniot_device *dev,
-		    struct caniot_config *config)
+		    struct caniot_config *cfg)
 {
-	eeprom_update_block((const void *)config,
+	eeprom_update_block((const void *)cfg,
 			    (void *)0x0001U, sizeof(struct caniot_config));
 
-	uint8_t calculated_checksum = checksum_crc8((const uint8_t *)config,
+	uint8_t calculated_checksum = checksum_crc8((const uint8_t *)cfg,
 						    sizeof(struct caniot_config));
 
-	eeprom_update_byte((uint8_t*) 0x0000U, calculated_checksum);
+	eeprom_update_byte((uint8_t *)0x0000U, calculated_checksum);
 
 	config_dirty = true;
 
-	return config_apply_changes(dev, config);
+	return config_apply_changes(dev, cfg);
+}
+
+int config_restore_default(void)
+{
+	memcpy_P(&config, &default_config, sizeof(struct caniot_config));
+
+	return config_on_write(&device, &config);
 }
 
 void config_init(void)
 {
-	/* sanity check on EEPROM :
-	 * read config from EEPROM, without overwriting current configuration */
-	struct caniot_config tmp;
-	if ((CONFIG_RESTORE_DEFAULT_CONFIG == 0) && 
-	    config_on_read(&device, &tmp) == 0) {
-		/* EEPROM config is valid, we can overwrite the current config */
-		memcpy(&config, &tmp, sizeof(struct caniot_config));
-	} else {
+	bool restore = false;
+
+	if (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 0) {
+		/* sanity check on EEPROM */
+		if (config_on_read(&device, &config) != 0) {
+			restore = true;
+		} 
+	}
+
+	/* if restore is true, we copy the default configuration to EEPROM and RAM */
+	if (restore || (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 1)) {
 		printf_P(PSTR("Config reset ... \n"));
 		
+		memcpy_P(&config, &default_config, sizeof(struct caniot_config));
+
 		config_on_write(&device, &config);
 	}
 }
