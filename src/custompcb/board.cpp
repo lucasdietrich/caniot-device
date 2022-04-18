@@ -97,14 +97,14 @@ static inline void ll_inputs_init(bool pullup)
 
 extern "C" void trigger_telemetry(void);
 
-#if CONFIG_INPUTS_INT_MASK & BIT(IN1)
+#if CONFIG_INPUTS_INT_MASK & BIT(INPUT1)
 ISR(PCINT0_vect)
 {
 	trigger_telemetry();
 }
 #endif 
 
-#if CONFIG_INPUTS_INT_MASK & (BIT(IN2) | BIT(IN3) | BIT(IN4))
+#if CONFIG_INPUTS_INT_MASK & (BIT(INPUT2) | BIT(INPUT3) | BIT(INPUT3))
 ISR(PCINT2_vect)
 {
 	trigger_telemetry();

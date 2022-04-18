@@ -29,15 +29,16 @@ typedef enum {
 	IN4 = 3
 } input_t;
 
-#define OPENCOLLECTOR1 OC1
-#define OPENCOLLECTOR2 OC2
-#define RELAY1 RL1
-#define RELAY2 RL2
+#define OPENCOLLECTOR1 0
+#define OPENCOLLECTOR2 1
+#define RELAY1 2
+#define RELAY2 3
 
-#define INPUT1 IN1
-#define INPUT2 IN2
-#define INPUT3 IN3
-#define INPUT4 IN4
+#define INPUT1 0
+#define INPUT2 1
+#define INPUT3 2
+#define INPUT4 3
+
 	struct board_dio
 	{
 		union {
