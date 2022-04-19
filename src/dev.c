@@ -227,7 +227,7 @@ static int board_control_command_handler(struct caniot_device *dev,
 		wdt_disable();
 		ret = 0;
 	} else if (AS_BOARD_CONTROL_CMD(buf)->config_reset == CANIOT_SS_CMD_SET) {
-		ret = config_restore_default();
+		ret = config_restore_default(dev, dev->config);
 	}
 
 	return ret;
@@ -270,7 +270,7 @@ const struct caniot_api api = CANIOT_API_STD_INIT(command_handler, telemetry_han
 
 struct caniot_device device = {
 	.identification = &identification,
-	.config = &default_config,
+	.config = &config,
 	.api = &api,
 	.driv = &drivers,
 	.flags = {
@@ -382,15 +382,16 @@ static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
 }
 
 static int config_apply_changes(struct caniot_device *dev,
-				struct caniot_config *config)
+				struct caniot_config *cfg)
 {
-	set_zone(config->timezone);
+	set_zone(cfg->timezone);
 
 	return 0;
 }
 
 /**
  * @brief Indicates whether the configuration is still valid or not.
+ * TODO can be removed
  */
 static bool config_dirty = true;
 
@@ -432,11 +433,12 @@ int config_on_write(struct caniot_device *dev,
 	return config_apply_changes(dev, cfg);
 }
 
-int config_restore_default(void)
+int config_restore_default(struct caniot_device *dev,
+			   struct caniot_config *cfg)
 {
-	memcpy_P(&config, &default_config, sizeof(struct caniot_config));
+	memcpy_P(cfg, &default_config, sizeof(struct caniot_config));
 
-	return config_on_write(&device, &config);
+	return config_on_write(&device, cfg);
 }
 
 void config_init(void)
@@ -445,7 +447,7 @@ void config_init(void)
 
 	if (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 0) {
 		/* sanity check on EEPROM */
-		if (config_on_read(&device, &config) != 0) {
+		if (config_on_read(&device, device.config) != 0) {
 			restore = true;
 		} 
 	}
@@ -456,7 +458,7 @@ void config_init(void)
 		
 		memcpy_P(&config, &default_config, sizeof(struct caniot_config));
 
-		config_on_write(&device, &config);
+		config_on_write(&device, device.config);
 	}
 }
 

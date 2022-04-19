@@ -51,7 +51,7 @@ int16_t tcn75_read(void)
 		temperature = tcn75_temp2int16(data[0], data[1]);
 	} else {
 #if DEBUG_TCN75
-		printf_P(PSTR("Error reading Wire bytes\n"));
+		printf_P(PSTR("TCN75 read error\n"));
 #endif /* DEBUG_TCN75 */
 	}
 

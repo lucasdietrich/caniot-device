@@ -55,7 +55,8 @@ int config_on_read(struct caniot_device *dev,
 int config_on_write(struct caniot_device *dev,
 		   struct caniot_config *config);
 
-int config_restore_default(void);
+int config_restore_default(struct caniot_device *dev,
+			   struct caniot_config *cfg);
 
 void config_init(void);
 
