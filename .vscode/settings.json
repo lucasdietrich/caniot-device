@@ -34,6 +34,7 @@
         "led.h": "c",
         "ext_temp.h": "c",
         "datatype.h": "c",
-        "owds.h": "c"
+        "owds.h": "c",
+        "stdio.h": "c"
     }
 }
