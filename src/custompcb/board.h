@@ -12,7 +12,7 @@ extern "C" {
 typedef enum
 {
 	GPIO_TYPE_OUTPUT = 0,
-	PIO_TYPE_INPUT,
+	GPIO_TYPE_INPUT,
 } gpio_type_t;
 
 typedef enum {
@@ -39,26 +39,26 @@ typedef enum {
 #define INPUT3 2
 #define INPUT4 3
 
-	struct board_dio
-	{
-		union {
-			struct {
-				uint8_t outputs: 4;
-				uint8_t inputs : 4;
-			};
-			struct {
-				uint8_t rl1 : 1;
-				uint8_t rl2 : 1;
-				uint8_t oc1 : 1;
-				uint8_t oc2 : 1;
-				uint8_t in1 : 1;
-				uint8_t in2 : 1;
-				uint8_t in3 : 1;
-				uint8_t in4 : 1;
-			};
-			uint8_t raw;
-		};
+struct board_dio
+{
+union {
+	struct {
+		uint8_t outputs: 4;
+		uint8_t inputs : 4;
 	};
+	struct {
+		uint8_t rl1 : 1;
+		uint8_t rl2 : 1;
+		uint8_t oc1 : 1;
+		uint8_t oc2 : 1;
+		uint8_t in1 : 1;
+		uint8_t in2 : 1;
+		uint8_t in3 : 1;
+		uint8_t in4 : 1;
+	};
+	uint8_t raw;
+};
+};
 
 void custompcb_hw_init(void);
 void custompcb_hw_process(void);
