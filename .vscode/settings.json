@@ -36,6 +36,8 @@
         "datatype.h": "c",
         "owds.h": "c",
         "stdio.h": "c",
-        "fake.h": "c"
+        "fake.h": "c",
+        "eeprom.h": "c",
+        "delay.h": "c"
     }
 }

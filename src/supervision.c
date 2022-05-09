@@ -3,6 +3,7 @@
  * - Watchdog is reseted only if all critical threads responded in time.
  * 
  * - At least one thread should be register in order to use this feature.
+ * - Support 8 threads maximum.
  * 
  * @author Dietrich Lucas (ld.adecy@gmail.com)
  * @brief 
@@ -45,7 +46,7 @@ uint8_t critical_thread_register(void)
 /**
  * @brief Tell the watchdog that the given thread is still alive.
  * 
- * @param thread_id 
+ * @param thread_id : index of the thread (returned by @see critical_thread_register )
  */
 void alive(uint8_t thread_id)
 {
