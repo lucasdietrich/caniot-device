@@ -1,3 +1,15 @@
+/**
+ * @file pulse.h
+ * @author Dietrich Lucas (ld.adecy@gmail.com)
+ * @brief Pulse API for generating simple pulses on output pins.
+ * 	- Thread-safe.
+ * @version 0.1
+ * @date 2022-05-09
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #ifndef _CUSTOMPCB_PULSE_H_
 #define _CUSTOMPCB_PULSE_H_
 

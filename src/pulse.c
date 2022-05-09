@@ -120,10 +120,10 @@ bool pulse_is_active(output_t pin)
 
 void pulse_process(uint32_t time_passed_ms)
 {
-	PULSE_CONTEXT_LOCK();
-
 	struct titem *tie = NULL;
 	bool trigger = false;
+
+	PULSE_CONTEXT_LOCK();
 
 	tqueue_shift(&ev_queue, time_passed_ms);
 
@@ -137,13 +137,12 @@ void pulse_process(uint32_t time_passed_ms)
 		trigger = true;
 	}
 	
+	PULSE_CONTEXT_UNLOCK();
+	
 	/* if at least one event has been dequeue, request telemetry */
 	if (trigger == true) {
 		trigger_telemetry();
 	}
-
-
-	PULSE_CONTEXT_UNLOCK();
 }
 
 uint32_t pulse_remaining(void)

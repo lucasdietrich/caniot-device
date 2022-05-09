@@ -1,5 +1,6 @@
 #include "dev.h"
 
+#include <caniot/fake.h>
 
 K_SIGNAL_DEFINE(caniot_process_sig);
 
@@ -157,8 +158,8 @@ static struct k_work sw_reset_work = K_WORK_INIT(sw_reset_work_handler);
 static struct k_work wdt_reset_work = K_WORK_INIT(wdt_reset_work_handler);
 
 static int board_control_telemetry_handler(struct caniot_device *dev,
-					 char *buf,
-					 uint8_t *len)
+					   char *buf,
+					   uint8_t *len)
 {
 	struct board_dio dio = ll_read();
 
@@ -176,23 +177,30 @@ static int board_control_telemetry_handler(struct caniot_device *dev,
 	AS_BOARD_CONTROL_TELEMETRY(buf)->prl2 = 0U;
 #endif 
 
-	const int16_t temperature = dev_int_temperature();
-	if (temperature != CANIOT_DT_T16_INVALID) {
-		AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature = 
-		caniot_dt_T16_to_T10(temperature);
+
+#if CONFIG_CANIOT_FAKE_TEMPERATURE
+	AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature =
+		caniot_fake_get_temp(dev);
+	AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature =
+		caniot_fake_get_temp(dev);
+#else
+	int16_t temp = dev_int_temperature();
+	if (temp != CANIOT_DT_T16_INVALID) {
+		AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature =
+			caniot_dt_T16_to_T10(temp);
 	} else {
-		AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature = 
+		AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature =
 			CANIOT_DT_T10_INVALID;
 	}
 
-	int16_t temp;
 	if (CONFIG_APP_OW_EXTTEMP && (ow_ext_get(&temp) == true)) {
 		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature =
 			caniot_dt_T16_to_T10(temp);
 	} else {
-		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature = 
+		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature =
 			CANIOT_DT_T10_INVALID;
 	}
+#endif
 	
 	*len = 8U;
 

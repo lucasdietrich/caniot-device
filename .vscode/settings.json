@@ -35,6 +35,9 @@
         "ext_temp.h": "c",
         "datatype.h": "c",
         "owds.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "fake.h": "c",
+        "eeprom.h": "c",
+        "delay.h": "c"
     }
 }
