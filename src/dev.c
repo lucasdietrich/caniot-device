@@ -269,7 +269,7 @@ int command_handler(struct caniot_device *dev,
 }
 
 __attribute__((section(".noinit"))) static struct caniot_config config;
-__STATIC_ASSERT(sizeof(config) <= 0xFF); /* EEPROM size depends on MCU */
+__STATIC_ASSERT(sizeof(config) <= 0xFF, "config to big"); /* EEPROM size depends on MCU */
 
 extern struct caniot_config default_config;
 
