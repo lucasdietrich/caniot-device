@@ -25,26 +25,28 @@
 		.registered = 1U, \
 	}
 
+#if CONFIG_OW_DS_ENABLED
 /* use serial numbers to order sensors */
 ow_ds_sensor_t sensors[CONFIG_OW_DS_COUNT] = {
-#if defined(CONFIG_OW_DS_SN_1)
+#if defined(CONFIG_OW_DS_SN_1) && (CONFIG_OW_DS_COUNT >= 1)
 	OW_DS_SN_REGISTER(CONFIG_OW_DS_SN_1),
-#else
+#elif (CONFIG_OW_DS_COUNT >= 1)
 	OW_DS_SN_NONE(),
 #endif
 
-#if defined(CONFIG_OW_DS_SN_2)
+#if defined(CONFIG_OW_DS_SN_2) && (CONFIG_OW_DS_COUNT >= 2)
 	OW_DS_SN_REGISTER(CONFIG_OW_DS_SN_2),
-#else
+#elif (CONFIG_OW_DS_COUNT >= 2)
 	OW_DS_SN_NONE(),
 #endif
 
-#if defined(CONFIG_OW_DS_SN_3)
+#if defined(CONFIG_OW_DS_SN_3) && (CONFIG_OW_DS_COUNT >= 3)
 	OW_DS_SN_REGISTER(CONFIG_OW_DS_SN_3),
-#else
+#elif (CONFIG_OW_DS_COUNT >= 3)
 	OW_DS_SN_NONE(),
 #endif
 };
+#endif
 
 void temp_init(void)
 {

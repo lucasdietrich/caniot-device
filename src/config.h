@@ -29,7 +29,7 @@
 #endif
 
 #if !defined(CONFIG_OW_DS_COUNT)
-#	defined CONFIG_OW_DS_COUNT 0U
+#	define CONFIG_OW_DS_COUNT 0U
 #endif
 
 #if !defined(CONFIG_OW_DS_ENABLED) || (CONFIG_OW_DS_COUNT == 0U)
