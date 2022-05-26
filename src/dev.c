@@ -157,49 +157,50 @@ static struct k_work sw_reset_work = K_WORK_INIT(sw_reset_work_handler);
 
 static struct k_work wdt_reset_work = K_WORK_INIT(wdt_reset_work_handler);
 
+static uint16_t get_t10_temperature(temp_sens_t sens)
+{
+	uint16_t temp10 = CANIOT_DT_T10_INVALID;
+
+	const int16_t temp16 = temp_read(sens);
+	if (temp16 != CANIOT_DT_T16_INVALID) {
+		temp10 = caniot_dt_T16_to_T10(temp16);
+	}
+
+	return temp10;
+}
+
 static int board_control_telemetry_handler(struct caniot_device *dev,
 					   char *buf,
 					   uint8_t *len)
 {
-	struct board_dio dio = ll_read();
+	struct caniot_board_control_telemetry *const data =
+		AS_BOARD_CONTROL_TELEMETRY(buf);
 
-	AS_BOARD_CONTROL_TELEMETRY(buf)->dio = dio.raw;
+	struct board_dio dio = ll_read();
+	data->dio = dio.raw;
 
 #if CONFIG_GPIO_PULSE_SUPPORT
-	AS_BOARD_CONTROL_TELEMETRY(buf)->poc1 = pulse_is_active(OC1);
-	AS_BOARD_CONTROL_TELEMETRY(buf)->poc2 = pulse_is_active(OC2);
-	AS_BOARD_CONTROL_TELEMETRY(buf)->prl1 = pulse_is_active(RL1);
-	AS_BOARD_CONTROL_TELEMETRY(buf)->prl2 = pulse_is_active(RL2);
+	data->poc1 = pulse_is_active(OC1);
+	data->poc2 = pulse_is_active(OC2);
+	data->prl1 = pulse_is_active(RL1);
+	data->prl2 = pulse_is_active(RL2);
 #else
-	AS_BOARD_CONTROL_TELEMETRY(buf)->poc1 = 0U;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->poc2 = 0U;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->prl1 = 0U;
-	AS_BOARD_CONTROL_TELEMETRY(buf)->prl2 = 0U;
+	data->poc1 = 0U;
+	data->poc2 = 0U;
+	data->prl1 = 0U;
+	data->prl2 = 0U;
 #endif 
 
-
 #if CONFIG_CANIOT_FAKE_TEMPERATURE
-	AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature =
+	data->ext_temperature =
 		caniot_fake_get_temp(dev);
-	AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature =
+	data->int_temperature =
 		caniot_fake_get_temp(dev);
 #else
-	int16_t temp = dev_int_temperature();
-	if (temp != CANIOT_DT_T16_INVALID) {
-		AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature =
-			caniot_dt_T16_to_T10(temp);
-	} else {
-		AS_BOARD_CONTROL_TELEMETRY(buf)->int_temperature =
-			CANIOT_DT_T10_INVALID;
-	}
-
-	if (CONFIG_APP_OW_EXTTEMP && (ow_ext_get(&temp) == true)) {
-		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature =
-			caniot_dt_T16_to_T10(temp);
-	} else {
-		AS_BOARD_CONTROL_TELEMETRY(buf)->ext_temperature =
-			CANIOT_DT_T10_INVALID;
-	}
+	data->int_temperature = get_t10_temperature(TEMP_SENS_INT);
+	data->ext_temperature = get_t10_temperature(TEMP_SENS_EXT_1);
+	data->ext_temperature2 = get_t10_temperature(TEMP_SENS_EXT_2);
+	data->ext_temperature3 = get_t10_temperature(TEMP_SENS_EXT_3);
 #endif
 	
 	*len = 8U;
@@ -213,28 +214,31 @@ static int board_control_command_handler(struct caniot_device *dev,
 {
 	int ret = 0;
 
-	command_output(OC1, AS_BOARD_CONTROL_CMD(buf)->coc1);
-	command_output(OC2, AS_BOARD_CONTROL_CMD(buf)->coc2);
-	command_output(RL1, AS_BOARD_CONTROL_CMD(buf)->crl1);
-	command_output(RL2, AS_BOARD_CONTROL_CMD(buf)->crl2);
+	struct caniot_board_control_command *const cmd =
+		AS_BOARD_CONTROL_CMD(buf);
 
-	if (AS_BOARD_CONTROL_CMD(buf)->watchdog_reset == CANIOT_SS_CMD_SET ||
-	    AS_BOARD_CONTROL_CMD(buf)->reset == CANIOT_SS_CMD_SET) {
+	command_output(OC1, cmd->coc1);
+	command_output(OC2, cmd->coc2);
+	command_output(RL1, cmd->crl1);
+	command_output(RL2, cmd->crl2);
+
+	if (cmd->watchdog_reset == CANIOT_SS_CMD_SET ||
+	    cmd->reset == CANIOT_SS_CMD_SET) {
 		if (WDTCSR & BIT(WDE)) {
-			ret = k_system_workqueue_submit(&wdt_reset_work) == true ? 0 : -EINVAL;
+			ret = k_system_workqueue_submit(&wdt_reset_work) ? 0 : -EINVAL;
 		} else {
 			printf_P(PSTR("Watchdog not enabled\n"));
 			ret = -EINVAL;
 		}
-	} else 	if (AS_BOARD_CONTROL_CMD(buf)->software_reset == CANIOT_SS_CMD_SET) {
+	} else 	if (cmd->software_reset == CANIOT_SS_CMD_SET) {
 		ret = k_system_workqueue_submit(&sw_reset_work) == true ? 0 : -EINVAL;
-	} else if (AS_BOARD_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_ON) {
+	} else if (cmd->watchdog == CANIOT_TS_CMD_ON) {
 		wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 		ret = 0;
-	} else if (AS_BOARD_CONTROL_CMD(buf)->watchdog == CANIOT_TS_CMD_OFF) {
+	} else if (cmd->watchdog == CANIOT_TS_CMD_OFF) {
 		wdt_disable();
 		ret = 0;
-	} else if (AS_BOARD_CONTROL_CMD(buf)->config_reset == CANIOT_SS_CMD_SET) {
+	} else if (cmd->config_reset == CANIOT_SS_CMD_SET) {
 		ret = config_restore_default(dev, dev->config);
 	}
 

@@ -1,14 +1,6 @@
 #ifndef _APP_CONFIG_H_
 #define _APP_CONFIG_H_
 
-#if !defined(CONFIG_APP_OW_EXTTEMP)
-#	define CONFIG_APP_OW_EXTTEMP 0U
-#endif
-
-#if !defined(CONFIG_APP_OW_EXTTEMP_INIT_DELAY_MS)
-#	define CONFIG_APP_OW_EXTTEMP_INIT_DELAY_MS 10000U
-#endif 
-
 /**
  * @brief CONFIG_INPUTS_INT_MASK is a for IN0, IN1, IN2, IN3
  */
@@ -34,6 +26,22 @@
 
 #if !defined(CONFIG_FORCE_RESTORE_DEFAULT_CONFIG)
 #	define CONFIG_FORCE_RESTORE_DEFAULT_CONFIG 0U
+#endif
+
+#if !defined(CONFIG_OW_DS_COUNT)
+#	defined CONFIG_OW_DS_COUNT 0U
+#endif
+
+#if !defined(CONFIG_OW_DS_ENABLED) || (CONFIG_OW_DS_COUNT == 0U)
+#	define CONFIG_OW_DS_ENABLED 0U
+#endif
+
+#if !defined(CONFIG_OW_DS_PROCESS_PERIOD_MS)
+#	define CONFIG_OW_DS_PROCESS_PERIOD_MS 10000U
+#endif
+
+#if !defined(CONFIG_OW_DS_DEBUG)
+#	define CONFIG_OW_DS_DEBUG 0U
 #endif
 
 #endif /* _APP_CONFIG_H_ */

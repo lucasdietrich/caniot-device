@@ -76,15 +76,6 @@ void ll_inputs_enable_pcint(uint8_t mask);
 
 struct board_dio ll_read(void);
 
-int16_t tcn75_read(void);
-
-static inline int16_t dev_int_temperature(void)
-{
-	return tcn75_read();
-}
-
-void print_T16(int16_t temp);
-
 void custompcb_print_io(struct board_dio io);
 
 #ifdef __cplusplus

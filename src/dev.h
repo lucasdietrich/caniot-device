@@ -15,7 +15,7 @@
 #include <caniot/datatype.h>
 
 #include "custompcb/board.h"
-#include "custompcb/ext_temp.h"
+#include "custompcb/temp.h"
 
 #include "can.h"
 #include "config.h"

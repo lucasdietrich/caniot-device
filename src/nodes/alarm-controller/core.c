@@ -8,19 +8,21 @@
 #include <avr/pgmspace.h>
 
 #include "custompcb/board.h"
-#include "custompcb/ext_temp.h"
 
 #include "dev.h"
 
-int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
+int app_telemetry_handler(struct caniot_device *dev,
+			  uint8_t ep,
+			  char *buf,
+			  uint8_t *len)
 {
 	return -CANIOT_ENIMPL;
 }
 
 int app_command_handler(struct caniot_device *dev,
-				uint8_t ep,
-				char *buf,
-				uint8_t len)
+			uint8_t ep,
+			char *buf,
+			uint8_t len)
 {
 	return -CANIOT_ENIMPL;
 }

@@ -6,7 +6,7 @@
 #include <caniot/device.h>
 
 #include "custompcb/board.h"
-#include "custompcb/ext_temp.h"
+#include "custompcb/temp.h"
 
 #include <time.h>
 #include <avr/io.h>
@@ -60,6 +60,7 @@ int main(void)
 	irq_enable();
 
 	custompcb_hw_init();
+	temp_init();
 	pulse_init();
 	can_init();
 	config_init();

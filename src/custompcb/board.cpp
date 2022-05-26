@@ -9,11 +9,10 @@
 #include <avrtos/misc/uart.h>
 #include <avrtos/kernel.h>
 
+#include <caniot/datatype.h>
+
 #include <mcp_can.h>
 #include <Wire.h>
-
-#include "tcn75.h"
-#include "ext_temp.h"
 
 #include "config.h"
 
@@ -78,7 +77,7 @@ static inline void ll_inputs_init(bool pullup)
 		  | (1 << DDD5) | (1 << DDD6));
 	DDRB &= ~(1 << DDB0);
 
-	/* COnfigure pullup (Datasheet page 76) :
+	/* Configure pullup (Datasheet page 76) :
 	 * 
 	 * "If PORTxn is written logic one when the pin is configured as an input pin, 
 	 * the pull-up resistor is activated. To switch the pull-up resistor off, 
@@ -156,17 +155,13 @@ static inline void ll_i2c_init(void)
 	Wire.begin();
 }
 
-void print_T16(int16_t temp)
-{
-	printf_P(PSTR("Int Temp (TCN75) : %.1f °C\n"), tcn75_int16tofloat(temp));
-}
 
 static void ll_int0_init(bool pullup)
 {
 	/* INT0 is PortD bit 2 = PD2 */
 	DDRD &= ~(1 << DDD2);
 
-	/* COnfigure pullup (Datasheet page 76) :
+	/* Configure pullup (Datasheet page 76) :
 	 * 
 	 * "If PORTxn is written logic one when the pin is configured as an input pin, 
 	 * the pull-up resistor is activated. To switch the pull-up resistor off, 
@@ -201,10 +196,6 @@ static void ll_int1_init(bool pullup)
 	}
 }
 
-#if CONFIG_APP_OW_EXTTEMP
-static bool ow_status = false;
-#endif 
-
 void custompcb_hw_init(void)
 {
 	ll_outputs_init();
@@ -213,34 +204,13 @@ void custompcb_hw_init(void)
 	ll_int1_init(true); /* INT1 is unused */
 	ll_i2c_init();
 
-	tcn75_init();
-
 	/* enable interrupts on input changes */
 	ll_inputs_enable_pcint(CONFIG_INPUTS_INT_MASK);
-
-#if CONFIG_APP_OW_EXTTEMP
-	/* initialize OW */
-	bool ow_status = false;
-	ow_status = ow_ext_wait_init(K_MSEC(CONFIG_APP_OW_EXTTEMP_INIT_DELAY_MS));
-	printf_P(PSTR("<drv> Ext temp sensor "));
-	printf_P(ow_status ? PSTR("FOUND\n") : PSTR("NOT found\n"));
-#endif
 }
 
 void custompcb_hw_process(void)
 {
-#if CONFIG_APP_OW_EXTTEMP
-	/* update ow_status */
-	if (ow_status != ow_ext_get(NULL)) {
-		ow_status = !ow_status;
-
-		/* if OW thermocouple become available during runtime,
-		 * telemetry should be triggered */
-		if (ow_status == true) {
-			trigger_telemetry();
-		}
-	}
-#endif 
+	return;
 }
 
 /* print board_dio struct */
