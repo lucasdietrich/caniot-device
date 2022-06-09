@@ -28,7 +28,7 @@ extern "C" {
 #define WATCHDOG_TIMEOUT_MS 	8000
 #define WATCHDOG_TIMEOUT_WDTO 	WDTO_8S
 
-extern const union deviceid did;
+extern const caniot_did_t did;
 
 extern struct k_signal caniot_process_sig;
 

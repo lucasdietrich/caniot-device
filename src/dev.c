@@ -4,17 +4,11 @@
 
 K_SIGNAL_DEFINE(caniot_process_sig);
 
-const union deviceid did = {
-	.cls = __DEVICE_CLS__,
-	.sid = __DEVICE_SID__
-};
+const caniot_did_t did = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__);
 
 static const struct caniot_identification identification PROGMEM =
 {
-	.did = {
-		.cls = __DEVICE_CLS__,
-		.sid = __DEVICE_SID__,
-	},
+	.did = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__),
 	.version = __FIRMWARE_VERSION__,
 	.name = __DEVICE_NAME__,
 	.magic_number = __MAGIC_NUMBER__,
@@ -42,16 +36,16 @@ void get_time(uint32_t *sec, uint16_t *ms)
 
 static void caniot2msg(can_message *msg, const struct caniot_frame *frame)
 {
-	msg->ext = 0;
-	msg->rtr = 0;
-	msg->std = frame->id.raw,
+	msg->ext = 0U;
+	msg->rtr = 0U;
+	msg->std = caniot_id_to_canid(frame->id);
 	msg->len = frame->len;
 	memcpy(msg->buf, frame->buf, frame->len);
 }
 
 static void msg2caniot(struct caniot_frame *frame, const can_message *msg)
 {
-	frame->id.raw = msg->std;
+	frame->id = caniot_canid_to_id(msg->std);
 	frame->len = msg->len;
 	memcpy(frame->buf, msg->buf, msg->len);
 }
