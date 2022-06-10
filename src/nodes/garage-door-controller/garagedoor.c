@@ -20,7 +20,8 @@
 #define RELAY_PULSE_DURATION_MS     500U
 
 int app_command_handler(struct caniot_device *dev,
-			uint8_t ep, char *buf,
+			caniot_endpoint_t ep,
+			const char *buf,
 			uint8_t len)
 {
 	if (AS_CRTHPT(buf)->r1)
@@ -33,7 +34,7 @@ int app_command_handler(struct caniot_device *dev,
 }
 
 
-int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
+int app_telemetry_handler(struct caniot_device *dev, caniot_endpoint_t ep, char *buf, uint8_t *len)
 {
 	return -CANIOT_ENIMPL;
 }

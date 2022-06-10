@@ -12,15 +12,15 @@
 #include "dev.h"
 
 int app_telemetry_handler(struct caniot_device *dev,
-			  uint8_t ep,
-			  char *buf,
+			  caniot_endpoint_t ep,
+			  const char *buf,
 			  uint8_t *len)
 {
 	return -CANIOT_ENIMPL;
 }
 
 int app_command_handler(struct caniot_device *dev,
-			uint8_t ep,
+			caniot_endpoint_t ep,
 			char *buf,
 			uint8_t len)
 {

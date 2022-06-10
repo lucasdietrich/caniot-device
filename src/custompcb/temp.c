@@ -72,8 +72,9 @@ int16_t temp_read(temp_sens_t sensor)
 		 * reading the temperature is "instantaneous".
 		 */
 		temp = tcn75_read();
+	}
 #if CONFIG_OW_DS_ENABLED
-	} else if (CONFIG_OW_DS_ENABLED) {
+	else if (CONFIG_OW_DS_ENABLED) {
 		/* as threads a cooperative, we don't need 
 		 * a mutex to protect temperature values 
 		 */

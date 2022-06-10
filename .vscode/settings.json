@@ -40,6 +40,8 @@
 		"crc16.h": "c",
 		"ow_ds_drv.h": "c",
 		"ow_ds_meas.h": "c",
-		"temp.h": "c"
+		"temp.h": "c",
+		"pulse.h": "c",
+		"sleep.h": "c"
 	}
 }

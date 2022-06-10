@@ -95,3 +95,17 @@ version = c8
 - https://www.avrfreaks.net/forum/how-use-avr-watchdog
 
 - https://www.avrfreaks.net/comment/178013#comment-178013
+
+## 
+
+After (2 less RAM bytes used) + some flash
+```
+RAM:   [========  ]  78.6% (used 1610 bytes from 2048 bytes)
+Flash: [========= ]  88.5% (used 27183 bytes from 30720 bytes)
+```
+
+Before
+```
+RAM:   [========  ]  78.7% (used 1612 bytes from 2048 bytes)
+Flash: [========= ]  87.9% (used 26993 bytes from 30720 bytes)
+```

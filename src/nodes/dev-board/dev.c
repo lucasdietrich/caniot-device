@@ -14,7 +14,7 @@
 static uint64_t counter = 0;
 
 int app_command_handler(struct caniot_device *dev,
-			uint8_t ep, char *buf,
+			caniot_endpoint_t ep, char *buf,
 			uint8_t len)
 {
 	uint64_t add = 0U;
@@ -25,7 +25,7 @@ int app_command_handler(struct caniot_device *dev,
 	return 0;
 }
 
-int app_telemetry_handler(struct caniot_device *dev, uint8_t ep, char *buf, uint8_t *len)
+int app_telemetry_handler(struct caniot_device *dev, caniot_endpoint_t ep, char *buf, uint8_t *len)
 {
 	*((uint64_t*) buf) = counter;
 
