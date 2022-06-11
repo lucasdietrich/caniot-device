@@ -5,6 +5,12 @@
 
 #if DEBUG_MONITOR || DEBUG_TIME
 
+
+
+#if !KERNEL_TIMERS
+#	error KERNEL_TIMERS disabled
+#endif
+
 static void timer_handler(struct k_timer *tim);
 static void work_handler(struct k_work *work);
 
