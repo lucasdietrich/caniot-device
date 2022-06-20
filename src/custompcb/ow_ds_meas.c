@@ -69,7 +69,7 @@ static ow_ds_sensor_t *get_free_slot(void)
 	return NULL;
 }
 
-static void ds_discovered_cb(ow_ds_id_t *id, void *user_data)
+static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
 {
 	/* try to find the corresponding sensor in the array */
 	ow_ds_sensor_t *sensor = get_sensor_by_id(id);
@@ -90,6 +90,12 @@ static void ds_discovered_cb(ow_ds_id_t *id, void *user_data)
 		sensor->valid = 0U;
 		sensor->active = 1U;
 	}
+
+#if CONFIG_OW_DS_DEBUG > 1
+	printf_P(PSTR("ds_discovered_cb(id=%p), sensor=%p\n"), id, sensor);
+#endif /* CONFIG_OW_DS_DEBUG > 1 */
+
+	return sensor != NULL;
 }
 
 static void event_handler(struct k_event *ev)
@@ -120,7 +126,7 @@ static int8_t measure_sensor(ow_ds_sensor_t *sens)
 		/* if the sensor has been discovered, try to read it's temperature */
 
 #if CONFIG_OW_DS_DEBUG > 1
-		printf_P(PSTR("ow sens: %p temp: %f\n"), 
+		printf_P(PSTR("ow sens: %p temp: %.2f %%\n"), 
 			 (void *)sens, sens->temp / 100.0);
 #endif /* CONFIG_OW_DS_DEBUG */
 

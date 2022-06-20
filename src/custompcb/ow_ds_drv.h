@@ -20,6 +20,7 @@
 #define _OW_DS_DRV_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,13 +55,14 @@ void ow_ds_drv_init(uint8_t pin);
 
 /**
  * @brief Discover DS devices on the one wire "bus", 
- *       and call callback for each device found
+ *       and call callback for each device found.
+ * 	 Callback should return true if device should be registered, false to be ignored.
  * 
  * @param discovered_cb 
  * @return int8_t 
  */
 int8_t ow_ds_drv_discover_iter(uint8_t max_devices,
-			       void (*discovered_cb)(ow_ds_id_t *, void *),
+			       bool (*discovered_cb)(ow_ds_id_t *, void *),
 			       void *user_data);
 
 /**

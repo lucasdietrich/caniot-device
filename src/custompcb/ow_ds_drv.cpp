@@ -67,7 +67,7 @@ static inline int8_t handle_addr(uint8_t *addr, uint8_t *type)
 }
 
 int8_t ow_ds_drv_discover_iter(uint8_t max_devices,
-			       void (*discovered_cb)(ow_ds_id_t *, void *),
+			       bool (*discovered_cb)(ow_ds_id_t *, void *),
 			       void *user_data)
 {
 	if ((discovered_cb == NULL) || (max_devices == 0U)) {
@@ -81,21 +81,24 @@ int8_t ow_ds_drv_discover_iter(uint8_t max_devices,
 
 	while ((dev.ow.search(id.addr, true) == true) && (count < max_devices)) {
 		if (handle_addr(id.addr, &id.type) == OW_DS_DRV_SUCCESS) {
-			discovered_cb(&id, user_data);
-			count++;
+			if (discovered_cb(&id, user_data) == true) {
+				count++;
+			}
 		}
 	}
 
 	return count;
 }
 
-static void array_iter_cb(ow_ds_id_t *id, void *user_data)
+static bool array_iter_cb(ow_ds_id_t *id, void *user_data)
 {
 	ow_ds_id_t **ppid = (ow_ds_id_t **)user_data;
 
 	memcpy(*ppid, id, sizeof(ow_ds_id_t));
 
 	(*ppid)++;
+
+	return true;
 }
 
 int8_t ow_ds_drv_discover(ow_ds_id_t *array, uint8_t size)
@@ -168,13 +171,20 @@ int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature)
 			tmp = (tmp & 0xFFF0) + 12 - data[6];
 		}
 	} else {
-		byte cfg = (data[4] & 0x60);
+		uint8_t res = (data[4] & 0x60);
 		// at lower res, the low bits are undefined, so let's zero them
-		if (cfg == 0x00) tmp = tmp & ~7;  // 9 bit resolution, 93.75 ms
-		else if (cfg == 0x20) tmp = tmp & ~3; // 10 bit res, 187.5 ms
-		else if (cfg == 0x40) tmp = tmp & ~1; // 11 bit res, 375 ms
+		if (res == 0x00) tmp = tmp & ~7;  // 9 bit resolution, 93.75 ms
+		else if (res == 0x20) tmp = tmp & ~3; // 10 bit res, 187.5 ms
+		else if (res == 0x40) tmp = tmp & ~1; // 11 bit res, 375 ms
 		//// default is 12 bit resolution, 750 ms conversion time
+
+#if CONFIG_OW_DS_DEBUG > 1
+		printf_P(PSTR("res: 0x%hhx\n"), res);
+#endif
 	}
+
+	/* TODO handle the case were the resolution is not 12 bits, in which case
+	 * we need to write the scratchpad */
 
 	*temperature = raw_to_T16(tmp);
 
