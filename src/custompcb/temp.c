@@ -20,7 +20,7 @@
 #define OW_DS_SN_REGISTER(sn_array) \
 	{ \
 		.id = { \
-			.addr = sn_array, \
+			.addr = { sn_array }, \
 		}, \
 		.registered = 1U, \
 	}
