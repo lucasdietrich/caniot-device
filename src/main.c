@@ -48,6 +48,11 @@ int main(void)
 	usart_init();
 	led_init();
 
+#if LOG_LEVEL >= LOG_LEVEL_DBG
+	k_thread_dump_all();
+	dump_stack_canaries();
+#endif
+
 #if CONFIG_WATCHDOG
 	/* register the thread a critical, i.e. watchdog-protected thread */
 	const uint8_t tid = critical_thread_register();

@@ -45,10 +45,11 @@ void get_time(uint32_t *sec, uint16_t *ms)
 static void caniot2msg(can_message *msg, const struct caniot_frame *frame)
 {
 	msg->ext = 0U;
+	msg->isext = 0U;
 	msg->rtr = 0U;
 	msg->std = caniot_id_to_canid(frame->id);
 	msg->len = frame->len;
-	memcpy(msg->buf, frame->buf, frame->len);
+	memcpy(msg->buf, frame->buf, MIN(frame->len, 8U));
 }
 
 static void msg2caniot(struct caniot_frame *frame, const can_message *msg)
@@ -71,7 +72,7 @@ static int caniot_recv(struct caniot_frame *frame)
 #if LOG_LEVEL >= LOG_LEVEL_INF
 		k_show_uptime();
 		caniot_explain_frame(frame);
-		LOG_INF("");
+		LOG_INF_RAW("\n");
 #endif
 		
 	} else if (ret == -EAGAIN) {
@@ -103,8 +104,6 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 {
 	int ret;
 
-	LOG_INF("caniot_send(..., delay_ms = %lu)", delay_ms);
-
 	if (delay_ms < KERNEL_TICK_PERIOD_MS) {
 		can_message msg;
 
@@ -129,7 +128,7 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 #if LOG_LEVEL >= LOG_LEVEL_INF
 		k_show_uptime();
 		caniot_explain_frame(frame);
-		LOG_INF("");
+		LOG_INF_RAW("\n");
 #endif
 	}
 
@@ -239,7 +238,7 @@ static int board_control_command_handler(struct caniot_device *dev,
 		if (WDTCSR & BIT(WDE)) {
 			ret = k_system_workqueue_submit(&wdt_reset_work) ? 0 : -EINVAL;
 		} else {
-			LOG_WRN("Watchdog not enabled");
+			LOG_WRN("WTD off");
 			ret = -EINVAL;
 		}
 	} else 	if (cmd->software_reset == CANIOT_SS_CMD_SET) {

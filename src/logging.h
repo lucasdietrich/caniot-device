@@ -13,7 +13,7 @@
 #define _LOG(level, fmt, ...) \
     do { \
         if ((level) <= (LOG_LEVEL)) { \
-            printf_P((const char *) PSTR(fmt "\n"), ## __VA_ARGS__); \
+            printf_P((const char *) PSTR(fmt), ## __VA_ARGS__); \
         } \
     } while (0)
 
@@ -29,10 +29,15 @@
    } while (0)
 
 /* line begin and end */
-#define LOG_DBG(fmt, ...) _LOG(4, fmt, ## __VA_ARGS__)
-#define LOG_INF(fmt, ...) _LOG(3, fmt, ## __VA_ARGS__)
-#define LOG_WRN(fmt, ...) _LOG(2, fmt, ## __VA_ARGS__)
-#define LOG_ERR(fmt, ...) _LOG(1, fmt, ## __VA_ARGS__)
+#define LOG_DBG(fmt, ...) _LOG(4, fmt "\n", ## __VA_ARGS__)
+#define LOG_INF(fmt, ...) _LOG(3, fmt "\n", ## __VA_ARGS__)
+#define LOG_WRN(fmt, ...) _LOG(2, fmt "\n", ## __VA_ARGS__)
+#define LOG_ERR(fmt, ...) _LOG(1, fmt "\n", ## __VA_ARGS__)
+
+#define LOG_DBG_RAW(fmt, ...) _LOG(4, fmt, ## __VA_ARGS__)
+#define LOG_INF_RAW(fmt, ...) _LOG(3, fmt, ## __VA_ARGS__)
+#define LOG_WRN_RAW(fmt, ...) _LOG(2, fmt, ## __VA_ARGS__)
+#define LOG_ERR_RAW(fmt, ...) _LOG(1, fmt, ## __VA_ARGS__)
 
 #define LOG_HEXDUMP_DBG(data, len) _LOG_HEXDUMP(4, data, len)
 #define LOG_HEXDUMP_INF(data, len) _LOG_HEXDUMP(3, data, len)

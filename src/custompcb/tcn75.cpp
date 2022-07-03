@@ -10,6 +10,9 @@
 #	define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
+#define K_MODULE_TCN75  0x23
+#define K_MODULE K_MODULE_TCN75
+
 static void tcn75_configure(void)
 {
 	Wire.beginTransmission(TCN75_ADDR);

@@ -100,8 +100,6 @@ int can_recv(can_message *msg)
 			rc = -EAGAIN;
 		}
 		k_mutex_unlock(&can_mutex_if);
-
-		LOG_INF("[R]");
 	}
 	return rc;
 }
@@ -116,8 +114,6 @@ static int can_send(can_message *msg)
 				    msg->buf, true);
 
 		k_mutex_unlock(&can_mutex_if);
-
-		LOG_INF("[T]");
 	}
 	return rc;
 }
@@ -153,5 +149,5 @@ void can_print_msg(can_message *msg)
 	LOG_DBG("id: %08lx, isext: %d, rtr: %d, len: %d : ",
 		 msg->id, msg->isext, msg->rtr, msg->len);
 
-	LOG_HEXDUMP_DBG(msg->buf, msg->len);
+	LOG_HEXDUMP_DBG(msg->buf, MIN(msg->len, 8U));
 }
