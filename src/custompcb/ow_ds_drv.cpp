@@ -5,6 +5,13 @@
 #include "board.h"
 #include "ow_ds_drv.h"
 
+#include "logging.h"
+#if defined(CONFIG_OW_LOG_LEVEL)
+#	define LOG_LEVEL CONFIG_OW_LOG_LEVEL
+#else
+#	define LOG_LEVEL LOG_LEVEL_NONE
+#endif
+
 struct ow_dev {
 	OneWire ow;
 };
@@ -25,43 +32,27 @@ static inline int8_t handle_addr(uint8_t *addr, uint8_t *type)
 	}
 
 	// print ROM
-#if CONFIG_OW_DS_DEBUG > 0
-	printf_P(PSTR("ROM ="));
-	for (int i = 0; i < 8; i++) {
-		printf_P(PSTR(" %hhx"), (uint8_t)addr[i]);
-	}
-#endif /* DEBUG */
+	LOG_DBG("ROM: ");
+	LOG_HEXDUMP_DBG(addr, 8U);
 
 	// the first ROM byte indicates which chip
 	switch (addr[0]) {
 	case 0x10:
-#if CONFIG_OW_DS_DEBUG > 0
-		printf_P(PSTR(": DS18S20"));  // or old DS1820
-#endif
+		LOG_DBG(": DS18S20");
 		*type = 1;
 		break;
 	case 0x28:
-#if CONFIG_OW_DS_DEBUG > 0
-		printf_P(PSTR(": DS18B20")); // current
-#endif
+		LOG_DBG(": DS18B20");
 		*type = 0;
 		break;
 	case 0x22:
-#if CONFIG_OW_DS_DEBUG > 0
-		printf_P(PSTR(": DS1822"));
-#endif
+		LOG_DBG(": DS1822");
 		*type = 0;
 		break;
 	default:
-#if CONFIG_OW_DS_DEBUG > 0
-		printf_P(PSTR(": DS???"));
-#endif
+		LOG_WRN(": DS ??");
 		return -OW_DS_DRV_UNKOWN_DEVICE;
 	}
-
-#if CONFIG_OW_DS_DEBUG > 0
-	printf_P(PSTR("\n"));
-#endif
 
 	return OW_DS_DRV_SUCCESS;
 }
@@ -178,9 +169,7 @@ int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature)
 		else if (res == 0x40) tmp = tmp & ~1; // 11 bit res, 375 ms
 		//// default is 12 bit resolution, 750 ms conversion time
 
-#if CONFIG_OW_DS_DEBUG > 1
-		printf_P(PSTR("res: 0x%hhx\n"), res);
-#endif
+		LOG_DBG("res: %hhx", res);
 	}
 
 	/* TODO handle the case were the resolution is not 12 bits, in which case

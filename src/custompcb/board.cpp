@@ -16,6 +16,13 @@
 
 #include "config.h"
 
+#include "logging.h"
+#if defined(CONFIG_BOARD_LOG_LEVEL)
+#	define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
+#else
+#	define LOG_LEVEL LOG_LEVEL_NONE
+#endif
+
 #define K_MODULE_LL    0x22
 #define K_MODULE K_MODULE_LL
 
@@ -216,6 +223,6 @@ void custompcb_hw_process(void)
 /* print board_dio struct */
 void custompcb_print_io(struct board_dio io)
 {
-	printf_P(PSTR("outputs: %hhx, inputs: %hhx"),
-		 io.outputs, io.inputs);
+	LOG_INF("outputs: %hhx, inputs: %hhx",
+		io.outputs, io.inputs);
 }

@@ -44,8 +44,4 @@
 #	define CONFIG_OW_DS_PROCESS_PERIOD_MS 10000U
 #endif
 
-#if !defined(CONFIG_OW_DS_DEBUG)
-#	define CONFIG_OW_DS_DEBUG 0U
-#endif
-
 #endif /* _APP_CONFIG_H_ */

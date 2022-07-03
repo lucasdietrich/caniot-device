@@ -7,6 +7,13 @@
 
 #include <caniot/device.h>
 
+#include "logging.h"
+#if defined(CONFIG_CAN_LOG_LEVEL)
+#	define LOG_LEVEL CONFIG_CAN_LOG_LEVEL
+#else
+#	define LOG_LEVEL LOG_LEVEL_NONE
+#endif
+
 #include "dev.h"
 
 #define K_MODULE_CAN    0x21
@@ -34,7 +41,7 @@ void can_init(void)
         k_mutex_lock(&can_mutex_if, K_FOREVER);
 
         while (CAN_OK != can.begin(CAN_SPEEDSET, CAN_CLOCKSET)) {
-                printf_P(PSTR("can init failed\n"));
+		LOG_ERR("can init failed");
                 k_sleep(K_MSEC(500));
         }
 
@@ -79,9 +86,7 @@ int can_recv(can_message *msg)
 
 	int rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
 	if (rc == 0) {
-#if DEBUG_DRV_CAN
-		printf_P(PSTR("[R"));
-#endif /* DEBUG_DRV_CAN */
+
 		if (can.checkReceive() == CAN_MSGAVAIL) {
 			uint8_t isext, rtr;
 			rc = can.readMsgBufID(can.readRxTxStatus(),
@@ -94,14 +99,9 @@ int can_recv(can_message *msg)
 		} else {
 			rc = -EAGAIN;
 		}
-#if DEBUG_DRV_CAN
-		usart_transmit(']');
-#endif /* DEBUG_DRV_CAN */
 		k_mutex_unlock(&can_mutex_if);
-	} else {
-#if DEBUG_DRV_CAN
-		printf_P(PSTR("mutex lock failed\n"));
-#endif /* DEBUG_DRV_CAN */
+
+		LOG_INF("[R]");
 	}
 	return rc;
 }
@@ -112,15 +112,12 @@ static int can_send(can_message *msg)
 
 	int rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
 	if (rc == 0) {
-#if DEBUG_DRV_CAN
-		printf_P(PSTR("[T"));
-#endif /* DEBUG_DRV_CAN */
 		rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len,
 				    msg->buf, true);
-#if DEBUG_DRV_CAN
-		usart_transmit(']');
-#endif /* DEBUG_DRV_CAN */
+
 		k_mutex_unlock(&can_mutex_if);
+
+		LOG_INF("[T]");
 	}
 	return rc;
 }
@@ -153,11 +150,8 @@ int can_txq_message(can_message *msg)
 // print can_message
 void can_print_msg(can_message *msg)
 {
-	printf_P(PSTR("id: %08lx, isext: %d, rtr: %d, len: %d : "),
+	LOG_DBG("id: %08lx, isext: %d, rtr: %d, len: %d : ",
 		 msg->id, msg->isext, msg->rtr, msg->len);
-		 
-	for (int i = 0; i < msg->len; i++) {
-		printf_P(PSTR("%02x "), msg->buf[i]);
-	}
-	printf_P(PSTR("\n"));
+
+	LOG_HEXDUMP_DBG(msg->buf, msg->len);
 }

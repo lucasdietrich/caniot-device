@@ -5,6 +5,12 @@
 #include "ow_ds_drv.h"
 #include "ow_ds_meas.h"
 
+#include "logging.h"
+#if defined(CONFIG_OW_LOG_LEVEL)
+#	define LOG_LEVEL CONFIG_OW_LOG_LEVEL
+#else
+#	define LOG_LEVEL LOG_LEVEL_NONE
+#endif
 
 struct meas_context {
 	/* array of sensors ids */
@@ -91,9 +97,7 @@ static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
 		sensor->active = 1U;
 	}
 
-#if CONFIG_OW_DS_DEBUG > 1
-	printf_P(PSTR("ds_discovered_cb(id=%p), sensor=%p\n"), id, sensor);
-#endif /* CONFIG_OW_DS_DEBUG > 1 */
+	LOG_INF("ds_discovered_cb(id=%p), sensor=%p", id, sensor);
 
 	return sensor != NULL;
 }
@@ -125,10 +129,8 @@ static int8_t measure_sensor(ow_ds_sensor_t *sens)
 	} else if (ow_ds_drv_read(&sens->id, &sens->temp) == OW_DS_DRV_SUCCESS) {
 		/* if the sensor has been discovered, try to read it's temperature */
 
-#if CONFIG_OW_DS_DEBUG > 1
-		printf_P(PSTR("ow sens: %p temp: %.2f %%\n"), 
-			 (void *)sens, sens->temp / 100.0);
-#endif /* CONFIG_OW_DS_DEBUG */
+		LOG_INF("ow sens: %p temp: %.2f %%",
+			(void *)sens, sens->temp / 100.0);
 
 		sens->valid = 1U;
 		sens->errors = 0U;
@@ -136,9 +138,8 @@ static int8_t measure_sensor(ow_ds_sensor_t *sens)
 		ret = 0U;
 
 	} else {
-#if CONFIG_OW_DS_DEBUG > 0
-		printf_P(PSTR("ow sens: %p failed\n"), (void *)sens);
-#endif /* CONFIG_OW_DS_DEBUG */
+		LOG_WRN("ow sens: %p failed", (void *)sens);
+
 		sens->valid = 0U;
 		sens->errors++;
 

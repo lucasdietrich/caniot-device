@@ -3,6 +3,13 @@
 #include <Wire.h>
 #include <avrtos/kernel.h>
 
+#include "logging.h"
+#if defined(CONFIG_TCN75_LOG_LEVEL)
+#	define LOG_LEVEL CONFIG_TCN75_LOG_LEVEL
+#else
+#	define LOG_LEVEL LOG_LEVEL_NONE
+#endif
+
 static void tcn75_configure(void)
 {
 	Wire.beginTransmission(TCN75_ADDR);
@@ -50,9 +57,7 @@ int16_t tcn75_read(void)
 
 		temperature = tcn75_temp2int16(data[0], data[1]);
 	} else {
-#if DEBUG_TCN75
-		printf_P(PSTR("TCN75 read error\n"));
-#endif /* DEBUG_TCN75 */
+		LOG_ERR("TCN75 read error");
 	}
 
 	return temperature;

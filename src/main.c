@@ -21,6 +21,13 @@
 
 #include "config.h"
 
+#include "logging.h"
+#if defined(CONFIG_MAIN_LOG_LEVEL)
+#	define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
+#else
+#	define LOG_LEVEL LOG_LEVEL_NONE
+#endif
+
 #define K_MODULE K_MODULE_APPLICATION
 
 __attribute__ ((weak)) void app_init(void) { }
@@ -90,7 +97,6 @@ int main(void)
 				get_telemetry_timeout(),
 				pulse_remaining()
 			));
-		// printf_P(PSTR("timeout_ms = %lu\n"), timeout_ms);
 		
 		/* set unready after processing,
 		 * as some functions called may trigger the signal 

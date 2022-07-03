@@ -2,6 +2,14 @@
 
 #include <caniot/fake.h>
 
+#include "logging.h"
+#if defined(CONFIG_DEV_LOG_LEVEL)
+#	define LOG_LEVEL CONFIG_DEV_LOG_LEVEL
+#else
+#	define LOG_LEVEL LOG_LEVEL_NONE
+#endif
+
+
 K_SIGNAL_DEFINE(caniot_process_sig);
 
 const caniot_did_t did = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__);
@@ -59,9 +67,12 @@ static int caniot_recv(struct caniot_frame *frame)
 	if (ret == 0) {
 		// can_print_msg(&req);
 		msg2caniot(frame, &req);
+
+#if LOG_LEVEL >= LOG_LEVEL_INF
 		k_show_uptime();
 		caniot_explain_frame(frame);
-		printf_P(PSTR("\n"));
+		LOG_INF("");
+#endif
 		
 	} else if (ret == -EAGAIN) {
 		ret = -CANIOT_EAGAIN;
@@ -76,8 +87,8 @@ struct delayed_msg
 	can_message msg;
 };
 
-
-K_MEM_SLAB_DEFINE(dmsg_slab, sizeof(struct delayed_msg), 8);
+/* Should be increased if "delayed message" feature is used */
+K_MEM_SLAB_DEFINE(dmsg_slab, sizeof(struct delayed_msg), 1U);
 
 static void dmsg_handler(struct k_event *ev)
 {
@@ -91,6 +102,8 @@ static void dmsg_handler(struct k_event *ev)
 static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 {
 	int ret;
+
+	LOG_INF("caniot_send(..., delay_ms = %lu)", delay_ms);
 
 	if (delay_ms < KERNEL_TICK_PERIOD_MS) {
 		can_message msg;
@@ -113,9 +126,11 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 	}
 
 	if (ret == 0) {
+#if LOG_LEVEL >= LOG_LEVEL_INF
 		k_show_uptime();
 		caniot_explain_frame(frame);
-		printf_P(PSTR("\n"));
+		LOG_INF("");
+#endif
 	}
 
 	return ret;
@@ -130,21 +145,24 @@ const struct caniot_drivers_api drivers = {
 };
 
 static void sw_reset_work_handler(struct k_work *w)
-{	
-	printf_P(PSTR("Reset (SW) in 1 SEC\n"));
+{
+	LOG_DBG("Reset (SW) in 1 SEC");
+
 	k_sleep(K_SECONDS(1));
-	printf_P(PSTR("Resetting (SW) ...\n"));
 	k_sys_sw_reset();
 }
 
 static void wdt_reset_work_handler(struct k_work *w)
 {	
-	printf_P(PSTR("Reset (WDT) in 1 SEC\n"));
+	LOG_DBG("Reset (WDT) in 1 SEC");
+
 	k_sleep(K_SECONDS(1));
-	printf_P(PSTR("Resetting (WDT) ...\n"));
-	
-	k_sched_lock();
-	for(;;) { }
+
+	irq_disable();
+
+	for(;;) {
+		/* wait for WDT reset */
+	}
 }
 
 static struct k_work sw_reset_work = K_WORK_INIT(sw_reset_work_handler);
@@ -221,7 +239,7 @@ static int board_control_command_handler(struct caniot_device *dev,
 		if (WDTCSR & BIT(WDE)) {
 			ret = k_system_workqueue_submit(&wdt_reset_work) ? 0 : -EINVAL;
 		} else {
-			printf_P(PSTR("Watchdog not enabled\n"));
+			LOG_WRN("Watchdog not enabled");
 			ret = -EINVAL;
 		}
 	} else 	if (cmd->software_reset == CANIOT_SS_CMD_SET) {
@@ -461,7 +479,7 @@ void config_init(void)
 
 	/* if restore is true, we copy the default configuration to EEPROM and RAM */
 	if (restore || (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 1)) {
-		printf_P(PSTR("Config reset ... \n"));
+		LOG_DBG("Config reset ...");
 		
 		memcpy_P(&config, &default_config, sizeof(struct caniot_config));
 
