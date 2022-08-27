@@ -4,10 +4,11 @@
 #include <avrtos/kernel.h>
 #include <avrtos/drivers/gpio.h>
 
-#define HEATERS_COUNT_MAX 2u
+#define HEATERS_COUNT_MAX 3u
 
 #define HEATER1 0u
 #define HEATER2 1u
+#define HEATER3 1u
 
 #define HEATER_OC_POS 0u
 #define HEATER_OC_NEG 1u

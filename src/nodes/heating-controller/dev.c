@@ -27,8 +27,15 @@
 #define HEATER2_OC_NEG_GPIO GPIOD
 #define HEATER2_OC_NEG_PIN  PIN1
 
+/* Heater3 optocoupler gpios and pins */
+#define HEATER3_OC_POS_GPIO GPIOD
+#define HEATER3_OC_POS_PIN  PIN4
+#define HEATER3_OC_NEG_GPIO GPIOD
+#define HEATER3_OC_NEG_PIN  PIN5
+
 #define HEATER1_INIT_MODE HEATER_MODE_OFF
 #define HEATER2_INIT_MODE HEATER_MODE_OFF
+#define HEATER3_INIT_MODE HEATER_MODE_OFF
 
 const struct heater_oc heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 	[HEATER1] = {
@@ -39,14 +46,23 @@ const struct heater_oc heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 	[HEATER2] = {
 		[HEATER_OC_POS] = HEATER_OC_INIT(HEATER2_OC_POS_GPIO, HEATER2_OC_POS_PIN),
 		[HEATER_OC_NEG] = HEATER_OC_INIT(HEATER2_OC_NEG_GPIO, HEATER2_OC_NEG_PIN),
-	}
+	},
+#endif
+#if CONFIG_HEATERS_COUNT >= 3u
+	[HEATER3] = {
+		[HEATER_OC_POS] = HEATER_OC_INIT(HEATER3_OC_POS_GPIO, HEATER3_OC_POS_PIN),
+		[HEATER_OC_NEG] = HEATER_OC_INIT(HEATER3_OC_NEG_GPIO, HEATER3_OC_NEG_PIN),
+	},
 #endif
 };
 
 heater_mode_t heaters_mode[CONFIG_HEATERS_COUNT] = {
 	HEATER1_INIT_MODE,
 #if CONFIG_HEATERS_COUNT >= 2u
-	HEATER2_INIT_MODE
+	HEATER2_INIT_MODE,
+#endif
+#if CONFIG_HEATERS_COUNT >= 3u
+	HEATER3_INIT_MODE,
 #endif
 };
 
@@ -56,6 +72,9 @@ void app_init(void)
 
 #if CONFIG_HEATERS_COUNT >= 2u
 	heater_init(HEATER2);
+#endif
+#if CONFIG_HEATERS_COUNT >= 3u
+	heater_init(HEATER3);
 #endif
 }
 
@@ -73,6 +92,11 @@ int app_command_handler(struct caniot_device *dev,
 #if CONFIG_HEATERS_COUNT >= 2u
 		if (cmds->heater2_cmd != CANIOT_HEATER_NONE) {
 			heater_set_mode(HEATER2, cmds->heater2_cmd - 1u);
+		}
+#endif
+#if CONFIG_HEATERS_COUNT >= 3u
+		if (cmds->heater3_cmd != CANIOT_HEATER_NONE) {
+			heater_set_mode(HEATER3, cmds->heater3_cmd - 1u);
 		}
 #endif
 	}
