@@ -36,6 +36,10 @@
 #	define CONFIG_OW_DS_ENABLED 0U
 #endif
 
+#if !defined(CONFIG_HEATERS_COUNT)
+#	define CONFIG_HEATERS_COUNT 0U
+#endif
+
 #if (CONFIG_OW_DS_ENABLED == 0U) && (CONFIG_OW_DS_COUNT != 0U)
 #	warning CONFIG_OW_DS_COUNT > 0 but OW sensors are disabled
 #endif

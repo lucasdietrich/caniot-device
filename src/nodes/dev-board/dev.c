@@ -9,6 +9,24 @@
 
 #include "custompcb/board.h"
 
+#include <avrtos/drivers/timer.h>
+
+ISR(TIMER1_COMPA_vect)
+{
+	usart_transmit('Q');
+}
+
+void app_init(void)
+{
+	struct timer_config cfg = {
+		.mode = TIMER_MODE_CTC,
+		.prescaler = TIMER_PRESCALER_1024,
+		.counter = TIMER_CALC_COUNTER_VALUE(1000000LU, 1024LU),
+		.timsk = BIT(OCIEnA)
+	};
+	ll_timer16_drv_init(TIMER1_DEVICE, 1U, &cfg);
+}
+
 #include <dev.h>
 
 static uint64_t counter = 0;
