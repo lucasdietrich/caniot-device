@@ -55,10 +55,14 @@ void heater_ev_cb(struct k_event *ev)
 	uint32_t next_timeout_ms = 0u;
 	switch (mode) {
 	case HEATER_MODE_CONFORT_MIN_1:
-		next_timeout_ms = next_active ? 100u : 500u;
+		next_timeout_ms = next_active ?
+			HEATER_CONFORT_MIN_1_HIGH_DURATION_MS :
+			HEATER_CONFORT_MIN_1_LOW_DURATION_MS;
 		break;
 	case HEATER_MODE_CONFORT_MIN_2:
-		next_timeout_ms = next_active ? 200u : 500u;
+		next_timeout_ms = next_active ?
+			HEATER_CONFORT_MIN_2_HIGH_DURATION_MS :
+			HEATER_CONFORT_MIN_2_LOW_DURATION_MS;
 		break;
 	default:
 		/* We changed mode so we don't reschedule the event */
