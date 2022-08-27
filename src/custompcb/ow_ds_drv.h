@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2021
  * 
  * - https://www.pjrc.com/teensy/td_libs_OneWire.html
+ * - https://github.com/zephyrproject-rtos/zephyr/blob/69468dc52b8e1f4de06e1854d369f3af02107ecc/drivers/sensor/ds18b20/ds18b20.c
  * 
  */
 

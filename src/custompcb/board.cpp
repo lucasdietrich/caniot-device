@@ -8,6 +8,8 @@
 
 #include <avrtos/misc/uart.h>
 #include <avrtos/kernel.h>
+#include <avrtos/drivers/gpio.h>
+#include <avrtos/drivers/exti.h>
 
 #include <caniot/datatype.h>
 
@@ -27,21 +29,20 @@
 #define K_MODULE K_MODULE_LL
 
 #define PORTC_OUTPUT_MASK ((1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3))
+#define PORTD_INPUT_MASK  ((1 << DDD4) | (1 << DDD5) | (1 << DDD6))
+#define PORTB_INPUT_MASK  (1u << DDB0)
 
 void ll_outputs_init(void)
 {
-	DDRC |= (1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3);
-
-	/* initial state low */
-	PORTC &= ~((1 << PORTC0) | (1 << PORTC1) | (1 << PORTC2) | (1 << PORTC3));
+	GPIOD->DDR |= PORTC_OUTPUT_MASK;
+	GPIOD->PORT &= ~PORTC_OUTPUT_MASK; /* initial state low */
 }
 
 static void ll_portc_set_mask(uint8_t state, uint8_t mask)
 {
 	if (mask != 0) {
-		const uint8_t prev = PORTC & ~mask;
-
-		PORTC = prev | (state & mask);
+		const uint8_t prev = GPIOC->PORT & ~mask;
+		GPIOC->PORT = prev | (state & mask);
 	}
 }
 
@@ -49,40 +50,39 @@ static void ll_portc_set_mask(uint8_t state, uint8_t mask)
 static inline uint8_t ll_portc_read()
 {
 	/* read page 77 : "14.2.4 Reading the Pin Value" */
-	return PINC;
+	return GPIOC->PIN;
 }
 
 void ll_outputs_set(uint8_t state)
 {
-	ll_portc_set_mask(state << PORTC0, PORTC_OUTPUT_MASK);
+	ll_portc_set_mask(state, PORTC_OUTPUT_MASK);
 }
 
 void ll_outputs_reset(uint8_t state)
 {
-	ll_portc_set_mask(state << PORTC0, 0U);
+	ll_portc_set_mask(state, 0U);
 }
 
 void ll_outputs_set_mask(uint8_t state, uint8_t mask)
 {
-	ll_portc_set_mask(state << PORTC0, mask & PORTC_OUTPUT_MASK);
+	ll_portc_set_mask(state, mask & PORTC_OUTPUT_MASK);
 }
 
 uint8_t ll_outputs_read(void)
 {
-	return (ll_portc_read() & PORTC_OUTPUT_MASK) >> PORTC0;
+	return (ll_portc_read() & PORTC_OUTPUT_MASK);
 }
 
 void ll_outputs_toggle_mask(uint8_t mask)
 {
-	ll_outputs_set_mask(~ll_portc_read(), mask);
+	GPIOD->PIN |= mask & PORTC_OUTPUT_MASK;
 }
 
 static inline void ll_inputs_init(bool pullup)
 {
 	/* inputs PB0, PD4, PD5, PD6 */
-	DDRD &= ~((1 << DDD4)
-		  | (1 << DDD5) | (1 << DDD6));
-	DDRB &= ~(1 << DDB0);
+	GPIOD->DDR &= ~PORTD_INPUT_MASK;
+	GPIOB->DDR &= ~PORTB_INPUT_MASK;
 
 	/* Configure pullup (Datasheet page 76) :
 	 * 
@@ -93,11 +93,11 @@ static inline void ll_inputs_init(bool pullup)
 	 * becomes active, even if no clocks are running."
 	 */
 	if (pullup) {
-		PORTD |= (1 << PORTD4) | (1 << PORTD5) | (1 << PORTD6);
-		PORTB |= (1 << PORTB0);
+		GPIOD->PORT |= PORTD_INPUT_MASK;
+		GPIOB->PORT |= PORTB_INPUT_MASK;
 	} else {
-		PORTD &= ~((1 << PORTD4) | (1 << PORTD5) | (1 << PORTD6));
-		PORTB &= ~(1 << PORTB0);
+		GPIOD->PORT &= ~PORTD_INPUT_MASK;
+		GPIOB->PORT &= ~PORTB_INPUT_MASK;
 	}
 }
 
@@ -141,10 +141,10 @@ void ll_inputs_enable_pcint(uint8_t mask)
 /* optocoupler */
 uint8_t ll_inputs_read(void)
 {
-	const uint8_t portd = PIND & ((1 << PIND4) | (1 << PIND5) | (1 << PIND6));
-	const uint8_t portb = PINB & (1 << PINB0);
+	const uint8_t portd = GPIOD->PIN & PORTD_INPUT_MASK;
+	const uint8_t portb = GPIOB->PIN & PORTB_INPUT_MASK;
 
-	return ((portd >> PIND4) << 1) | (portb >> PINB0);
+	return ((portd >> PIND4) << 1u) | (portb >> PINB0);
 }
 
 struct board_dio ll_read(void)
@@ -166,7 +166,7 @@ static inline void ll_i2c_init(void)
 static void ll_int0_init(bool pullup)
 {
 	/* INT0 is PortD bit 2 = PD2 */
-	DDRD &= ~(1 << DDD2);
+	GPIOD->DDR &= ~(1 << DDD2);
 
 	/* Configure pullup (Datasheet page 76) :
 	 * 
@@ -177,16 +177,16 @@ static void ll_int0_init(bool pullup)
 	 * becomes active, even if no clocks are running."
 	 */
 	if (pullup) {
-		PORTD |= (1 << PORTD2);
+		GPIOD->PORT |= (1 << PORTD2);
 	} else {
-		PORTD &= ~(1 << PORTD2);
+		GPIOD->PORT &= ~(1 << PORTD2);
 	}
 }
 
 static void ll_int1_init(bool pullup)
 {
 	/* INT0 is PortD bit 3 = PD3 */
-	DDRD &= ~(1 << DDD3);
+	GPIOD->DDR &= ~(1 << DDD3);
 
 	/* Configure pullup (Datasheet page 76) :
 	 * 
@@ -197,9 +197,9 @@ static void ll_int1_init(bool pullup)
 	 * becomes active, even if no clocks are running."
 	 */
 	if (pullup) {
-		PORTD |= (1 << PORTD3);
+		GPIOD->PORT |= (1 << PORTD3);
 	} else {
-		PORTD &= ~(1 << PORTD3);
+		GPIOD->PORT &= ~(1 << PORTD3);
 	}
 }
 

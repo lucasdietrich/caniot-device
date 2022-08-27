@@ -43,5 +43,6 @@
 		"temp.h": "c",
 		"pulse.h": "c",
 		"sleep.h": "c"
-	}
+	},
+	"editor.rulers": [80]
 }

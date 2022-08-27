@@ -200,7 +200,7 @@ static int board_control_telemetry_handler(struct caniot_device *dev,
 	data->poc2 = 0U;
 	data->prl1 = 0U;
 	data->prl2 = 0U;
-#endif 
+#endif
 
 #if CONFIG_CANIOT_FAKE_TEMPERATURE
 	data->ext_temperature =
@@ -213,7 +213,7 @@ static int board_control_telemetry_handler(struct caniot_device *dev,
 	data->ext_temperature2 = get_t10_temperature(TEMP_SENS_EXT_2);
 	data->ext_temperature3 = get_t10_temperature(TEMP_SENS_EXT_3);
 #endif
-	
+
 	*len = 8U;
 
 	return 0;

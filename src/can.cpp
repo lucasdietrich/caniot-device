@@ -6,6 +6,7 @@
 #include <mcp2515_can_dfs.h>
 
 #include <caniot/device.h>
+#include <avrtos/drivers/exti.h>
 
 #include "logging.h"
 #if defined(CONFIG_CAN_LOG_LEVEL)
@@ -61,9 +62,8 @@ void can_init(void)
 
 #if CONFIG_CAN_INT == 0
 	/* configure interrupt on falling on INT0 */
-        EICRA |= 1 << ISC01;
-        EICRA &= ~(1 << ISC00);
-        EIMSK |= 1 << INT0;
+	exti_configure(INT0, ISC_FALLING);
+	exti_enable(INT0);
 #else
 #	error MCP2515 on INT1 not supported
 #endif
