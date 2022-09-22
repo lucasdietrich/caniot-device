@@ -3,6 +3,16 @@
 
 #include <stdint.h>
 
+#include <avrtos/drivers/gpio.h>
+
+struct pin
+{
+	GPIO_Device *dev;
+	uint8_t pin;
+};
+
+#define PIN_INIT(_dev, _pin) { .dev = _dev, .pin = _pin }
+
 #ifdef __cplusplus
 extern "C" {
 #endif

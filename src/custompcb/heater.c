@@ -1,9 +1,20 @@
 #include "heater.h"
+#include "config.h"
 
 #include <avr/pgmspace.h>
 
-extern const struct heater_oc heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM;
-extern heater_mode_t heaters_mode[CONFIG_HEATERS_COUNT];
+#if !CONFIG_KERNEL_DELAY_OBJECT_U32
+#error "Heaters controller needs CONFIG_KERNEL_DELAY_OBJECT_U32 to be set"
+#endif
+
+#if !CONFIG_KERNEL_EVENTS
+#error "Heaters controller needs CONFIG_KERNEL_EVENTS to be set"
+#endif
+
+extern const struct pin heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM;
+
+heater_mode_t heaters_mode[CONFIG_HEATERS_COUNT];
+
 
 struct k_event heaters_event[CONFIG_HEATERS_COUNT];
 
@@ -29,7 +40,7 @@ static inline void heater_deactivate_oc(GPIO_Device *oc, uint8_t pin)
 
 static inline void heater_set_active(GPIO_Device *oc, uint8_t pin, uint8_t active)
 {
-	gpio_set_pin_output_state(oc, pin, ~active);
+	gpio_set_pin_output_state(oc, pin, active);
 }
 
 static inline uint8_t heater_oc_is_active(GPIO_Device *oc, uint8_t pin)
@@ -65,7 +76,8 @@ void heater_ev_cb(struct k_event *ev)
 			HEATER_CONFORT_MIN_2_LOW_DURATION_MS;
 		break;
 	default:
-		/* We changed mode so we don't reschedule the event */
+		/* We changed mode so we don't apply any change and
+		 * don't reschedule the event */
 		return;
 	}
 
@@ -93,7 +105,8 @@ int heater_init(uint8_t hid)
 	gpio_pin_init(pos, pos_pin, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 	gpio_pin_init(neg, neg_pin, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
-	heater_set_mode(hid, heaters_mode[hid]);
+	/* Set initial state (Off) */
+	heater_set_mode(hid, HEATER_MODE_OFF);
 
 	k_event_init(&heaters_event[hid], heater_ev_cb);
 

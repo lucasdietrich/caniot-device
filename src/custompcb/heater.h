@@ -4,6 +4,8 @@
 #include <avrtos/kernel.h>
 #include <avrtos/drivers/gpio.h>
 
+#include "board.h"
+
 #define HEATERS_COUNT_MAX 3u
 
 #define HEATER1 0u
@@ -13,10 +15,6 @@
 #define HEATER_OC_POS 0u
 #define HEATER_OC_NEG 1u
 
-#if !CONFIG_KERNEL_DELAY_OBJECT_U32
-#error "Heaters controller needs CONFIG_KERNEL_DELAY_OBJECT_U32 to be set"
-#endif
-
 #define HEATER_CONFORT_MIN_1_HIGH_DURATION_MS 	(3*MSEC_PER_SEC)
 #define HEATER_CONFORT_MIN_2_HIGH_DURATION_MS 	(7*MSEC_PER_SEC)
 #define HEATER_CONFORT_MIN_PERIOD_MS		(300*MSEC_PER_SEC)
@@ -25,20 +23,15 @@
 #define HEATER_CONFORT_MIN_2_LOW_DURATION_MS 	\
 	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_2_HIGH_DURATION_MS)
 
-struct heater_oc {
-	GPIO_Device *dev;
-	uint8_t pin;
-};
-
-#define HEATER_OC_INIT(_dev, _pin) { .dev = _dev, .pin = _pin }
+#define HEATER_OC_INIT(_dev, _pin) PIN_INIT(_dev, _pin)
 
 typedef enum {
-	HEATER_MODE_CONFORT = 0u,
-	HEATER_MODE_CONFORT_MIN_1,
-	HEATER_MODE_CONFORT_MIN_2,
-	HEATER_MODE_ENERGY_SAVING,
-	HEATER_MODE_FROST_FREE,
-	HEATER_MODE_OFF
+	HEATER_MODE_CONFORT = 0u, /* Confort mode */
+	HEATER_MODE_CONFORT_MIN_1, /* Confort mode minus 1 °C */
+	HEATER_MODE_CONFORT_MIN_2, /* Confort mode minus 2 °C */
+	HEATER_MODE_ENERGY_SAVING, /* Energy saving mode */
+	HEATER_MODE_FROST_FREE, /* Frost free mode */
+	HEATER_MODE_OFF /* Off mode */
 } heater_mode_t;
 
 int heater_init(uint8_t hid);

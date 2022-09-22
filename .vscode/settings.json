@@ -42,7 +42,10 @@
 		"ow_ds_meas.h": "c",
 		"temp.h": "c",
 		"pulse.h": "c",
-		"sleep.h": "c"
+		"sleep.h": "c",
+		"heater.h": "c",
+		"gpio.h": "c",
+		"shutter.h": "c"
 	},
 	"editor.rulers": [80]
 }
