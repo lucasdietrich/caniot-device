@@ -13,7 +13,6 @@
 #include <avr/wdt.h>
 #include <avr/sleep.h>
 
-#include "hw.h"
 #include "dev.h"
 #include "can.h"
 #include "supervision.h"
@@ -43,10 +42,8 @@ K_KERNEL_LINK_INIT();
 
 int main(void)
 {
-	/* General low-level initialisation */
-	hw_ll_init();
-	usart_init();
-	led_init();
+	/* Board Support Package */
+	bsp_init();
 
 #if LOG_LEVEL >= LOG_LEVEL_DBG
 	k_thread_dump_all();
@@ -60,10 +57,8 @@ int main(void)
 
 	/* Following initialization require interrupts to be enabled
 	 * because they use Arduino millis()/micros() functions to calculate delays.
-	 */	
-	irq_enable();
-
-	bsp_init();
+	 */
+	
 	temp_init();
 #if CONFIG_GPIO_PULSE_SUPPORT
 	pulse_init();

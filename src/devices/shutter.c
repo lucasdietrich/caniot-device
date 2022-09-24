@@ -87,7 +87,7 @@ static inline uint8_t oc_pin(uint8_t s, uint8_t ocid)
 
 static void power(uint8_t state)
 {
-	gpio_set_pin_output_state(oc_pgm_dev(&ss.power_oc.dev),
+	gpio_write_pin_state(oc_pgm_dev(&ss.power_oc.dev),
 				  oc_pgm_pin(&ss.power_oc.pin),
 				  state);
 }
@@ -120,8 +120,8 @@ static void run_direction(uint8_t s, uint8_t dir)
 		neg_state = GPIO_HIGH;
 	}
 
-	gpio_set_pin_output_state(pos, pos_pin, pos_state);
-	gpio_set_pin_output_state(neg, neg_pin, neg_state);
+	gpio_write_pin_state(pos, pos_pin, pos_state);
+	gpio_write_pin_state(neg, neg_pin, neg_state);
 }
 
 static void event_cb(struct k_event *ev)

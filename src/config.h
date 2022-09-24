@@ -12,10 +12,6 @@
 #	define CONFIG_GPIO_PULSE_SUPPORT 0U
 #endif 
 
-#if !defined(CONFIG_CAN_INT)
-#	define CONFIG_CAN_INT 0U
-#endif
-
 #if !defined(CONFIG_WATCHDOG)
 #	define CONFIG_WATCHDOG 0u
 #endif 

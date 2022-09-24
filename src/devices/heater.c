@@ -32,22 +32,22 @@ static inline uint8_t oc_pin(uint8_t hid, uint8_t ocid)
 
 static inline void heater_activate_oc(GPIO_Device *oc, uint8_t pin)
 {
-	gpio_set_pin_output_state(oc, pin, GPIO_LOW);
+	gpio_write_pin_state(oc, pin, GPIO_LOW);
 }
 
 static inline void heater_deactivate_oc(GPIO_Device *oc, uint8_t pin)
 {
-	gpio_set_pin_output_state(oc, pin, GPIO_HIGH);
+	gpio_write_pin_state(oc, pin, GPIO_HIGH);
 }
 
 static inline void heater_set_active(GPIO_Device *oc, uint8_t pin, uint8_t active)
 {
-	gpio_set_pin_output_state(oc, pin, active);
+	gpio_write_pin_state(oc, pin, active);
 }
 
 static inline uint8_t heater_oc_is_active(GPIO_Device *oc, uint8_t pin)
 {
-	return 1u - gpio_get_pin_state(oc, pin);
+	return 1u - gpio_read_pin_state(oc, pin);
 }
 
 void heater_ev_cb(struct k_event *ev)

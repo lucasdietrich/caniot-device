@@ -18,9 +18,11 @@
 
 #include "tiny.h"
 
-void bsp_init(void)
-{	
-	Wire.begin();
+#include "devices/PCF8574.h"
+
+NOINLINE void bsp_tiny_init(void)
+{
+	pcf8574_init();
 }
 
 #endif /* CONFIG_BOARD_TINY */

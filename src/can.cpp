@@ -5,9 +5,6 @@
 #include <mcp2515_can.h>
 #include <mcp2515_can_dfs.h>
 
-#include <caniot/device.h>
-#include <avrtos/drivers/exti.h>
-
 #include "logging.h"
 #if defined(CONFIG_CAN_LOG_LEVEL)
 #	define LOG_LEVEL CONFIG_CAN_LOG_LEVEL
@@ -20,8 +17,6 @@
 #define K_MODULE_CAN    0x21
 #define K_MODULE K_MODULE_CAN
 
-#define SPI_CS_PIN  10
-
 #if CONFIG_CAN_CLOCKSET_16MHZ
 #	define CAN_CLOCKSET MCP_16MHz
 #else
@@ -29,8 +24,9 @@
 #endif
 
 #define CAN_SPEEDSET CAN_500KBPS
+#define CAN_TX_MSGQ_SIZE 2u
 
-static mcp2515_can can(SPI_CS_PIN);
+static mcp2515_can can(BSP_CAN_SS_ARDUINO_PIN);
 
 /* maybe unecessary */
 static K_MUTEX_DEFINE(can_mutex_if);
@@ -60,18 +56,10 @@ void can_init(void)
 	can.init_Filt(4, CAN_STDID, filter_broadcast);
 	can.init_Filt(5, CAN_STDID, filter_broadcast);
 
-#if CONFIG_CAN_INT == 0
-	/* configure interrupt on falling on INT0 */
-	exti_configure(INT0, ISC_FALLING);
-	exti_enable(INT0);
-#else
-#	error MCP2515 on INT1 not supported
-#endif
-
 	k_mutex_unlock(&can_mutex_if);
 }
 
-ISR(INT0_vect)
+ISR(BSP_CAN_INT_vect)
 {
 	trigger_process();
 
@@ -118,9 +106,8 @@ static int can_send(can_message *msg)
 	return rc;
 }
 
-#define CAN_MSGQ_SIZE 2
-static uint8_t buf[CAN_MSGQ_SIZE * sizeof(can_message)];
-K_MSGQ_DEFINE(txq, buf, sizeof(can_message), CAN_MSGQ_SIZE);
+static uint8_t buf[CAN_TX_MSGQ_SIZE * sizeof(can_message)];
+K_MSGQ_DEFINE(txq, buf, sizeof(can_message), CAN_TX_MSGQ_SIZE);
 
 static void can_tx_entry(void *arg);
 

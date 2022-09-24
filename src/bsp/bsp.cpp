@@ -1,11 +1,24 @@
-#include "hw.h"
-
-#include <avrtos/avrtos.h>
+#include <stdio.h>
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+
+#include <avrtos/kernel.h>
+#include <avrtos/drivers/gpio.h>
+#include <avrtos/drivers/exti.h>
+
+#include <caniot/datatype.h>
+
+#include <mcp_can.h>
+#include <Wire.h>
+
+#include "bsp.h"
+
+#include "config.h"
 
 // @see "init" function from arduino in "wiring.c"
-void hw_ll_init(void)
+static void hw_ll_init(void)
 {
 	// on the ATmega168, timer 0 is also used for fast hardware pwm
 	// (using phase-correct PWM would mean that timer 0 overflowed half as often
@@ -54,4 +67,41 @@ void hw_ll_init(void)
 
 	// enable interrupts before io init
 	// sei();
+}
+
+void bsp_init(void)
+{
+	/* General low-level initialisation */
+	hw_ll_init();
+
+	/* UART initialisation */
+	const struct usart_config usart_config = {
+		.baudrate = USART_BAUD_500000,
+		.receiver = 0u,
+		.transmitter = 1u,
+		.mode = USART_MODE_ASYNCHRONOUS,
+		.parity = USART_PARITY_NONE,
+		.stopbits = USART_STOP_BITS_1,
+		.databits = USART_DATA_BITS_8,
+		.speed_mode = USART_SPEED_MODE_NORMAL
+	};
+	usart_ll_drv_init(BSP_USART, &usart_config);
+
+	/* i2c init */
+	Wire.begin();
+
+	/* configure CAN interrupt on falling on INT0 */
+	bsp_gpio_init(BSP_CAN_INT_PIN, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	exti_configure(BSP_CAN_INT, ISC_FALLING);
+	exti_enable(BSP_CAN_INT);
+
+	/* Enable interrupts */
+	irq_enable();
+
+	/* Board specific initialisation */
+#if defined(CONFIG_BOARD_V1)
+	bsp_v1_init();
+#elif defined(CONFIG_BOARD_TINY)
+	bsp_tiny_init();
+#endif
 }

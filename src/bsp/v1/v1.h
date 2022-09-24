@@ -3,6 +3,21 @@
 
 #include "bsp/bsp.h"
 
+#define OC1 BSP_GPIO_PC0
+#define OC2 BSP_GPIO_PC1
+#define RL1 BSP_GPIO_PC2
+#define RL2 BSP_GPIO_PC3
+
+#define IN1 BSP_GPIO_PB0
+#define IN2 BSP_GPIO_PD4
+#define IN3 BSP_GPIO_PD5
+#define IN4 BSP_GPIO_PD6
+
+#define IN1_PIN BSP_GPIO_PIN_GET(IN1)
+#define IN2_PIN BSP_GPIO_PIN_GET(IN2)
+#define IN3_PIN BSP_GPIO_PIN_GET(IN3)
+#define IN4_PIN BSP_GPIO_PIN_GET(IN4)
+
 #define GPIO_VALID_OUTPUT_PIN(pin) (pin <= RL2)
 
 struct board_dio
@@ -39,7 +54,7 @@ void ll_inputs_enable_pcint(uint8_t mask);
 
 struct board_dio ll_read(void);
 
-void custompcb_print_io(struct board_dio io);
+void bsp_v1_init(void);
 
 #ifdef __cplusplus
 }
