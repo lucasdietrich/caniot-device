@@ -14,8 +14,8 @@
 #include <caniot/device.h>
 #include <caniot/datatype.h>
 
-#include "custompcb/board.h"
-#include "custompcb/temp.h"
+#include "bsp/bsp.h"
+#include "devices/temp.h"
 
 #include "can.h"
 #include "config.h"

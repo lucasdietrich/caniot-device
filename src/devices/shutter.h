@@ -4,7 +4,8 @@
 #include <avrtos/kernel.h>
 #include <avrtos/drivers/gpio.h>
 
-#include "board.h"
+#include "devices/gpio.h"
+#include "bsp/bsp.h"
 
 #define CONFIG_SHUTTERS_COUNT 4u
 

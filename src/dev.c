@@ -187,9 +187,9 @@ static int board_control_telemetry_handler(struct caniot_device *dev,
 	struct caniot_board_control_telemetry *const data =
 		AS_BOARD_CONTROL_TELEMETRY(buf);
 
+#if defined(CONFIG_BOARD_V1)
 	struct board_dio dio = ll_read();
 	data->dio = dio.raw;
-
 #if CONFIG_GPIO_PULSE_SUPPORT
 	data->poc1 = pulse_is_active(OC1);
 	data->poc2 = pulse_is_active(OC2);
@@ -200,7 +200,8 @@ static int board_control_telemetry_handler(struct caniot_device *dev,
 	data->poc2 = 0U;
 	data->prl1 = 0U;
 	data->prl2 = 0U;
-#endif
+#endif /* CONFIG_GPIO_PULSE_SUPPORT */
+#endif /* CONFIG_BOARD_V1 */
 
 #if CONFIG_CANIOT_FAKE_TEMPERATURE
 	data->ext_temperature =
@@ -228,10 +229,14 @@ static int board_control_command_handler(struct caniot_device *dev,
 	struct caniot_board_control_command *const cmd =
 		AS_BOARD_CONTROL_CMD(buf);
 
+#if defined(CONFIG_BOARD_V1)
 	command_output(OC1, cmd->coc1);
 	command_output(OC2, cmd->coc2);
 	command_output(RL1, cmd->crl1);
 	command_output(RL2, cmd->crl2);
+#else
+	/* TODO */
+#endif
 
 	if (cmd->watchdog_reset == CANIOT_SS_CMD_SET ||
 	    cmd->reset == CANIOT_SS_CMD_SET) {
@@ -315,6 +320,7 @@ static uint32_t config_get_pulse_duration_ms(output_t pin)
 }
 #endif /* CONFIG_GPIO_PULSE_SUPPORT */
 
+#if defined(CONFIG_BOARD_V1)
 void command_output(output_t pin, caniot_complex_digital_cmd_t cmd)
 {
 	if (!GPIO_VALID_OUTPUT_PIN(pin)) {
@@ -345,7 +351,9 @@ void command_output(output_t pin, caniot_complex_digital_cmd_t cmd)
 #endif 
 
 	case CANIOT_XPS_RESET:
+#if CONFIG_GPIO_PULSE_SUPPORT
 		pulse_cancel(pin);
+#endif
 		ll_outputs_set_mask(
 			GET_CUSTOM_GPIO_CONFIG().mask.outputs_default.mask & BIT(pin),
 			BIT(pin));
@@ -354,6 +362,7 @@ void command_output(output_t pin, caniot_complex_digital_cmd_t cmd)
 		break;
 	}
 }
+#endif /* #if CONFIG_BOARD_V1 */
 
 void print_indentification(void)
 {

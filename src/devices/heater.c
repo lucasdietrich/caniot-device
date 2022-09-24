@@ -1,6 +1,8 @@
 #include "heater.h"
 #include "config.h"
 
+#include "bsp/bsp.h"
+
 #include <avr/pgmspace.h>
 
 #if !CONFIG_KERNEL_DELAY_OBJECT_U32

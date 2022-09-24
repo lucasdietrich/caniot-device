@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #include <avrtos/avrtos.h>
-#include <custompcb/ow_ds_drv.h>
+#include <devices/ow_ds_drv.h>
 
 /* PB1 */
 #define OW_DS_ARDUINO_PIN  9U

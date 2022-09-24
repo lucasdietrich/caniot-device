@@ -16,7 +16,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "custompcb/board.h"
+#include "bsp/bsp.h"
 
 /**
  * @brief Init pulse module

@@ -1,6 +1,6 @@
 #include <avrtos/kernel.h>
 
-#include <custompcb/board.h>
+#include <bsp/bsp.h>
 
 #include "ow_ds_drv.h"
 #include "ow_ds_meas.h"

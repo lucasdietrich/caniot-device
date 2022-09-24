@@ -2,7 +2,7 @@
 
 #include <OneWire.h>
 
-#include "board.h"
+#include "../bsp/bsp.h"
 #include "ow_ds_drv.h"
 
 #include "logging.h"

@@ -5,8 +5,8 @@
 
 #include <caniot/device.h>
 
-#include "custompcb/board.h"
-#include "custompcb/temp.h"
+#include "bsp/bsp.h"
+#include "devices/temp.h"
 
 #include <time.h>
 #include <avr/io.h>
@@ -53,14 +53,6 @@ int main(void)
 	dump_stack_canaries();
 #endif
 
-#if CONFIG_WATCHDOG
-	/* register the thread a critical, i.e. watchdog-protected thread */
-	const uint8_t tid = critical_thread_register();
-
-	/* Enable watchdog */
-	wdt_enable(WATCHDOG_TIMEOUT_WDTO);
-#endif 
-
 	/* as we don't (always) use mutex/semaphore to synchronize threads 
 	 * we need the initialization to not be preempted.
 	 */
@@ -71,12 +63,22 @@ int main(void)
 	 */	
 	irq_enable();
 
-	custompcb_hw_init();
+	bsp_init();
 	temp_init();
+#if CONFIG_GPIO_PULSE_SUPPORT
 	pulse_init();
+#endif
 	can_init();
 	config_init();
 	caniot_init();
+
+#if CONFIG_WATCHDOG
+	/* register the thread a critical, i.e. watchdog-protected thread */
+	const uint8_t tid = critical_thread_register();
+
+	/* Enable watchdog */
+	wdt_enable(WATCHDOG_TIMEOUT_WDTO);
+#endif 
 
 	/* Specific application initialization */
 	app_init();
@@ -88,7 +90,9 @@ int main(void)
 	// k_thread_dump_all();
 	print_indentification();
 
+#if CONFIG_GPIO_PULSE_SUPPORT
 	uint32_t pulse_process_time = k_uptime_get_ms32();
+#endif
 
 	int ret;
 	for (;;) {
@@ -97,11 +101,17 @@ int main(void)
 		 * - Caniot telemetry
 		 * - Pulse event
 		 */
-		const uint32_t timeout_ms = MIN(
-			max_process_interval, MIN(
-				get_telemetry_timeout(),
-				pulse_remaining()
-			));
+		uint32_t timeout_ms = MIN(
+			max_process_interval,
+			get_telemetry_timeout()
+		);
+
+#if CONFIG_GPIO_PULSE_SUPPORT
+		timeout_ms = MIN(
+			timeout_ms,
+			pulse_remaining()
+		);
+#endif
 		
 		/* set unready after processing,
 		 * as some functions called may trigger the signal 
@@ -118,12 +128,11 @@ int main(void)
 		alive(tid);
 #endif /* CONFIG_WATCHDOG */
 
+#if CONFIG_GPIO_PULSE_SUPPORT
 		uint32_t now_ms = k_uptime_get_ms32();
 		pulse_process(now_ms - pulse_process_time);
 		pulse_process_time = now_ms;
-			
-		/* any processing related to the custom PCB */
-		custompcb_hw_process();
+#endif
 
 		/* Application specific processing before CANIOT process*/
 		app_process();

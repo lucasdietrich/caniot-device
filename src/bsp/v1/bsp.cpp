@@ -1,4 +1,6 @@
-#include "board.h"
+#if defined(CONFIG_BOARD_V1)
+
+#include "v1.h"
 
 #include <stdio.h>
 
@@ -203,7 +205,7 @@ static void ll_int1_init(bool pullup)
 	}
 }
 
-void custompcb_hw_init(void)
+void bsp_init(void)
 {
 	ll_outputs_init();
 	ll_inputs_init(true);
@@ -215,14 +217,11 @@ void custompcb_hw_init(void)
 	ll_inputs_enable_pcint(CONFIG_INPUTS_INT_MASK);
 }
 
-void custompcb_hw_process(void)
-{
-	return;
-}
-
 /* print board_dio struct */
 void custompcb_print_io(struct board_dio io)
 {
 	LOG_INF("outputs: %hhx, inputs: %hhx",
 		io.outputs, io.inputs);
 }
+
+#endif /* CONFIG_BOARD_V1 */

@@ -11,6 +11,8 @@
 #define SHUTTER_OPENNING_DURATION_MS 10000u
 #define POWER_ON_STARTUP_DELAY_MS 100u
 
+#define ENSURE_ADDITIONAL_DURATION_MS 1000u
+
 #define SHUTTER_MINIMAL_OPENNESS_DIFF_PERCENT 10u
 #define SHUTTER_MINIMAL_ALLOWED_DURATION_MS 100u
 
@@ -188,7 +190,8 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 	struct shutter *const shutter = &shutters[s];
 
 	uint8_t state;
-	uint16_t duration = SHUTTER_OPENNING_DURATION_MS;
+	uint16_t duration = SHUTTER_OPENNING_DURATION_MS +
+			    ENSURE_ADDITIONAL_DURATION_MS;
 
 	if (openness == 100u) {
 		/* Make sure the shutter is fully open */

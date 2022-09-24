@@ -7,9 +7,9 @@
 
 #include <avrtos/kernel.h>
 
-#include "custompcb/board.h"
-#include "custompcb/heater.h"
-#include "custompcb/shutter.h"
+#include "bsp/bsp.h"
+#include "devices/heater.h"
+#include "devices/shutter.h"
 
 #include <dev.h>
 
@@ -29,12 +29,10 @@
 #define HEATER2_OC_NEG_PIN  PIN1
 
 /* Heater3 optocoupler gpios and pins */
-/*
-#define HEATER3_OC_POS_GPIO GPIOD
+#define HEATER3_OC_POS_GPIO GPIOC
 #define HEATER3_OC_POS_PIN  PIN4
-#define HEATER3_OC_NEG_GPIO GPIOD
+#define HEATER3_OC_NEG_GPIO GPIOC
 #define HEATER3_OC_NEG_PIN  PIN5
-*/
 
 /* Shutters power supply gpio device and pin */
 #define SHUTTERS_POWER_GPIO GPIOD

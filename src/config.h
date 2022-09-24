@@ -17,7 +17,7 @@
 #endif
 
 #if !defined(CONFIG_WATCHDOG)
-#	define CONFIG_WATCHDOG 1U
+#	define CONFIG_WATCHDOG 0u
 #endif 
 
 #if !defined(CONFIG_CAN_CLOCKSET_16MHZ)

@@ -4,7 +4,7 @@
 #include <avrtos/kernel.h>
 #include <avrtos/drivers/gpio.h>
 
-#include "board.h"
+#include "devices/gpio.h"
 
 #define HEATERS_COUNT_MAX 3u
 
