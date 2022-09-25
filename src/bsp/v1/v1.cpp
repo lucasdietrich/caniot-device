@@ -27,7 +27,7 @@
 #	define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
-#define PCINT0_vect_ENABLED \
+#define PCINT0_ISR_ENABLED \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN1) == GPIOB_INDEX) || \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN2) == GPIOB_INDEX) || \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN3) == GPIOB_INDEX) || \
@@ -37,7 +37,7 @@
 	(BSP_GPIO_PORT_GET_INDEX(BSP_RL1) == GPIOB_INDEX) || \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_RL2) == GPIOB_INDEX)
 
-#define PCINT1_vect_ENABLED \
+#define PCINT1_ISR_ENABLED \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN1) == GPIOC_INDEX) || \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN2) == GPIOC_INDEX) || \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN3) == GPIOC_INDEX) || \
@@ -47,7 +47,7 @@
 	(BSP_GPIO_PORT_GET_INDEX(BSP_RL1) == GPIOC_INDEX) || \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_RL2) == GPIOC_INDEX)
 
-#define PCINT2_vect_ENABLED \
+#define PCINT2_ISR_ENABLED \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN1) == GPIOD_INDEX) || \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN2) == GPIOD_INDEX) || \
 	(BSP_GPIO_PORT_GET_INDEX(BSP_IN3) == GPIOD_INDEX) || \
@@ -59,26 +59,32 @@
 
 extern "C" void trigger_telemetry(void);
 
-#if PCINT0_vect_ENABLED
+#if PCINT0_ISR_ENABLED
 ISR(PCINT0_vect)
 {
+#if DEBUG_INT
 	usart_transmit('*');
+#endif
 	trigger_telemetry();
 }
 #endif
 
-#if PCINT1_vect_ENABLED
+#if PCINT1_ISR_ENABLED
 ISR(PCINT1_vect)
 {
+#if DEBUG_INT
 	usart_transmit('!');
+#endif
 	trigger_telemetry();
 }
 #endif
 
-#if PCINT2_vect_ENABLED
+#if PCINT2_ISR_ENABLED
 ISR(PCINT2_vect)
 {
+#if DEBUG_INT
 	usart_transmit('%');
+#endif
 	trigger_telemetry();
 }
 #endif
@@ -102,15 +108,15 @@ NOINLINE void bsp_v1_init(void)
 	pci_configure(PCINT_8_15, 0u);
 	pci_configure(PCINT_16_23, 0u);
 	
-#if PCINT0_vect_ENABLED
+#if PCINT0_ISR_ENABLED
 	pci_clear_flag(PCINT_0_7);
 	pci_enable(PCINT_0_7);
 #endif
-#if PCINT1_vect_ENABLED
+#if PCINT1_ISR_ENABLED
 	pci_clear_flag(PCINT_8_15);
 	pci_enable(PCINT_8_15);
 #endif
-#if PCINT2_vect_ENABLED
+#if PCINT2_ISR_ENABLED
 	pci_clear_flag(PCINT_16_23);
 	pci_enable(PCINT_16_23);
 #endif
