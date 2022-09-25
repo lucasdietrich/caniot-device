@@ -155,6 +155,8 @@ static int8_t discover()
 					     ds_discovered_cb,
 					     NULL);
 
+	LOG_DBG("discovered %d OW sensors", ret);
+
 	/* at least one sensor should be discovered */
 	ctx.flags.do_discovery = ret <= 0U;
 
