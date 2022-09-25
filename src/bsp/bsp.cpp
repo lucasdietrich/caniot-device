@@ -83,7 +83,7 @@ void bsp_init(void)
 	/* UART initialisation */
 	const struct usart_config usart_config = {
 		.baudrate = USART_BAUD_500000,
-		.receiver = 0u,
+		.receiver = CONFIG_USART_SHELL,
 		.transmitter = 1u,
 		.mode = USART_MODE_ASYNCHRONOUS,
 		.parity = USART_PARITY_NONE,

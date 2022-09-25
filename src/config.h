@@ -37,6 +37,10 @@
 #	define CONFIG_OW_DS_PROCESS_PERIOD_MS 10000U
 #endif
 
+#if !defined(CONFIG_USART_SHELL)
+#	define CONFIG_USART_SHELL 0u
+#endif
+
 #define CONFIG_CLASS __DEVICE_CLS__
 
 #if __DEVICE_CLS__ == 0

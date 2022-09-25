@@ -17,6 +17,7 @@
 #include "can.h"
 #include "supervision.h"
 #include "pulse.h"
+#include "shell.h"
 
 #include "config.h"
 
@@ -133,6 +134,10 @@ int main(void)
 
 		/* Application specific processing before CANIOT process*/
 		app_process();
+
+#if CONFIG_USART_SHELL
+		shell_process();
+#endif
 
 		do {
 			ret = caniot_process();
