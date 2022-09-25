@@ -27,126 +27,93 @@
 #	define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
-#define K_MODULE_LL    0x22
-#define K_MODULE K_MODULE_LL
+#define PCINT0_vect_ENABLED \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN1) == GPIOB_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN2) == GPIOB_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN3) == GPIOB_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN4) == GPIOB_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_OC1) == GPIOB_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_OC2) == GPIOB_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_RL1) == GPIOB_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_RL2) == GPIOB_INDEX)
 
-#define PORTC_OUTPUT_MASK ((1 << DDC0) | (1 << DDC1) | (1 << DDC2) | (1 << DDC3))
-#define PORTD_INPUT_MASK  ((1 << DDD4) | (1 << DDD5) | (1 << DDD6))
-#define PORTB_INPUT_MASK  (1u << DDB0)
+#define PCINT1_vect_ENABLED \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN1) == GPIOC_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN2) == GPIOC_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN3) == GPIOC_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN4) == GPIOC_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_OC1) == GPIOC_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_OC2) == GPIOC_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_RL1) == GPIOC_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_RL2) == GPIOC_INDEX)
 
-static void ll_portc_set_mask(uint8_t state, uint8_t mask)
-{
-	if (mask != 0) {
-		const uint8_t prev = GPIOC->PORT & ~mask;
-		GPIOC->PORT = prev | (state & mask);
-	}
-}
-
-/* interesting, read page 78 figure 14-4 */
-static inline uint8_t ll_portc_read()
-{
-	/* read page 77 : "14.2.4 Reading the Pin Value" */
-	return GPIOC->PIN;
-}
-
-void ll_outputs_set(uint8_t state)
-{
-	ll_portc_set_mask(state, PORTC_OUTPUT_MASK);
-}
-
-void ll_outputs_reset(uint8_t state)
-{
-	ll_portc_set_mask(state, 0U);
-}
-
-void ll_outputs_set_mask(uint8_t state, uint8_t mask)
-{
-	ll_portc_set_mask(state, mask & PORTC_OUTPUT_MASK);
-}
-
-uint8_t ll_outputs_read(void)
-{
-	return (ll_portc_read() & PORTC_OUTPUT_MASK);
-}
-
-void ll_outputs_toggle_mask(uint8_t mask)
-{
-	GPIOD->PIN |= mask & PORTC_OUTPUT_MASK;
-}
+#define PCINT2_vect_ENABLED \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN1) == GPIOD_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN2) == GPIOD_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN3) == GPIOD_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_IN4) == GPIOD_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_OC1) == GPIOD_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_OC2) == GPIOD_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_RL1) == GPIOD_INDEX) || \
+	(BSP_GPIO_PORT_GET_INDEX(BSP_RL2) == GPIOD_INDEX)
 
 extern "C" void trigger_telemetry(void);
 
-#if CONFIG_INPUTS_INT_MASK & BIT(IN1_PIN)
+#if PCINT0_vect_ENABLED
 ISR(PCINT0_vect)
 {
-	trigger_telemetry();
-}
-#endif 
-
-#if CONFIG_INPUTS_INT_MASK & (BIT(IN2_PIN) | BIT(IN3_PIN) | BIT(IN4_PIN))
-ISR(PCINT2_vect)
-{
+	usart_transmit('*');
 	trigger_telemetry();
 }
 #endif
 
-/* optocoupler */
-uint8_t ll_inputs_read(void)
+#if PCINT1_vect_ENABLED
+ISR(PCINT1_vect)
 {
-	const uint8_t portd = GPIOD->PIN & PORTD_INPUT_MASK;
-	const uint8_t portb = GPIOB->PIN & PORTB_INPUT_MASK;
-
-	return ((portd >> PIND4) << 1u) | (portb >> PINB0);
+	usart_transmit('!');
+	trigger_telemetry();
 }
+#endif
 
-struct board_dio ll_read(void)
+#if PCINT2_vect_ENABLED
+ISR(PCINT2_vect)
 {
-	struct board_dio s;
-
-	s.outputs = ll_outputs_read();
-	s.inputs = ll_inputs_read();
-
-	return s;
+	usart_transmit('%');
+	trigger_telemetry();
 }
+#endif
 
 NOINLINE void bsp_v1_init(void)
 {
 	/* outputs init */
-	bsp_gpio_init(OC1, GPIO_OUTPUT, GPIO_LOW);
-	bsp_gpio_init(OC2, GPIO_OUTPUT, GPIO_LOW);
-	bsp_gpio_init(RL1, GPIO_OUTPUT, GPIO_LOW);
-	bsp_gpio_init(RL2, GPIO_OUTPUT, GPIO_LOW);
+	bsp_gpio_init(BSP_OC1, GPIO_OUTPUT, GPIO_LOW);
+	bsp_gpio_init(BSP_OC2, GPIO_OUTPUT, GPIO_LOW);
+	bsp_gpio_init(BSP_RL1, GPIO_OUTPUT, GPIO_LOW);
+	bsp_gpio_init(BSP_RL2, GPIO_OUTPUT, GPIO_LOW);
 
 	/* inputs init */
-	bsp_gpio_init(IN1, GPIO_INPUT, GPIO_INPUT_PULLUP);
-	bsp_gpio_init(IN2, GPIO_INPUT, GPIO_INPUT_PULLUP);
-	bsp_gpio_init(IN3, GPIO_INPUT, GPIO_INPUT_PULLUP);
-	bsp_gpio_init(IN4, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	bsp_gpio_init(BSP_IN1, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	bsp_gpio_init(BSP_IN2, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	bsp_gpio_init(BSP_IN3, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	bsp_gpio_init(BSP_IN4, GPIO_INPUT, GPIO_INPUT_PULLUP);
 
 	/* Enable interrupts */
 	pci_configure(PCINT_0_7, 0u);
 	pci_configure(PCINT_8_15, 0u);
 	pci_configure(PCINT_16_23, 0u);
-
-	pci_pin_enable_group_line(BSP_GPIO_EXTI_GROUP(IN1), 
-				  BSP_GPIO_EXTI_LINE(IN1));
-
-	pci_pin_enable_group_line(BSP_GPIO_EXTI_GROUP(IN2), 
-				  BSP_GPIO_EXTI_LINE(IN2));
-
-	pci_pin_enable_group_line(BSP_GPIO_EXTI_GROUP(IN3), 
-				  BSP_GPIO_EXTI_LINE(IN3));
-
-	pci_pin_enable_group_line(BSP_GPIO_EXTI_GROUP(IN4), 
-				  BSP_GPIO_EXTI_LINE(IN4));
-
-	pci_clear_flag(PCINT_0_7);
-	pci_clear_flag(PCINT_8_15);
-	pci_clear_flag(PCINT_16_23);
 	
+#if PCINT0_vect_ENABLED
+	pci_clear_flag(PCINT_0_7);
 	pci_enable(PCINT_0_7);
+#endif
+#if PCINT1_vect_ENABLED
+	pci_clear_flag(PCINT_8_15);
 	pci_enable(PCINT_8_15);
+#endif
+#if PCINT2_vect_ENABLED
+	pci_clear_flag(PCINT_16_23);
 	pci_enable(PCINT_16_23);
+#endif
 }
 
 #endif /* CONFIG_BOARD_V1 */

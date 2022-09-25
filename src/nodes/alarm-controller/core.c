@@ -1,15 +1,23 @@
-#include <caniot/caniot.h>
-#include <caniot/device.h>
-#include <caniot/datatype.h>
-
-#include <avrtos/kernel.h>
-
 #include <stdio.h>
 #include <avr/pgmspace.h>
 
+#include <avrtos/kernel.h>
+
+#include <caniot/caniot.h>
+#include <caniot/device.h>
+#include <caniot/datatype.h>
+#include <caniot/classes/class0.h>
+
+#include <dev.h>
+
 #include "bsp/bsp.h"
 
-#include "dev.h"
+#define OUTDOOR_LIGHT_1 	OC1_IDX
+#define OUTDOOR_LIGHT_2 	OC2_IDX
+#define SIREN			RL1_IDX
+
+#define PRESENCE_SENSOR 	IN1_IDX
+#define SABOTAGE		IN4_IDX
 
 int app_telemetry_handler(struct caniot_device *dev,
 			  caniot_endpoint_t ep,
@@ -43,22 +51,13 @@ const struct caniot_config default_config PROGMEM = {
 		.region = CANIOT_LOCATION_REGION_DEFAULT,
 		.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
 	}, 
-	.custompcb = {
-		.gpio = {
-			.pulse_duration = {
-				.rl1 = 1000U,
-				.rl2 = 5000U,
-				.oc1 = 10000U,
-				.oc2 = 30000U,
-			},
-			.mask = {
-				.outputs_default = {
-					.relays = 0U,
-				},
-				.telemetry_on_change = {
-					.mask = 0xFFFFFFFFLU
-				}
-			}
-		}
+	.cls0_gpio = {
+		.pulse_durations = {
+			[OUTDOOR_LIGHT_1] = 30000u,
+			[OUTDOOR_LIGHT_2] = 30000u,
+			[SIREN] = 20000u,
+		},
+		.outputs_default = 0u,
+		.telemetry_on_change = 0x97u, /* OC1, OC2, RL1, IN1, IN4 */
 	}
 };

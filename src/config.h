@@ -44,4 +44,38 @@
 #	define CONFIG_OW_DS_PROCESS_PERIOD_MS 10000U
 #endif
 
+#define CONFIG_CLASS __DEVICE_CLS__
+
+#if __DEVICE_CLS__ == 0
+#	define CONFIG_CLASS0_ENABLED 1U
+#endif
+
+#if __DEVICE_CLS__ == 1
+#	define CONFIG_CLASS1_ENABLED 0U
+#endif
+
+#if __DEVICE_CLS__ == 2
+#	define CONFIG_CLASS2_ENABLED 0U
+#endif
+
+#if __DEVICE_CLS__ == 3
+#	define CONFIG_CLASS3_ENABLED 0U
+#endif
+
+#if __DEVICE_CLS__ == 4
+#	define CONFIG_CLASS4_ENABLED 0U
+#endif
+
+#if __DEVICE_CLS__ == 5
+#	define CONFIG_CLASS5_ENABLED 0U
+#endif
+
+#if __DEVICE_CLS__ == 6
+#	define CONFIG_CLASS6_ENABLED 0U
+#endif
+
+#if __DEVICE_CLS__ == 7
+#	define CONFIG_CLASS7_ENABLED 0U
+#endif
+
 #endif /* _APP_CONFIG_H_ */

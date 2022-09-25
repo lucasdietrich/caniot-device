@@ -51,7 +51,8 @@
 		"board.h": "c",
 		"bsp.h": "c",
 		"v1.h": "c",
-		"usart.h": "c"
+		"usart.h": "c",
+		"class0.h": "c"
 	},
 	"editor.rulers": [80]
 }

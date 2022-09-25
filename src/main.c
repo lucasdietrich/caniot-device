@@ -125,7 +125,9 @@ int main(void)
 
 #if CONFIG_GPIO_PULSE_SUPPORT
 		uint32_t now_ms = k_uptime_get_ms32();
-		pulse_process(now_ms - pulse_process_time);
+		if (pulse_process(now_ms - pulse_process_time) == true) {
+			trigger_telemetry();
+		}
 		pulse_process_time = now_ms;
 #endif
 

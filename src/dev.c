@@ -1,4 +1,6 @@
 #include "dev.h"
+#include "class/class.h"
+
 
 #include <caniot/fake.h>
 
@@ -168,7 +170,7 @@ static struct k_work sw_reset_work = K_WORK_INIT(sw_reset_work_handler);
 
 static struct k_work wdt_reset_work = K_WORK_INIT(wdt_reset_work_handler);
 
-static uint16_t get_t10_temperature(temp_sens_t sens)
+uint16_t get_t10_temperature(temp_sens_t sens)
 {
 	uint16_t temp10 = CANIOT_DT_T10_INVALID;
 
@@ -180,81 +182,28 @@ static uint16_t get_t10_temperature(temp_sens_t sens)
 	return temp10;
 }
 
-static int board_control_telemetry_handler(struct caniot_device *dev,
-					   char *buf,
-					   uint8_t *len)
-{
-	struct caniot_board_control_telemetry *const data =
-		AS_BOARD_CONTROL_TELEMETRY(buf);
-
-#if defined(CONFIG_BOARD_V1)
-	struct board_dio dio = ll_read();
-	data->dio = dio.raw;
-#if CONFIG_GPIO_PULSE_SUPPORT
-	data->poc1 = pulse_is_active(OC1);
-	data->poc2 = pulse_is_active(OC2);
-	data->prl1 = pulse_is_active(RL1);
-	data->prl2 = pulse_is_active(RL2);
-#else
-	data->poc1 = 0U;
-	data->poc2 = 0U;
-	data->prl1 = 0U;
-	data->prl2 = 0U;
-#endif /* CONFIG_GPIO_PULSE_SUPPORT */
-#endif /* CONFIG_BOARD_V1 */
-
-#if CONFIG_CANIOT_FAKE_TEMPERATURE
-	data->ext_temperature =
-		caniot_fake_get_temp(dev);
-	data->int_temperature =
-		caniot_fake_get_temp(dev);
-#else
-	data->int_temperature = get_t10_temperature(TEMP_SENS_INT);
-	data->ext_temperature = get_t10_temperature(TEMP_SENS_EXT_1);
-	data->ext_temperature2 = get_t10_temperature(TEMP_SENS_EXT_2);
-	data->ext_temperature3 = get_t10_temperature(TEMP_SENS_EXT_3);
-#endif
-
-	*len = 8U;
-
-	return 0;
-}
-
-static int board_control_command_handler(struct caniot_device *dev,
-					 const char *buf,
-					 uint8_t len)
+int dev_apply_blc_sys_command(struct caniot_device *dev,
+			      struct caniot_blc_sys_command *sysc)
 {
 	int ret = 0;
 
-	struct caniot_board_control_command *const cmd =
-		AS_BOARD_CONTROL_CMD(buf);
-
-#if defined(CONFIG_BOARD_V1)
-	command_output(OC1, cmd->coc1);
-	command_output(OC2, cmd->coc2);
-	command_output(RL1, cmd->crl1);
-	command_output(RL2, cmd->crl2);
-#else
-	/* TODO */
-#endif
-
-	if (cmd->watchdog_reset == CANIOT_SS_CMD_SET ||
-	    cmd->reset == CANIOT_SS_CMD_SET) {
+	if (sysc->watchdog_reset == CANIOT_SS_CMD_SET ||
+	    sysc->reset == CANIOT_SS_CMD_SET) {
 		if (WDTCSR & BIT(WDE)) {
 			ret = k_system_workqueue_submit(&wdt_reset_work) ? 0 : -EINVAL;
 		} else {
 			LOG_WRN("WTD off");
 			ret = -EINVAL;
 		}
-	} else 	if (cmd->software_reset == CANIOT_SS_CMD_SET) {
+	} else 	if (sysc->software_reset == CANIOT_SS_CMD_SET) {
 		ret = k_system_workqueue_submit(&sw_reset_work) == true ? 0 : -EINVAL;
-	} else if (cmd->watchdog == CANIOT_TS_CMD_ON) {
+	} else if (sysc->watchdog == CANIOT_TS_CMD_ON) {
 		wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 		ret = 0;
-	} else if (cmd->watchdog == CANIOT_TS_CMD_OFF) {
+	} else if (sysc->watchdog == CANIOT_TS_CMD_OFF) {
 		wdt_disable();
 		ret = 0;
-	} else if (cmd->config_reset == CANIOT_SS_CMD_SET) {
+	} else if (sysc->config_reset == CANIOT_SS_CMD_SET) {
 		ret = config_restore_default(dev, dev->config);
 	}
 
@@ -262,16 +211,22 @@ static int board_control_command_handler(struct caniot_device *dev,
 }
 
 extern const caniot_telemetry_handler_t app_telemetry_handler;
-
 extern const caniot_command_handler_t app_command_handler;
 
 int telemetry_handler(struct caniot_device *dev,
-		      caniot_endpoint_t ep, 
+		      caniot_endpoint_t ep,
 		      char *buf,
 		      uint8_t *len)
 {
 	if (ep == CANIOT_ENDPOINT_BOARD_CONTROL) {
-		return board_control_telemetry_handler(dev, buf, len);
+		switch (__DEVICE_CLS__) {
+		case CANIOT_DEVICE_CLASS0:
+			return class0_blc_telemetry_handler(dev, buf, len);
+		case CANIOT_DEVICE_CLASS1:
+			return class1_blc_telemetry_handler(dev, buf, len);
+		default:
+			return -CANIOT_ENOTSUP;
+		}
 	} else {
 		return app_telemetry_handler(dev, ep, buf, len);
 	}
@@ -283,7 +238,18 @@ int command_handler(struct caniot_device *dev,
 		    uint8_t len)
 {
 	if (ep == CANIOT_ENDPOINT_BOARD_CONTROL) {
-		return board_control_command_handler(dev, buf, len);
+		switch (CANIOT_DID_CLS(identification.did)) {
+#if defined(CONFIG_CLASS0_ENABLED)
+		case CANIOT_DEVICE_CLASS0:
+			return class0_blc_command_handler(dev, buf, len);
+#endif
+#if defined(CONFIG_CLASS1_ENABLED)
+		case CANIOT_DEVICE_CLASS1:
+			return class1_blc_command_handler(dev, buf, len);
+#endif
+		default:
+			return -CANIOT_ENOTSUP;
+		}
 	} else {
 		return app_command_handler(dev, ep, buf, len);
 	}
@@ -307,62 +273,54 @@ struct caniot_device device = {
 	},
 };
 
-#define GET_CUSTOM_GPIO_CONFIG() (device.config->custompcb.gpio)
-
-#if CONFIG_GPIO_PULSE_SUPPORT
-static uint32_t config_get_pulse_duration_ms(output_t pin)
+int command_xps(struct xps_context *xpsc,
+		caniot_complex_digital_cmd_t cmd,
+		uint32_t duration_ms)
 {
-	if (GPIO_VALID_OUTPUT_PIN(pin)) {
-		return GET_CUSTOM_GPIO_CONFIG().pulse_duration.array[pin];
+	__ASSERT_TRUE(xpsc != NULL);
+ 
+	if (BSP_GPIO_STATUS_GET(xpsc->descr) != BSP_GPIO_ACTIVE) {
+		return -ENOTSUP;
 	}
 
-	return 0U;
-}
-#endif /* CONFIG_GPIO_PULSE_SUPPORT */
-
-#if defined(CONFIG_BOARD_V1)
-void command_output(output_t pin, caniot_complex_digital_cmd_t cmd)
-{
-	if (!GPIO_VALID_OUTPUT_PIN(pin)) {
-		return;
-	}
+	LOG_DBG("XPS: %u %p %u cmd=%u duration=%lu\n",
+		xpsc->descr, xpsc->pev, xpsc->reset_state,
+		cmd, duration_ms);
 
 	switch (cmd) {
 	case CANIOT_XPS_SET_ON:
-		ll_outputs_set_mask(BIT(pin), BIT(pin));
+		bsp_gpio_output_write(xpsc->descr, GPIO_HIGH);
 		break;
 	case CANIOT_XPS_SET_OFF:
-		ll_outputs_set_mask(0U, BIT(pin));
+		bsp_gpio_output_write(xpsc->descr, GPIO_LOW);
 		break;
 	case CANIOT_XPS_TOGGLE:
-		ll_outputs_toggle_mask(BIT(pin));
+		bsp_gpio_toggle(xpsc->descr);
 		break;
 
 #if CONFIG_GPIO_PULSE_SUPPORT
-	case CANIOT_XPS_PULSE_CANCEL:
-		pulse_cancel(pin);
-		break;
 	case CANIOT_XPS_PULSE_ON:
-		pulse_trigger(pin, true, config_get_pulse_duration_ms(pin));
-		break;
 	case CANIOT_XPS_PULSE_OFF:
-		pulse_trigger(pin, false, config_get_pulse_duration_ms(pin));
+		xpsc->pev = pulse_trigger(xpsc->descr,
+					  cmd == CANIOT_XPS_PULSE_ON,
+					  duration_ms);
+		break;
+	case CANIOT_XPS_PULSE_CANCEL:
+		pulse_cancel(xpsc->pev);
 		break;
 #endif 
 
 	case CANIOT_XPS_RESET:
 #if CONFIG_GPIO_PULSE_SUPPORT
-		pulse_cancel(pin);
+		pulse_cancel(xpsc->pev);
 #endif
-		ll_outputs_set_mask(
-			GET_CUSTOM_GPIO_CONFIG().mask.outputs_default.mask & BIT(pin),
-			BIT(pin));
-
+		bsp_gpio_output_write(xpsc->descr, xpsc->reset_state);
 	default:
 		break;
 	}
+
+	return 0;
 }
-#endif /* #if CONFIG_BOARD_V1 */
 
 void print_indentification(void)
 {
@@ -414,12 +372,19 @@ static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
 	return crc;
 }
 
-static int config_apply_changes(struct caniot_device *dev,
+static int config_apply(struct caniot_device *dev,
 				struct caniot_config *cfg)
 {
 	set_zone(cfg->timezone);
 
-	return 0;
+	switch (__DEVICE_CLS__) {
+	case CANIOT_DEVICE_CLASS0:
+		return class0_config_apply(dev, cfg);
+	case CANIOT_DEVICE_CLASS1:
+		return class1_config_apply(dev, cfg);
+	default:
+		return -CANIOT_ENOTSUP;
+	}
 }
 
 /**
@@ -463,7 +428,7 @@ int config_on_write(struct caniot_device *dev,
 
 	config_dirty = true;
 
-	return config_apply_changes(dev, cfg);
+	return config_apply(dev, cfg);
 }
 
 int config_restore_default(struct caniot_device *dev,
@@ -487,11 +452,13 @@ void config_init(void)
 
 	/* if restore is true, we copy the default configuration to EEPROM and RAM */
 	if (restore || (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 1)) {
-		LOG_DBG("Config reset ...");
 		
+		LOG_DBG("Config reset ...");
 		memcpy_P(&config, &default_config, sizeof(struct caniot_config));
 
 		config_on_write(&device, device.config);
+	} else {
+		config_apply(&device, device.config);
 	}
 }
 

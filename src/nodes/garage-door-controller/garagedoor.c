@@ -1,36 +1,42 @@
-#include <caniot/caniot.h>
-#include <caniot/device.h>
-#include <caniot/datatype.h>
-
-#include <avrtos/kernel.h>
-
 #include <stdio.h>
 #include <avr/pgmspace.h>
 
-#include "bsp/bsp.h"
+#include <avrtos/kernel.h>
+
+#include <caniot/caniot.h>
+#include <caniot/device.h>
+#include <caniot/datatype.h>
+#include <caniot/classes/class0.h>
 
 #include <dev.h>
 
-/*
-- right : IN4, RL2),
-- left  : IN3, RL1),
-- gate  : IN2,
-*/
+#include "bsp/bsp.h"
 
-#define RELAY_PULSE_DURATION_MS     500U
+void app_init(void)
+{
+	
+}
+
+#define RELAY_PULSE_DURATION_MS     	500U
+
+#define LEFT_DOOR_COMMAND 		RL1_IDX
+#define RIGHT_DOOR_COMMAND 		RL2_IDX
+
+#define LEFT_DOOR_STATUS 		IN3_IDX
+#define RIGHT_DOOR_STATUS 		IN4_IDX
+#define GATE_STATUS			IN2_IDX
 
 int app_command_handler(struct caniot_device *dev,
 			caniot_endpoint_t ep,
 			const char *buf,
 			uint8_t len)
 {
-	if (AS_CRTHPT(buf)->r1)
-		command_output(RL1, CANIOT_XPS_SET_ON);
+	return -CANIOT_ENIMPL;
+}
 
-	if (AS_CRTHPT(buf)->r2)
-		command_output(RL2, CANIOT_XPS_SET_ON);
+void app_process(void)
+{
 
-	return 0;
 }
 
 
@@ -55,26 +61,12 @@ const struct caniot_config default_config PROGMEM = {
 		.region = CANIOT_LOCATION_REGION_DEFAULT,
 		.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
 	},
-	.custompcb = {
-		.gpio = {
-			.pulse_duration = {
-				.rl1 = RELAY_PULSE_DURATION_MS,
-				.rl2 = RELAY_PULSE_DURATION_MS,
-				.oc1 = 0U,
-				.oc2 = 0U,
-			},
-			.mask = {
-				.outputs_default = {
-					.relays = 0U,
-				},
-				.telemetry_on_change = {
-					.rl1 = 1U,
-					.rl2 = 1U,
-					.in2 = 1U,
-					.in3 = 1U,
-					.in4 = 1U,
-				}
-			}
-		}
+	.cls0_gpio = {
+		.pulse_durations = {
+			[RL1_IDX] = RELAY_PULSE_DURATION_MS,
+			[RL2_IDX] = RELAY_PULSE_DURATION_MS,
+		},
+		.outputs_default = 0u,
+		.telemetry_on_change = 0x7C, /* RL1, RL2, IN2, IN3, IN4 */
 	}
 };

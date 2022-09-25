@@ -1,5 +1,3 @@
-#include "pulse.h"
-
 #include <stdbool.h>
 
 #include <avrtos/mutex.h>
@@ -7,44 +5,51 @@
 
 #include <avr/io.h>
 
-#include "dev.h"
+#include "pulse.h"
 
-#define K_MODULE K_MODULE_APPLICATION
+#include "bsp/bsp.h"
 
 #if CONFIG_GPIO_PULSE_SUPPORT
 
-struct pulse_event
-{
-	struct titem tie;
+K_MEM_SLAB_DEFINE(ctx_mems, sizeof(struct pulse_event),
+		  CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT);
 
-	uint8_t reset_state: 1;
-	uint8_t scheduled: 1;
-};
 
-static K_MUTEX_DEFINE(mutex);
-static struct pulse_event events[4U];
 static DEFINE_TQUEUE(ev_queue);
 
-#define PULSE_CONTEXT_LOCK() k_mutex_lock(&mutex, K_FOREVER)
-#define PULSE_CONTEXT_UNLOCK() k_mutex_unlock(&mutex)
+#if CONFIG_GPIO_PULSE_THREAD_SAFE
+	static K_MUTEX_DEFINE(mutex);
+#	define PULSE_CONTEXT_LOCK() k_mutex_lock(&mutex, K_FOREVER)
+#	define PULSE_CONTEXT_UNLOCK() k_mutex_unlock(&mutex)
+#else
+#	define PULSE_CONTEXT_LOCK()
+#	define PULSE_CONTEXT_UNLOCK()
+#endif
 
-#define EVENT_FROM_TIE(tie_p) CONTAINER_OF(tie_p, struct pulse_event, tie)
+#define EVENT_FROM_TIE(tie_p) CONTAINER_OF(tie_p, struct pulse_event, _tie)
 
 #define EVENT_TO_PIN(ev) (ev - events)
 
 
-static struct pulse_event *get_event(output_t pin)
+static struct pulse_event *alloc_context(void)
 {
-	if (GPIO_VALID_OUTPUT_PIN(pin)) {
-		return &events[pin];
+	void *mem;
+
+	if (k_mem_slab_alloc(&ctx_mems, &mem, K_NO_WAIT) == 0) {
+		return mem;
 	}
 
 	return NULL;
 }
 
-static inline void output_set_state(output_t pin, bool state)
+static void free_context(struct pulse_event *ctx)
 {
-	ll_outputs_set_mask(state ? BIT(pin) : 0U, BIT(pin));
+	k_mem_slab_free(&ctx_mems, (void *)ctx);
+}
+
+static inline void output_set_state(pin_descr_t descr, bool state)
+{
+	bsp_gpio_output_write(descr, state ? GPIO_HIGH : GPIO_LOW);
 }
 
 /**
@@ -57,7 +62,7 @@ static void cancel_event(struct pulse_event *ev)
 	__ASSERT_NOTNULL(ev);
 
 	if (ev->scheduled == 1U) {
-		tqueue_remove(&ev_queue, &ev->tie);
+		tqueue_remove(&ev_queue, &ev->_tie);
 		ev->scheduled = 0U;
 	}
 }
@@ -66,51 +71,57 @@ void pulse_init(void)
 {
 	PULSE_CONTEXT_LOCK();
 	
-	for (struct pulse_event *ev = events;
-	     ev < events + ARRAY_SIZE(events); ev++)
-	{
-		ev->scheduled = 0U;
-	}
+	// for (struct pulse_event *ev = events;
+	//      ev < events + ARRAY_SIZE(events); ev++)
+	// {
+	// 	ev->scheduled = 0U;
+	// }
 
 	PULSE_CONTEXT_UNLOCK();
 }
 
-void pulse_trigger(output_t pin, bool state, uint32_t duration_ms)
+struct pulse_event *pulse_trigger(pin_descr_t descr,
+				  bool state,
+				  uint32_t duration_ms)
 {
+	struct pulse_event *ev = NULL;
+
 	if (duration_ms == 0) {
-		return;
+		goto exit;
 	}
 
 	PULSE_CONTEXT_LOCK();
 
-	struct pulse_event *ev = get_event(pin);
+	ev = alloc_context();
 	if (ev != NULL) {
-		cancel_event(ev);
-		output_set_state(pin, state);
-		tqueue_schedule(&ev_queue, &ev->tie, duration_ms);
-		ev->scheduled = 1U;
+		output_set_state(descr, state);
+		ev->scheduled = 1u;
+		ev->descr = descr;
 		ev->reset_state = !state;
+		tqueue_schedule(&ev_queue, &ev->_tie, duration_ms);
 	}
 
 	PULSE_CONTEXT_UNLOCK();
+
+exit:
+	return ev;
 }
 
-void pulse_cancel(output_t pin)
+void pulse_cancel(struct pulse_event *ev)
 {
 	PULSE_CONTEXT_LOCK();
 
-	struct pulse_event *ev = get_event(pin);
 	if (ev != NULL) {
 		cancel_event(ev);
-		output_set_state(pin, ev->reset_state);
+		output_set_state(ev->descr, ev->reset_state);
+		free_context(ev);
 	}
 
 	PULSE_CONTEXT_UNLOCK();
 }
 
-bool pulse_is_active(output_t pin)
+bool pulse_is_active(struct pulse_event *ev)
 {
-	struct pulse_event *ev = get_event(pin);
 	if (ev != NULL) {
 		return ev->scheduled == 1U;
 	}
@@ -118,31 +129,28 @@ bool pulse_is_active(output_t pin)
 	return false;
 }
 
-void pulse_process(uint32_t time_passed_ms)
+bool pulse_process(uint32_t time_passed_ms)
 {
-	struct titem *tie = NULL;
-	bool trigger = false;
+	struct titem *_tie = NULL;
+	bool least_one = false;
 
 	PULSE_CONTEXT_LOCK();
 
 	tqueue_shift(&ev_queue, time_passed_ms);
 
-	while ((tie = tqueue_pop(&ev_queue)) != NULL) {
-		struct pulse_event *ev = EVENT_FROM_TIE(tie);
+	while ((_tie = tqueue_pop(&ev_queue)) != NULL) {
+		struct pulse_event *ev = EVENT_FROM_TIE(_tie);
 
 		ev->scheduled = 0U;
-		output_set_state(EVENT_TO_PIN(ev),
-				 (bool)ev->reset_state);
-		
-		trigger = true;
+		output_set_state(ev->descr, ev->reset_state);
+		free_context(ev);
+
+		least_one = true;
 	}
-	
+
 	PULSE_CONTEXT_UNLOCK();
-	
-	/* if at least one event has been dequeue, request telemetry */
-	if (trigger == true) {
-		trigger_telemetry();
-	}
+
+	return least_one;
 }
 
 uint32_t pulse_remaining(void)
@@ -152,7 +160,7 @@ uint32_t pulse_remaining(void)
 	PULSE_CONTEXT_LOCK();
 
 	if (ev_queue != NULL) {
-		remaining = (*ev_queue).timeout;
+		remaining = ev_queue->timeout;
 	}
 
 	PULSE_CONTEXT_UNLOCK();
