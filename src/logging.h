@@ -4,11 +4,15 @@
 #include <stdio.h>
 #include <avr/pgmspace.h>
 
+#include "config.h"
+
 #define LOG_LEVEL_NONE 0
 #define LOG_LEVEL_ERR 1
 #define LOG_LEVEL_WRN 2
 #define LOG_LEVEL_INF 3
 #define LOG_LEVEL_DBG 4
+
+#if CONFIG_LOGGING_ENABLED
 
 #define _LOG(level, fmt, ...) \
     do { \
@@ -27,6 +31,13 @@
 		printf_P(PSTR("\n")); \
 	} \
    } while (0)
+
+#else
+
+#define _LOG(level, fmt, ...)
+#define _LOG_HEXDUMP(level, data, len)
+
+#endif /* LOGGING_ENABLED */
 
 /* line begin and end */
 #define LOG_DBG(fmt, ...) _LOG(4, fmt "\n", ## __VA_ARGS__)

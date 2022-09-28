@@ -82,7 +82,7 @@ const struct pin heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 };
 
 const struct shutters_system_oc ss PROGMEM = {
-	.power_oc = PIN_INIT(GPIOD, PIN6),
+	.power_oc = PIN_INIT_SOC(GPIOD, PIN6),
 	.shutters = {
 		[SHUTTER1] = SHUTTER_INIT(SHUTTER1_OC_POS_GPIO, SHUTTER1_OC_POS_PIN,
 					  SHUTTER1_OC_NEG_GPIO, SHUTTER1_OC_NEG_PIN),
@@ -162,22 +162,8 @@ const struct caniot_config default_config PROGMEM = {
 		.region = CANIOT_LOCATION_REGION_DEFAULT,
 		.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
 	},
-	.custompcb = {
-		.gpio = {
-			.pulse_duration = {
-				.rl1 = 100u,
-				.rl2 = 200u,
-				.oc1 = 300u,
-				.oc2 = 400u,
-			},
-			.mask = {
-				.outputs_default = {
-					.relays = 0U,
-				},
-				.telemetry_on_change = {
-					.mask = 0xFFFFFFFFLU
-				}
-			}
-		}
+	.cls0_gpio = {
+		.outputs_default = 0u,
+		.telemetry_on_change = 0u
 	}
 };

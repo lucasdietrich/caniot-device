@@ -41,6 +41,20 @@
 #	define CONFIG_USART_SHELL 0u
 #endif
 
+#if !defined(CONFIG_PCF8574)
+#	define CONFIG_PCF8574 0u
+#endif
+
+#if CONFIG_PCF8574
+#	define CONFIG_EXTIO_ENABLED 1u
+#else
+#	define CONFIG_EXTIO_ENABLED 0u
+#endif
+
+#if !defined(CONFIG_LOGGING_ENABLED)
+#	define CONFIG_LOGGING_ENABLED 1u
+#endif
+
 #define CONFIG_CLASS __DEVICE_CLS__
 
 #if __DEVICE_CLS__ == 0
@@ -48,31 +62,31 @@
 #endif
 
 #if __DEVICE_CLS__ == 1
-#	define CONFIG_CLASS1_ENABLED 0U
+#	define CONFIG_CLASS1_ENABLED 1U
 #endif
 
 #if __DEVICE_CLS__ == 2
-#	define CONFIG_CLASS2_ENABLED 0U
+#	define CONFIG_CLASS2_ENABLED 1U
 #endif
 
 #if __DEVICE_CLS__ == 3
-#	define CONFIG_CLASS3_ENABLED 0U
+#	define CONFIG_CLASS3_ENABLED 1U
 #endif
 
 #if __DEVICE_CLS__ == 4
-#	define CONFIG_CLASS4_ENABLED 0U
+#	define CONFIG_CLASS4_ENABLED 1U
 #endif
 
 #if __DEVICE_CLS__ == 5
-#	define CONFIG_CLASS5_ENABLED 0U
+#	define CONFIG_CLASS5_ENABLED 1U
 #endif
 
 #if __DEVICE_CLS__ == 6
-#	define CONFIG_CLASS6_ENABLED 0U
+#	define CONFIG_CLASS6_ENABLED 1U
 #endif
 
 #if __DEVICE_CLS__ == 7
-#	define CONFIG_CLASS7_ENABLED 0U
+#	define CONFIG_CLASS7_ENABLED 1U
 #endif
 
 #endif /* _APP_CONFIG_H_ */

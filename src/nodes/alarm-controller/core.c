@@ -12,6 +12,10 @@
 
 #include "bsp/bsp.h"
 
+#if CONFIG_GPIO_PULSE_SUPPORT != 1
+#error "CONFIG_GPIO_PULSE_SUPPORT must be enabled"
+#endif
+
 #define OUTDOOR_LIGHT_1 	OC1_IDX
 #define OUTDOOR_LIGHT_2 	OC2_IDX
 #define SIREN			RL1_IDX

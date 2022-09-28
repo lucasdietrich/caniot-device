@@ -24,21 +24,21 @@ extern "C" {
  * @brief Initialize the PCF8574 device
  * 
  */
-void pcf8574_init(void);
+void pcf8574_init(uint8_t addr);
 
 /**
  * @brief Write value to pcf8574
  * 
  * @return uint8_t 
  */
-void pcf8574_set(uint8_t value);
+void pcf8574_set(uint8_t addr, uint8_t value);
 
 /**
  * @brief Read from pcf8574
  * 
  * @return uint8_t 
  */
-uint8_t pcf8574_get(void);
+uint8_t pcf8574_get(uint8_t addr);
 
 #ifdef __cplusplus
 }

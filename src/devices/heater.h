@@ -23,7 +23,7 @@
 #define HEATER_CONFORT_MIN_2_LOW_DURATION_MS 	\
 	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_2_HIGH_DURATION_MS)
 
-#define HEATER_OC_INIT(_dev, _pin) PIN_INIT(_dev, _pin)
+#define HEATER_OC_INIT(_dev, _pin) PIN_INIT_SOC(_dev, _pin)
 
 typedef enum {
 	HEATER_MODE_CONFORT = 0u, /* Confort mode */

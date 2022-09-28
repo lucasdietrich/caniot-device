@@ -17,51 +17,42 @@ extern const struct pin heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM;
 
 heater_mode_t heaters_mode[CONFIG_HEATERS_COUNT];
 
-
 struct k_event heaters_event[CONFIG_HEATERS_COUNT];
 
-static inline GPIO_Device *oc_dev(uint8_t hid, uint8_t ocid)
+static const struct pin *pin_get(uint8_t heater, uint8_t pin)
 {
-	return (GPIO_Device *)pgm_read_word(&heaters[hid][ocid].dev);
+	return &heaters[heater][pin];
 }
 
-static inline uint8_t oc_pin(uint8_t hid, uint8_t ocid)
+static inline void heater_activate_oc(const struct pin *farp_pin)
 {
-	return pgm_read_byte(&heaters[hid][ocid].pin);
+	bsp_pgm_pin_output_write(farp_pin, GPIO_LOW);
 }
 
-static inline void heater_activate_oc(GPIO_Device *oc, uint8_t pin)
+static inline void heater_deactivate_oc(const struct pin *farp_pin)
 {
-	gpio_write_pin_state(oc, pin, GPIO_LOW);
+	bsp_pgm_pin_output_write(farp_pin, GPIO_HIGH);
 }
 
-static inline void heater_deactivate_oc(GPIO_Device *oc, uint8_t pin)
+static inline void heater_set_active(const struct pin *farp_pin, uint8_t active)
 {
-	gpio_write_pin_state(oc, pin, GPIO_HIGH);
+	bsp_pgm_pin_output_write(farp_pin, active);
 }
 
-static inline void heater_set_active(GPIO_Device *oc, uint8_t pin, uint8_t active)
+static inline uint8_t heater_oc_is_active(const struct pin *farp_pin)
 {
-	gpio_write_pin_state(oc, pin, active);
-}
-
-static inline uint8_t heater_oc_is_active(GPIO_Device *oc, uint8_t pin)
-{
-	return 1u - gpio_read_pin_state(oc, pin);
+	return 1u - bsp_pgm_pin_input_read(farp_pin);
 }
 
 void heater_ev_cb(struct k_event *ev)
 {
 	const uint8_t hid = ev - heaters_event;
 
-	GPIO_Device *const pos = oc_dev(hid, HEATER_OC_POS);
-	uint8_t pos_pin = oc_pin(hid, HEATER_OC_POS);
-
-	GPIO_Device *const neg = oc_dev(hid, HEATER_OC_NEG);
-	uint8_t neg_pin = oc_pin(hid, HEATER_OC_NEG);
+	const struct pin *pos = pin_get(hid, HEATER_OC_POS);
+	const struct pin *neg = pin_get(hid, HEATER_OC_NEG);
 
 	/* Get current state */
-	bool next_active = !heater_oc_is_active(pos, pos_pin);
+	bool next_active = !heater_oc_is_active(pos);
 	const heater_mode_t mode = heaters_mode[hid];
 
 	/* Get next period */
@@ -85,8 +76,8 @@ void heater_ev_cb(struct k_event *ev)
 
 	/* Apply new state */
 	const uint8_t active = next_active ? GPIO_HIGH : GPIO_LOW;
-	heater_set_active(pos, pos_pin, active);
-	heater_set_active(neg, neg_pin, active);
+	heater_set_active(pos, active);
+	heater_set_active(neg, active);
 
 	/* Reschedule the event */
 	k_event_schedule(ev, K_MSEC(next_timeout_ms));
@@ -98,14 +89,11 @@ int heater_init(uint8_t hid)
 		return -EINVAL;
 	}
 
-	GPIO_Device *const pos = oc_dev(hid, HEATER_OC_POS);
-	uint8_t pos_pin = oc_pin(hid, HEATER_OC_POS);
+	const struct pin *pos = pin_get(hid, HEATER_OC_POS);
+	const struct pin *neg = pin_get(hid, HEATER_OC_NEG);
 
-	GPIO_Device *const neg = oc_dev(hid, HEATER_OC_NEG);
-	uint8_t neg_pin = oc_pin(hid, HEATER_OC_NEG);
-
-	gpio_pin_init(pos, pos_pin, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
-	gpio_pin_init(neg, neg_pin, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+	bsp_pgm_pin_init(pos, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+	bsp_pgm_pin_init(neg, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 	/* Set initial state (Off) */
 	heater_set_mode(hid, HEATER_MODE_OFF);
@@ -121,16 +109,13 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 		return -EINVAL;
 	}
 
-	GPIO_Device *const pos = oc_dev(hid, HEATER_OC_POS);
-	uint8_t pos_pin = oc_pin(hid, HEATER_OC_POS);
-
-	GPIO_Device *const neg = oc_dev(hid, HEATER_OC_NEG);
-	uint8_t neg_pin = oc_pin(hid, HEATER_OC_NEG);
+	const struct pin *pos = pin_get(hid, HEATER_OC_POS);
+	const struct pin *neg = pin_get(hid, HEATER_OC_NEG);
 
 	switch (mode) {
 	case HEATER_MODE_CONFORT:
-		heater_deactivate_oc(pos, pos_pin);
-		heater_deactivate_oc(neg, neg_pin);
+		heater_deactivate_oc(pos);
+		heater_deactivate_oc(neg);
 		break;
 	case HEATER_MODE_CONFORT_MIN_1:
 	case HEATER_MODE_CONFORT_MIN_2:
@@ -139,16 +124,16 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 		k_event_schedule(&heaters_event[hid], K_NO_WAIT);
 		break;
 	case HEATER_MODE_ENERGY_SAVING:
-		heater_activate_oc(pos, pos_pin);
-		heater_activate_oc(neg, neg_pin);
+		heater_activate_oc(pos);
+		heater_activate_oc(neg);
 		break;
 	case HEATER_MODE_FROST_FREE:
-		heater_deactivate_oc(pos, pos_pin);
-		heater_activate_oc(neg, neg_pin);
+		heater_deactivate_oc(pos);
+		heater_activate_oc(neg);
 		break;
 	case HEATER_MODE_OFF:
-		heater_activate_oc(pos, pos_pin);
-		heater_deactivate_oc(neg, neg_pin);
+		heater_activate_oc(pos);
+		heater_deactivate_oc(neg);
 		break;
 	default:
 		return -EINVAL;

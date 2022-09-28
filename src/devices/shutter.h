@@ -23,8 +23,8 @@ struct shutters_system_oc {
 };
 
 #define SHUTTER_INIT(_pos_dev, _pos_pin, _neg_dev, _neg_pin) { \
-		[SHUTTER_OC_POS] = { .dev = _pos_dev, .pin = _pos_pin }, \
-		[SHUTTER_OC_NEG] = { .dev = _neg_dev, .pin = _neg_pin } \
+		[SHUTTER_OC_POS] = PIN_INIT_SOC(_pos_dev, _pos_pin), \
+		[SHUTTER_OC_NEG] = PIN_INIT_SOC(_neg_dev, _neg_pin) \
 	}
 
 

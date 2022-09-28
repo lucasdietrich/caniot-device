@@ -12,10 +12,10 @@
 
 #include "bsp/bsp.h"
 
-void app_init(void)
-{
-	
-}
+#if CONFIG_GPIO_PULSE_SUPPORT != 1
+#error "CONFIG_GPIO_PULSE_SUPPORT must be enabled"
+#endif
+
 
 #define RELAY_PULSE_DURATION_MS     	500U
 

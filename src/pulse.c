@@ -49,7 +49,7 @@ static void free_context(struct pulse_event *ctx)
 
 static inline void output_set_state(pin_descr_t descr, bool state)
 {
-	bsp_gpio_output_write(descr, state ? GPIO_HIGH : GPIO_LOW);
+	bsp_descr_gpio_output_write(descr, state ? GPIO_HIGH : GPIO_LOW);
 }
 
 /**

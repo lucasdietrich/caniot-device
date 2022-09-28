@@ -9,9 +9,7 @@
 #include "devices/temp.h"
 #include "dev.h"
 
-#if CONFIG_GPIO_PULSE_SUPPORT != 1
-#error "CONFIG_GPIO_PULSE_SUPPORT must be enabled"
-#endif
+#if defined(CONFIG_CLASS0_ENABLED)
 
 
 /* Class 0 defines:
@@ -41,19 +39,21 @@ int class0_blc_telemetry_handler(struct caniot_device *dev,
 	struct caniot_blc0_telemetry *const data =
 		AS_BLC0_TELEMETRY(buf);
 
-	data->dio |= bsp_gpio_input_read(BSP_OC1) << OC1_IDX;
-	data->dio |= bsp_gpio_input_read(BSP_OC2) << OC2_IDX;
-	data->dio |= bsp_gpio_input_read(BSP_RL1) << RL1_IDX;
-	data->dio |= bsp_gpio_input_read(BSP_RL2) << RL2_IDX;
-	data->dio |= bsp_gpio_input_read(BSP_IN1) << IN1_IDX;
-	data->dio |= bsp_gpio_input_read(BSP_IN2) << IN2_IDX;
-	data->dio |= bsp_gpio_input_read(BSP_IN3) << IN3_IDX;
-	data->dio |= bsp_gpio_input_read(BSP_IN4) << IN4_IDX;
+	data->dio |= bsp_descr_gpio_input_read(BSP_OC1) << OC1_IDX;
+	data->dio |= bsp_descr_gpio_input_read(BSP_OC2) << OC2_IDX;
+	data->dio |= bsp_descr_gpio_input_read(BSP_RL1) << RL1_IDX;
+	data->dio |= bsp_descr_gpio_input_read(BSP_RL2) << RL2_IDX;
+	data->dio |= bsp_descr_gpio_input_read(BSP_IN1) << IN1_IDX;
+	data->dio |= bsp_descr_gpio_input_read(BSP_IN2) << IN2_IDX;
+	data->dio |= bsp_descr_gpio_input_read(BSP_IN3) << IN3_IDX;
+	data->dio |= bsp_descr_gpio_input_read(BSP_IN4) << IN4_IDX;
 
+#if CONFIG_GPIO_PULSE_SUPPORT
 	data->pdio |= pulse_is_active(xps_ctx[OC1_IDX].pev);
 	data->pdio |= pulse_is_active(xps_ctx[OC2_IDX].pev);
 	data->pdio |= pulse_is_active(xps_ctx[RL1_IDX].pev);
 	data->pdio |= pulse_is_active(xps_ctx[RL2_IDX].pev);
+#endif 
 
 #if CONFIG_CANIOT_FAKE_TEMPERATURE
 	data->ext_temperature =
@@ -79,12 +79,6 @@ int class0_blc_command_handler(struct caniot_device *dev,
 	struct caniot_blc_command *const cmd = AS_BLC_COMMAND(buf);
 	struct caniot_class0_config *const cfg = &dev->config->cls0_gpio;
 
-	/* Reset state only configured on startup */
-	xps_ctx[OC1_IDX].reset_state = (cfg->outputs_default >> OC1_IDX) & 1u;
-	xps_ctx[OC2_IDX].reset_state = (cfg->outputs_default >> OC1_IDX) & 1u;
-	xps_ctx[RL1_IDX].reset_state = (cfg->outputs_default >> OC1_IDX) & 1u;
-	xps_ctx[RL2_IDX].reset_state = (cfg->outputs_default >> OC1_IDX) & 1u;
-
 	command_xps(&xps_ctx[OC1_IDX],
 		    cmd->blc0.coc1,
 		    cfg->pulse_durations[OC1_IDX]);
@@ -107,11 +101,11 @@ int class0_blc_command_handler(struct caniot_device *dev,
 static void pci_pin_set_enabled_for_io(uint8_t descr, uint8_t state)
 {
 	if (state) {
-		pci_pin_enable_group_line(BSP_GPIO_EXTI_GROUP(descr),
-					  BSP_GPIO_EXTI_LINE(descr));
+		pci_pin_enable_group_line(BSP_GPIO_EXTI_DESCR_GROUP(descr),
+					  BSP_GPIO_EXTI_DESCR_LINE(descr));
 	} else {
-		pci_pin_disable_group_line(BSP_GPIO_EXTI_GROUP(descr),
-					   BSP_GPIO_EXTI_LINE(descr));
+		pci_pin_disable_group_line(BSP_GPIO_EXTI_DESCR_GROUP(descr),
+					   BSP_GPIO_EXTI_DESCR_LINE(descr));
 	}
 }
 
@@ -120,7 +114,7 @@ int class0_config_apply(struct caniot_device *dev,
 {
 	uint32_t mask = config->cls0_gpio.telemetry_on_change;
 
-	printf_P(PSTR("new_mask=%x\n"), mask);
+	struct caniot_class0_config *const c0 = &config->cls0_gpio;
 
 	pci_pin_set_enabled_for_io(BSP_OC1, mask & BIT(OC1_IDX));
 	pci_pin_set_enabled_for_io(BSP_OC2, mask & BIT(OC2_IDX));
@@ -131,5 +125,13 @@ int class0_config_apply(struct caniot_device *dev,
 	pci_pin_set_enabled_for_io(BSP_IN3, mask & BIT(IN3_IDX));
 	pci_pin_set_enabled_for_io(BSP_IN4, mask & BIT(IN4_IDX));
 
+	/* TODO make sure to not break an running pulse ? */
+	xps_ctx[OC1_IDX].reset_state = (c0->outputs_default >> OC1_IDX) & 1u;
+	xps_ctx[OC2_IDX].reset_state = (c0->outputs_default >> OC2_IDX) & 1u;
+	xps_ctx[RL1_IDX].reset_state = (c0->outputs_default >> RL1_IDX) & 1u;
+	xps_ctx[RL2_IDX].reset_state = (c0->outputs_default >> RL2_IDX) & 1u;
+
 	return 0;
 }
+
+#endif /* CONFIG_CLASS0_ENABLED */

@@ -68,22 +68,9 @@ const struct caniot_config default_config PROGMEM = {
 		.region = CANIOT_LOCATION_REGION_DEFAULT,
 		.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
 	},
-	.custompcb = {
-		.gpio = {
-			.pulse_duration = {
-				.rl1 = 500U,
-				.rl2 = 1500U,
-				.oc1 = 5000U,
-				.oc2 = 30000U,
-			},
-			.mask = {
-				.outputs_default = {
-					.relays = 0U,
-				},
-				.telemetry_on_change = {
-					.mask = 0xFFFFFFFFLU
-				}
-			}
-		}
+	.cls0_gpio = {
+		.pulse_durations = { 0u, 0u, 0u, 0u},
+		.telemetry_on_change = 0u,
+		.outputs_default = 0u,
 	}
 };

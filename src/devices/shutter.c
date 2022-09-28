@@ -64,32 +64,14 @@ static struct shutter shutters[CONFIG_SHUTTERS_COUNT];
 
 #define SHUTTER_INDEX(_sp) ((_sp) - shutters)
 
-static inline GPIO_Device *oc_pgm_dev(GPIO_Device *const *p_pgm_dev)
+static const struct pin *pin_get(uint8_t shutter, uint8_t pin)
 {
-	return (GPIO_Device *)pgm_read_word(p_pgm_dev);
+	return &ss.shutters[shutter][pin];
 }
-
-static inline uint8_t oc_pgm_pin(const uint8_t *p_pgm_pin)
-{
-	return pgm_read_byte(p_pgm_pin);
-}
-
-static inline GPIO_Device *oc_dev(uint8_t s, uint8_t ocid)
-{
-	return oc_pgm_dev(&ss.shutters[s][ocid].dev);
-}
-
-static inline uint8_t oc_pin(uint8_t s, uint8_t ocid)
-{
-	return oc_pgm_pin(&ss.shutters[s][ocid].pin);
-}
-
 
 static void power(uint8_t state)
 {
-	gpio_write_pin_state(oc_pgm_dev(&ss.power_oc.dev),
-				  oc_pgm_pin(&ss.power_oc.pin),
-				  state);
+	bsp_pgm_pin_output_write(&ss.power_oc, state);
 }
 
 static inline void power_on(void)
@@ -105,11 +87,8 @@ static inline void power_off(void)
 
 static void run_direction(uint8_t s, uint8_t dir)
 {
-	GPIO_Device *const pos = oc_dev(s, SHUTTER_OC_POS);
-	uint8_t pos_pin = oc_pin(s, SHUTTER_OC_POS);
-
-	GPIO_Device *const neg = oc_dev(s, SHUTTER_OC_NEG);
-	uint8_t neg_pin = oc_pin(s, SHUTTER_OC_NEG);
+	const struct pin *pos = pin_get(s, SHUTTER_OC_POS);
+	const struct pin *neg = pin_get(s, SHUTTER_OC_POS);
 
 	uint8_t pos_state = GPIO_LOW;
 	uint8_t neg_state = GPIO_LOW;
@@ -120,8 +99,8 @@ static void run_direction(uint8_t s, uint8_t dir)
 		neg_state = GPIO_HIGH;
 	}
 
-	gpio_write_pin_state(pos, pos_pin, pos_state);
-	gpio_write_pin_state(neg, neg_pin, neg_state);
+	bsp_pgm_pin_output_write(pos, pos_state);
+	bsp_pgm_pin_output_write(neg, neg_state);
 }
 
 static void event_cb(struct k_event *ev)
@@ -155,18 +134,13 @@ static void event_cb(struct k_event *ev)
 
 /* __attribute__((noinline)) */ int shutters_system_init(void)
 {
-	gpio_pin_init(oc_pgm_dev(&ss.power_oc.dev), oc_pgm_pin(&ss.power_oc.pin),
-		      GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+	bsp_pgm_pin_init(&ss.power_oc, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 	for (uint8_t i = 0u; i < CONFIG_SHUTTERS_COUNT; i++) {
-		gpio_pin_init(oc_pgm_dev(&ss.shutters[i][SHUTTER_OC_POS].dev),
-			      oc_pgm_pin(&ss.shutters[i][SHUTTER_OC_POS].pin),
-			      GPIO_OUTPUT,
-			      GPIO_OUTPUT_DRIVEN_LOW);
-		gpio_pin_init(oc_pgm_dev(&ss.shutters[i][SHUTTER_OC_NEG].dev),
-			      oc_pgm_pin(&ss.shutters[i][SHUTTER_OC_NEG].pin),
-			      GPIO_OUTPUT,
-			      GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_pgm_pin_init(&ss.shutters[i][SHUTTER_OC_POS],
+				 GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_pgm_pin_init(&ss.shutters[i][SHUTTER_OC_NEG],
+				 GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 		/* Assume closed */
 		shutters[i].openness = 0u;
