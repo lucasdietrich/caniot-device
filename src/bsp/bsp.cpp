@@ -151,24 +151,24 @@ uint8_t bsp_pgm_pin_input_read(const struct pin *farp_pin)
 
 void bsp_pin_init(struct pin *pin, uint8_t direction, uint8_t state)
 {
-	if (pin->soc) {
+	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
 		gpio_set_pin_direction(
 			(GPIO_Device *)pin->dev,
-			pin->pin,
+			BSP_GPIO_PIN_GET(pin->pin),
 			direction);
 		gpio_write_pin_state(
 			(GPIO_Device *)pin->dev,
-			pin->pin,
+			BSP_GPIO_PIN_GET(pin->pin),
 			state);
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		bsp_extio_set_pin_direction(
 			(struct extio_device *)pin->dev,
-			pin->pin,
+			BSP_GPIO_PIN_GET(pin->pin),
 			direction);
 		bsp_extio_write_pin_state(
 			(struct extio_device *)pin->dev,
-			pin->pin,
+			BSP_GPIO_PIN_GET(pin->pin),
 			state);
 #endif
 	}
@@ -176,16 +176,16 @@ void bsp_pin_init(struct pin *pin, uint8_t direction, uint8_t state)
 
 void bsp_pin_output_write(struct pin *pin, uint8_t state)
 {
-	if (pin->soc) {
+	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
 		gpio_write_pin_state(
 			(GPIO_Device *)pin->dev,
-			pin->pin,
+			BSP_GPIO_PIN_GET(pin->pin),
 			state);
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		bsp_extio_write_pin_state(
 			(struct extio_device *)pin->dev,
-			pin->pin,
+			BSP_GPIO_PIN_GET(pin->pin),
 			state);
 #endif
 	}
@@ -193,30 +193,30 @@ void bsp_pin_output_write(struct pin *pin, uint8_t state)
 
 void bsp_pin_toggle(struct pin *pin)
 {
-	if (pin->soc) {
+	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
 		gpio_toggle_pin(
 			(GPIO_Device *)pin->dev,
-			pin->pin);
+			BSP_GPIO_PIN_GET(pin->pin));
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		bsp_extio_toggle_pin(
 			(struct extio_device *)pin->dev,
-			pin->pin);
+			BSP_GPIO_PIN_GET(pin->pin));
 #endif
 	}
 }
 
 uint8_t bsp_pin_input_read(struct pin *pin)
 {
-	if (pin->soc) {
+	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
 		return gpio_read_pin_state(
 			(GPIO_Device *)pin->dev,
-			pin->pin);
+			BSP_GPIO_PIN_GET(pin->pin));
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		return bsp_extio_read_pin_state(
 			(struct extio_device *)pin->dev,
-			pin->pin);
+			BSP_GPIO_PIN_GET(pin->pin));
 #endif
 	}
 
@@ -225,17 +225,15 @@ uint8_t bsp_pin_input_read(struct pin *pin)
 
 static int get_pin_from_descr(uint8_t descr, struct pin *pin)
 {
-	if (BSP_GPIO_STATUS_GET(descr) == BSP_GPIO_ACTIVE) {
-		if (BSP_GPIO_DRIVER_GET(descr) == BSP_GPIO_DRIVER_GPIO) {
-			pin->dev = BSP_GPIO_DEVICE_GET(descr);
-			pin->pin = BSP_GPIO_PIN_GET(descr);
-			pin->soc = 1u;
+	if (BSP_DESCR_STATUS_GET(descr) == BSP_DESCR_ACTIVE) {
+		if (BSP_DESCR_DRIVER_GET(descr) == BSP_DESCR_DRIVER_GPIO) {
+			pin->dev = BSP_DESCR_DEVICE_GET(descr);
+			pin->pin = BSP_DESCR_GPIO_PIN_GET(descr) | BSP_GPIO_PIN_TYPE_GPIO;
 			return 0;
 #if CONFIG_EXTIO_ENABLED
-		} else if (BSP_GPIO_DRIVER_GET(descr) == BSP_GPIO_DRIVER_EXTIO) {
-			pin->dev = EXTIO_DEVICE(BSP_GPIO_PORT_GET_INDEX(descr));
-			pin->pin = BSP_GPIO_PIN_GET(descr);
-			pin->soc = 0u;
+		} else if (BSP_DESCR_DRIVER_GET(descr) == BSP_DESCR_DRIVER_EXTIO) {
+			pin->dev = EXTIO_DEVICE(BSP_DESCR_GPIO_PORT_GET_INDEX(descr));
+			pin->pin = BSP_DESCR_GPIO_PIN_GET(descr) | BSP_GPIO_PIN_TYPE_EXTIO;
 			return 0;
 #endif
 		}

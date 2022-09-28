@@ -279,7 +279,7 @@ int command_xps(struct xps_context *xpsc,
 {
 	__ASSERT_TRUE(xpsc != NULL);
  
-	if (BSP_GPIO_STATUS_GET(xpsc->descr) != BSP_GPIO_ACTIVE) {
+	if (BSP_DESCR_STATUS_GET(xpsc->descr) != BSP_DESCR_ACTIVE) {
 		return -ENOTSUP;
 	}
 
