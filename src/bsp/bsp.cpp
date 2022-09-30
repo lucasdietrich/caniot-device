@@ -162,6 +162,8 @@ void bsp_pin_init(struct pin *pin, uint8_t direction, uint8_t state)
 			state);
 #if CONFIG_EXTIO_ENABLED
 	} else {
+		__ASSERT_THREAD_CONTEXT();
+
 		bsp_extio_set_pin_direction(
 			(struct extio_device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin),
@@ -183,6 +185,8 @@ void bsp_pin_output_write(struct pin *pin, uint8_t state)
 			state);
 #if CONFIG_EXTIO_ENABLED
 	} else {
+		__ASSERT_THREAD_CONTEXT();
+
 		bsp_extio_write_pin_state(
 			(struct extio_device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin),
@@ -199,6 +203,8 @@ void bsp_pin_toggle(struct pin *pin)
 			BSP_GPIO_PIN_GET(pin->pin));
 #if CONFIG_EXTIO_ENABLED
 	} else {
+		__ASSERT_THREAD_CONTEXT();
+
 		bsp_extio_toggle_pin(
 			(struct extio_device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin));
@@ -214,6 +220,8 @@ uint8_t bsp_pin_input_read(struct pin *pin)
 			BSP_GPIO_PIN_GET(pin->pin));
 #if CONFIG_EXTIO_ENABLED
 	} else {
+		__ASSERT_THREAD_CONTEXT();
+
 		return bsp_extio_read_pin_state(
 			(struct extio_device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin));

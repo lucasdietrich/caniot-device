@@ -60,13 +60,13 @@ struct pin
 #define BSP_GPIO_EXTI2 (2u << 3u)
 #define BSP_GPIO_EXTI3 (3u << 3u)
 
-#define BSP_DESCR_DRIVER_MASK (1u << 6u)
-#define BSP_DESCR_DRIVER_GPIO (0u << 6u)
-#define BSP_DESCR_DRIVER_EXTIO (1u << 6u)
+#define BSP_DESCR_DRIVER_MASK 	(1u << 6u)
+#define BSP_DESCR_DRIVER_GPIO 	(0u << 6u)
+#define BSP_DESCR_DRIVER_EXTIO 	(1u << 6u)
 
-#define BSP_DESCR_STATUS_MASK (1u << 7u)
-#define BSP_DESCR_ACTIVE (1u << 7u)
-#define BSP_DESCR_RESERVED (0u << 7u)
+#define BSP_DESCR_STATUS_MASK 	(1u << 7u)
+#define BSP_DESCR_ACTIVE 	(1u << 7u)
+#define BSP_DESCR_RESERVED 	(0u << 7u)
 
 #define BSP_DESCR_GPIO_PIN_GET(_descr) ((uint8_t)((_descr) & BSP_GPIO_PIN_MASK))
 #define BSP_DESCR_GPIO_PORT_GET_INDEX(_descr) (((_descr) & BSP_GPIO_PORT_MASK) >> BSP_GPIO_PORT_BIT)
