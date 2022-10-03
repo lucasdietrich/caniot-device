@@ -10,7 +10,7 @@
 #include <avrtos/drivers/usart.h>
 #include <avrtos/drivers/timer.h>
 
-#include "devices/PCF8574.h"
+#include "devices/pcf8574.h"
 #include "config.h"
 
 /*____________________________________________________________________________*/

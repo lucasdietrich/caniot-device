@@ -1,6 +1,6 @@
 #if CONFIG_PCF8574
 
-#include "PCF8574.h"
+#include "pcf8574.h"
 
 #include <avrtos/kernel.h>
 

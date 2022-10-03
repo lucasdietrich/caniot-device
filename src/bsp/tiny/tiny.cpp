@@ -18,7 +18,7 @@
 
 #include "tiny.h"
 
-#include "devices/PCF8574.h"
+#include "devices/pcf8574.h"
 
 struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT] = {
 	{
