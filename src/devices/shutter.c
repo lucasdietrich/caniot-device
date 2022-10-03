@@ -8,6 +8,14 @@
 #error "Heaters controller needs CONFIG_KERNEL_EVENTS to be set"
 #endif
 
+#if CONFIG_EXTIO_ENABLED && !CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
+#error "CONFIG_EXTIO_ENABLED requires CONFIG_WORKQUEUE_HEATERS_EXECUTION"
+#endif
+
+#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION && !CONFIG_SYSTEM_WORKQUEUE_ENABLE
+#error "Shutter controller needs CONFIG_SYSTEM_WORKQUEUE_ENABLE to be set"
+#endif
+
 #define SHUTTER_OPENNING_DURATION_MS 10000u
 #define POWER_ON_STARTUP_DELAY_MS 100u
 
@@ -32,8 +40,17 @@ enum {
 
 struct shutter
 {
-	/* Event used to schedule the next state change */
+	/* Event used to schedule the next state change
+	 * 
+	 * Note: Keep event as first member of the structure
+	 * for optomization purposes
+	 */
 	struct k_event event;
+
+#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
+	/* Work used to schedule the next state change */
+	struct k_work work;
+#endif
 
 	/* Openness in percents,
 	 * 0 - closed, 100 - opened
@@ -60,7 +77,6 @@ struct shutter
 static uint8_t flags = 0u;
 
 static struct shutter shutters[CONFIG_SHUTTERS_COUNT];
-
 
 #define SHUTTER_INDEX(_sp) ((_sp) - shutters)
 
@@ -103,7 +119,7 @@ static void run_direction(uint8_t s, uint8_t dir)
 	bsp_pgm_pin_output_write(neg, neg_state);
 }
 
-static void event_cb(struct k_event *ev)
+static void shutter_event_handler(struct k_event *ev)
 {
 	struct shutter *shutter = CONTAINER_OF(ev, struct shutter, event);
 	const uint8_t shutter_index = SHUTTER_INDEX(shutter);
@@ -132,6 +148,25 @@ static void event_cb(struct k_event *ev)
 	}
 }
 
+static void event_cb(struct k_event *ev)
+{
+#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
+	struct shutter *const shutter = CONTAINER_OF(ev, struct shutter, event);
+	k_system_workqueue_submit(&shutter->work);
+#else
+	shutter_event_handler(ev);
+#endif /* CONFIG_WORKQUEUE_SHUTTERS_EXECUTION */
+}
+
+#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
+static void work_cb(struct k_work *work)
+{
+	struct shutter *const shutter = CONTAINER_OF(work, struct shutter, work);
+	shutter_event_handler(&shutter->event);
+}
+#endif /* CONFIG_WORKQUEUE_SHUTTERS_EXECUTION */
+
+
 /* __attribute__((noinline)) */ int shutters_system_init(void)
 {
 	bsp_pgm_pin_init(&ss.power_oc, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
@@ -145,6 +180,10 @@ static void event_cb(struct k_event *ev)
 		/* Assume closed */
 		shutters[i].openness = 0u;
 		k_event_init(&shutters[i].event, event_cb);
+
+#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
+		k_work_init(&shutters[i].work, work_cb);
+#endif /* CONFIG_WORKQUEUE_SHUTTERS_EXECUTION */
 	}
 
 	return 0;

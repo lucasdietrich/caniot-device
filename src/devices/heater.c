@@ -1,3 +1,5 @@
+#if CONFIG_HEATERS_COUNT
+
 #include "heater.h"
 #include "config.h"
 
@@ -13,11 +15,37 @@
 #error "Heaters controller needs CONFIG_KERNEL_EVENTS to be set"
 #endif
 
+#if CONFIG_EXTIO_ENABLED && !CONFIG_WORKQUEUE_HEATERS_EXECUTION
+#error "CONFIG_EXTIO_ENABLED requires CONFIG_WORKQUEUE_HEATERS_EXECUTION"
+#endif
+
+#if CONFIG_WORKQUEUE_HEATERS_EXECUTION && !CONFIG_SYSTEM_WORKQUEUE_ENABLE
+#error "Heaters controller needs CONFIG_SYSTEM_WORKQUEUE_ENABLE to be set"
+#endif
+
 extern const struct pin heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM;
 
-heater_mode_t heaters_mode[CONFIG_HEATERS_COUNT];
+struct heater
+{
+	/* Event used to schedule the next state change
+	 *
+	 * Note: Keep event as first member of the structure
+	 * for optomization purposes
+	 */
+	struct k_event event;
 
-struct k_event heaters_event[CONFIG_HEATERS_COUNT];
+#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
+	/* Work used to schedule the next state change */
+	struct k_work work;
+#endif
+
+	heater_mode_t mode;
+};
+
+/* Heaters state */
+static struct heater hs[CONFIG_HEATERS_COUNT];
+
+#define HEATER_INDEX(_hp) ((_hp) - hs)
 
 static const struct pin *pin_get(uint8_t heater, uint8_t pin)
 {
@@ -46,18 +74,18 @@ static inline uint8_t heater_oc_is_active(const struct pin *farp_pin)
 
 void heater_ev_cb(struct k_event *ev)
 {
-	const uint8_t hid = ev - heaters_event;
+	struct heater *const heater = CONTAINER_OF(ev, struct heater, event);
+	const uint8_t heater_index = HEATER_INDEX(heater);
 
-	const struct pin *pos = pin_get(hid, HEATER_OC_POS);
-	const struct pin *neg = pin_get(hid, HEATER_OC_NEG);
+	const struct pin *pos = pin_get(heater_index, HEATER_OC_POS);
+	const struct pin *neg = pin_get(heater_index, HEATER_OC_NEG);
 
 	/* Get current state */
 	bool next_active = !heater_oc_is_active(pos);
-	const heater_mode_t mode = heaters_mode[hid];
 
 	/* Get next period */
 	uint32_t next_timeout_ms = 0u;
-	switch (mode) {
+	switch (heater->mode) {
 	case HEATER_MODE_CONFORT_MIN_1:
 		next_timeout_ms = next_active ?
 			HEATER_CONFORT_MIN_1_HIGH_DURATION_MS :
@@ -83,24 +111,46 @@ void heater_ev_cb(struct k_event *ev)
 	k_event_schedule(ev, K_MSEC(next_timeout_ms));
 }
 
-int heater_init(uint8_t hid)
+static void event_cb(struct k_event *ev)
 {
-	if (hid >= CONFIG_HEATERS_COUNT) {
-		return -EINVAL;
+#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
+	struct heater *const heater = CONTAINER_OF(ev, struct heater, event);
+	k_system_workqueue_submit(&heater->work);
+#else
+	heater_ev_cb(ev);
+#endif /* CONFIG_WORKQUEUE_HEATERS_EXECUTION */
+}
+
+#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
+static void work_cb(struct k_work *work)
+{
+	struct heater *const heater = CONTAINER_OF(work, struct heater, work);
+	heater_ev_cb(&heater->event);
+}
+#endif /* CONFIG_WORKQUEUE_HEATERS_EXECUTION */
+
+int heaters_init(void)
+{
+	int ret = 0;
+
+	for (uint8_t h = 0u; h < CONFIG_HEATERS_COUNT; h++) {
+		const struct pin *pos = pin_get(h, HEATER_OC_POS);
+		const struct pin *neg = pin_get(h, HEATER_OC_NEG);
+
+		bsp_pgm_pin_init(pos, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_pgm_pin_init(neg, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+
+		/* Set initial state (Off) */
+		heater_set_mode(h, HEATER_MODE_OFF);
+
+		k_event_init(&hs[h].event, event_cb);
+
+#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
+		k_work_init(&hs[h].work, work_cb);
+#endif
 	}
 
-	const struct pin *pos = pin_get(hid, HEATER_OC_POS);
-	const struct pin *neg = pin_get(hid, HEATER_OC_NEG);
-
-	bsp_pgm_pin_init(pos, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
-	bsp_pgm_pin_init(neg, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
-
-	/* Set initial state (Off) */
-	heater_set_mode(hid, HEATER_MODE_OFF);
-
-	k_event_init(&heaters_event[hid], heater_ev_cb);
-
-	return 0;
+	return ret;
 }
 
 int heater_set_mode(uint8_t hid, heater_mode_t mode)
@@ -119,9 +169,9 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 		break;
 	case HEATER_MODE_CONFORT_MIN_1:
 	case HEATER_MODE_CONFORT_MIN_2:
-		/* Set mode immediately, in case the event is called */
-		heaters_mode[hid] = mode;
-		k_event_schedule(&heaters_event[hid], K_NO_WAIT);
+		/* Set mode immediately, in case the event is immediately called */
+		hs[hid].mode = mode;
+		k_event_schedule(&hs[hid].event, K_NO_WAIT);
 		break;
 	case HEATER_MODE_ENERGY_SAVING:
 		heater_activate_oc(pos);
@@ -139,7 +189,18 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 		return -EINVAL;
 	}
 
-	heaters_mode[hid] = mode;
+	hs[hid].mode = mode;
 
 	return 0;
 }
+
+heater_mode_t heater_get_mode(uint8_t hid)
+{
+	if (hid >= CONFIG_HEATERS_COUNT) {
+		return HEATER_MODE_OFF;
+	}
+
+	return hs[hid].mode;
+}
+
+#endif

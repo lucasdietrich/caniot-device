@@ -53,7 +53,8 @@
 		"v1.h": "c",
 		"usart.h": "c",
 		"class0.h": "c",
-		"class1.h": "c"
+		"class1.h": "c",
+		"pcf8574.h": "c"
 	},
 	"editor.rulers": [80]
 }

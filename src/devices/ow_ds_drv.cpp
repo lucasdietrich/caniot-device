@@ -108,7 +108,7 @@ static inline int16_t raw_to_T16(int16_t raw)
 	return (100LU * ((int32_t)raw)) / 16;
 }
 
-int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature)
+int8_t ow_ds_drv_read_start(ow_ds_id_t *id, int16_t *temperature)
 {
 	if ((id == NULL) || (temperature == NULL)) {
 		return -OW_DS_DRV_INVALID_PARAMS;
@@ -121,8 +121,11 @@ int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature)
 	dev.ow.select(id->addr);
 	dev.ow.write(0x44, 1);        // start conversion, with parasite power on at the end
 
-	k_sleep(K_MSEC(1000)); // maybe 750ms is enough, maybe not
+	return OW_DS_DRV_SUCCESS;
+}
 
+int8_t ow_ds_drv_read_handle_result(ow_ds_id_t *id, int16_t *temperature)
+{
 	// we might do a ds.depower() here, but the reset will take care of it.
 
 	if (dev.ow.reset() != 1U) {
@@ -178,4 +181,21 @@ int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature)
 	*temperature = raw_to_T16(tmp);
 
 	return OW_DS_DRV_SUCCESS;
+}
+
+int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature)
+{
+	int8_t ret;
+
+	ret = ow_ds_drv_read_start(id, temperature);
+	if (ret != OW_DS_DRV_SUCCESS) {
+		goto exit;
+	}
+
+	k_sleep(K_MSEC(1000u)); // maybe 750ms is enough, maybe not
+
+	ret = ow_ds_drv_read_handle_result(id, temperature);
+
+exit:
+	return ret;
 }

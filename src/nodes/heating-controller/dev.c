@@ -97,15 +97,7 @@ const struct shutters_system_oc ss PROGMEM = {
 
 void app_init(void)
 {
-	heater_init(HEATER1);
-
-#if CONFIG_HEATERS_COUNT >= 2u
-	heater_init(HEATER2);
-#endif
-#if CONFIG_HEATERS_COUNT >= 3u
-	heater_init(HEATER3);
-#endif
-
+	heaters_init();
 	shutters_system_init();
 }
 

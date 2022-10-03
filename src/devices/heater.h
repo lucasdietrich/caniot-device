@@ -34,8 +34,10 @@ typedef enum {
 	HEATER_MODE_OFF /* Off mode */
 } heater_mode_t;
 
-int heater_init(uint8_t hid);
+int heaters_init(void);
 
 int heater_set_mode(uint8_t hid, heater_mode_t mode);
+
+heater_mode_t heater_get_mode(uint8_t hid);
 
 #endif /* _BOARD_HEATER_H_ */

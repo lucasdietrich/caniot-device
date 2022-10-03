@@ -84,6 +84,24 @@ int8_t ow_ds_drv_discover(ow_ds_id_t *array, uint8_t size);
  */
 int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature);
 
+/**
+ * @brief Start read from the given DS temperature sensor
+ * 
+ * @param id Device address
+ * @param temperature Variable to store the temperature in (in 1e-2 °C)
+ * @return int8_t 0 on success, negative value on error
+ */
+int8_t ow_ds_drv_read_start(ow_ds_id_t *id, int16_t *temperature);
+
+/**
+ * @brief Handle read from the given DS temperature sensor (after at least 750ms)
+ * 
+ * @param id Device address
+ * @param temperature Variable to store the temperature in (in 1e-2 °C)
+ * @return int8_t 0 on success, negative value on error
+ */
+int8_t ow_ds_drv_read_handle_result(ow_ds_id_t *id, int16_t *temperature);
+
 #ifdef __cplusplus
 }
 #endif

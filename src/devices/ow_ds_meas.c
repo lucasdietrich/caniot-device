@@ -25,16 +25,14 @@ struct meas_context {
 	/* current ds temperature being measured */
 	uint8_t cur : 3;
 
+	/* Flag to indicate that a new discovery is required */
+	uint8_t do_discovery : 1;
+
+	/* Flag to indicate that next event should be meas_running */
+	uint8_t meas_running : 1;
+
 	/* time to next discovery */
 	uint16_t remaining_to_discovery;
-
-	struct {
-		/* Flag to indicate that a new discovery is required */
-		uint8_t do_discovery : 1;
-
-		/* Flag to indicate that next event should be meas_running */
-		uint8_t meas_running : 1;
-	} flags;
 
 	/* period between two measurements
 	 * (between two different sensors
@@ -127,8 +125,8 @@ static int8_t measure_sensor(ow_ds_sensor_t *sens)
 	if (sens->active == 0U) {
 		ret = -OW_DS_DRV_SENS_INACTIVE;
 	} else if (ow_ds_drv_read(&sens->id, &sens->temp) == OW_DS_DRV_SUCCESS) {
-		/* if the sensor has been discovered, try to read it's temperature */
 
+		/* if the sensor has been discovered, try to read it's temperature */
 		LOG_INF("ow sens: %p temp: %.2f %%",
 			(void *)sens, sens->temp / 100.0);
 
@@ -158,7 +156,7 @@ static int8_t discover()
 	LOG_DBG("discovered %d OW sensors", ret);
 
 	/* at least one sensor should be discovered */
-	ctx.flags.do_discovery = ret <= 0U;
+	ctx.do_discovery = ret <= 0U;
 
 	ctx.remaining_to_discovery =
 		OW_DS_DISCOVERIES_PERIODICITY * ctx.expected;
@@ -172,14 +170,14 @@ static void meas_handler(struct k_work *w)
 
 	const uint8_t diff = ctx.expected - get_active_sensors_count();
 	if (ctx.remaining_to_discovery < diff) {
-		ctx.flags.do_discovery = 1U;
+		ctx.do_discovery = 1U;
 	} else {
 		ctx.remaining_to_discovery -= diff;
 	}
 
 
 	/* discover devices if requested */
-	if (ctx.flags.do_discovery == 1U) {
+	if (ctx.do_discovery == 1U) {
 		discover();
 	}
 
@@ -195,14 +193,14 @@ static void meas_handler(struct k_work *w)
 		*/
 		sens->active = 0U;
 		sens->errors = 0U;
-		ctx.flags.do_discovery = 1U;
+		ctx.do_discovery = 1U;
 	}
 
 	/* fetch next sensor */
 	ctx.cur = (ctx.cur + 1) % ctx.expected;
 
-	/* check if we continue tu periodic measurements or not */
-	if (ctx.flags.meas_running == 1U) {
+	/* check if we continue the periodic measurements or not */
+	if (ctx.meas_running == 1U) {
 		k_event_schedule(&ctx._ev, K_MSEC(ctx.period_ms));
 	} else {
 		k_sem_give(&ctx._sched_sem);
@@ -223,8 +221,8 @@ int8_t ds_init(uint8_t pin,
 		// ctx.discovered = 0U;
 
 		ctx.cur = 0U;
-		ctx.flags.do_discovery = 1U;
-		ctx.flags.meas_running = 0U;
+		ctx.do_discovery = 1U;
+		ctx.meas_running = 0U;
 
 		k_work_init(&ctx._work, meas_handler);
 		k_event_init(&ctx._ev, event_handler);
@@ -240,9 +238,9 @@ int8_t ds_meas_start(uint16_t period_ms)
 {
 	int8_t ret = -OW_DS_DRV_PERIODIC_MEAS_STARTED;
 
-	if (ctx.flags.meas_running == 0U) {
+	if (ctx.meas_running == 0U) {
 		k_sem_take(&ctx._sched_sem, K_FOREVER);
-		ctx.flags.meas_running = 1U;
+		ctx.meas_running = 1U;
 		ctx.period_ms = period_ms;
 
 		ret = k_system_workqueue_submit(&ctx._work);
@@ -255,8 +253,8 @@ int8_t ds_meas_stop(void)
 {
 	int8_t ret = -OW_DS_DRV_PERIODIC_MEAS_NOT_STARTED;
 
-	if (ctx.flags.meas_running == 1U) {
-		ctx.flags.meas_running = 0U;
+	if (ctx.meas_running == 1U) {
+		ctx.meas_running = 0U;
 		ret = OW_DS_DRV_SUCCESS;
 	}
 
@@ -265,7 +263,7 @@ int8_t ds_meas_stop(void)
 
 bool ds_meas_running(void)
 {
-	return ctx.flags.meas_running == 1U;
+	return ctx.meas_running == 1U;
 }
 
 int8_t ds_discover(void)
@@ -282,7 +280,6 @@ int8_t ds_discover(void)
 int8_t ds_measure_all(void)
 {
 	int8_t ret = -OW_DS_DRV_PERIODIC_MEAS_STARTED;
-
 
 	if (ds_meas_running() == false) {
 		uint8_t ret = OW_DS_DRV_SUCCESS;
