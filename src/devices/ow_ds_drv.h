@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define OW_DS_MEAS_DURATION_MS 1000U
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,6 +46,7 @@ enum {
 	OW_DS_DRV_PERIODIC_MEAS_NOT_STARTED,
 	OW_DS_DRV_SENS_INACTIVE,
 	OW_DS_DRV_SENS_MEAS_FAILED,
+	OW_DS_DRV_SENS_OS_ERROR,
 	OW_DS_DRV_UNKNOWN_ERROR,
 };
 
@@ -91,7 +94,7 @@ int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature);
  * @param temperature Variable to store the temperature in (in 1e-2 °C)
  * @return int8_t 0 on success, negative value on error
  */
-int8_t ow_ds_drv_read_start(ow_ds_id_t *id, int16_t *temperature);
+int8_t ow_ds_drv_read_start(ow_ds_id_t *id);
 
 /**
  * @brief Handle read from the given DS temperature sensor (after at least 750ms)

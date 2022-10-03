@@ -52,7 +52,12 @@ typedef struct
 	/**
 	 * @brief Indicates how many errors occured for this sensor
 	 */
-	uint8_t errors: 5;
+	uint8_t errors: 4;
+
+	/**
+	 * @brief Indicates if a measurement is in progress
+	 */
+	uint8_t in_progress: 1;
 } ow_ds_sensor_t;
 
 /**

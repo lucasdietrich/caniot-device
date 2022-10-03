@@ -61,7 +61,7 @@ int8_t ow_ds_drv_discover_iter(uint8_t max_devices,
 			       bool (*discovered_cb)(ow_ds_id_t *, void *),
 			       void *user_data)
 {
-	if ((discovered_cb == NULL) || (max_devices == 0U)) {
+	if (!discovered_cb || !max_devices) {
 		return -OW_DS_DRV_INVALID_PARAMS;
 	}
 
@@ -70,9 +70,9 @@ int8_t ow_ds_drv_discover_iter(uint8_t max_devices,
 	ow_ds_id_t id;
 	uint8_t count = 0U;
 
-	while ((dev.ow.search(id.addr, true) == true) && (count < max_devices)) {
+	while (dev.ow.search(id.addr, true) && (count < max_devices)) {
 		if (handle_addr(id.addr, &id.type) == OW_DS_DRV_SUCCESS) {
-			if (discovered_cb(&id, user_data) == true) {
+			if (discovered_cb(&id, user_data)) {
 				count++;
 			}
 		}
@@ -108,9 +108,9 @@ static inline int16_t raw_to_T16(int16_t raw)
 	return (100LU * ((int32_t)raw)) / 16;
 }
 
-int8_t ow_ds_drv_read_start(ow_ds_id_t *id, int16_t *temperature)
+int8_t ow_ds_drv_read_start(ow_ds_id_t *id)
 {
-	if ((id == NULL) || (temperature == NULL)) {
+	if (!id) {
 		return -OW_DS_DRV_INVALID_PARAMS;
 	}
 
@@ -126,6 +126,10 @@ int8_t ow_ds_drv_read_start(ow_ds_id_t *id, int16_t *temperature)
 
 int8_t ow_ds_drv_read_handle_result(ow_ds_id_t *id, int16_t *temperature)
 {
+	if (!id || !temperature) {
+		return -OW_DS_DRV_INVALID_PARAMS;
+	}
+	
 	// we might do a ds.depower() here, but the reset will take care of it.
 
 	if (dev.ow.reset() != 1U) {
@@ -187,12 +191,12 @@ int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature)
 {
 	int8_t ret;
 
-	ret = ow_ds_drv_read_start(id, temperature);
+	ret = ow_ds_drv_read_start(id);
 	if (ret != OW_DS_DRV_SUCCESS) {
 		goto exit;
 	}
 
-	k_sleep(K_MSEC(1000u)); // maybe 750ms is enough, maybe not
+	k_sleep(K_MSEC(OW_DS_MEAS_DURATION_MS)); // maybe 750ms is enough, maybe not
 
 	ret = ow_ds_drv_read_handle_result(id, temperature);
 

@@ -19,9 +19,6 @@ struct meas_context {
 	/* size of the array */
 	uint8_t expected : 3;
 
-	/* number of sensor discovered */
-	// uint8_t discovered : 3;
-
 	/* current ds temperature being measured */
 	uint8_t cur : 3;
 
@@ -73,33 +70,6 @@ static ow_ds_sensor_t *get_free_slot(void)
 	return NULL;
 }
 
-static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
-{
-	/* try to find the corresponding sensor in the array */
-	ow_ds_sensor_t *sensor = get_sensor_by_id(id);
-
-	/* if not already registered/found, try to register it */
-	if (sensor == NULL) {
-		sensor = get_free_slot();
-
-		if (sensor != NULL) {
-			sensor->registered = 1U;
-			memcpy(&sensor->id, id, sizeof(ow_ds_id_t));
-		}
-	}
-
-	if (sensor != NULL) {
-		/* reset sensor state */
-		sensor->errors = 0U;
-		sensor->valid = 0U;
-		sensor->active = 1U;
-	}
-
-	LOG_INF("ds_discovered_cb(id=%p), sensor=%p", id, sensor);
-
-	return sensor != NULL;
-}
-
 static void event_handler(struct k_event *ev)
 {
 	k_system_workqueue_submit(&ctx._work);
@@ -133,7 +103,7 @@ static int8_t measure_sensor(ow_ds_sensor_t *sens)
 		sens->valid = 1U;
 		sens->errors = 0U;
 
-		ret = 0U;
+		ret = 0;
 
 	} else {
 		LOG_WRN("ow sens: %p failed", (void *)sens);
@@ -147,6 +117,34 @@ static int8_t measure_sensor(ow_ds_sensor_t *sens)
 	return ret;
 }
 
+static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
+{
+	/* try to find the corresponding sensor in the array */
+	ow_ds_sensor_t *sensor = get_sensor_by_id(id);
+
+	/* if not already registered/found, try to register it */
+	if (sensor == NULL) {
+		sensor = get_free_slot();
+
+		if (sensor != NULL) {
+			sensor->registered = 1U;
+			memcpy(&sensor->id, id, sizeof(ow_ds_id_t));
+		}
+	}
+
+	if (sensor != NULL) {
+		/* reset sensor state */
+		sensor->errors = 0U;
+		sensor->valid = 0U;
+		sensor->active = 1U;
+		sensor->in_progress = 0U;
+	}
+
+	LOG_INF("ds_discovered_cb(id=%p), sensor=%p", id, sensor);
+
+	return sensor != NULL;
+}
+
 static int8_t discover()
 {
 	int8_t ret = ow_ds_drv_discover_iter(ctx.expected,
@@ -156,7 +154,7 @@ static int8_t discover()
 	LOG_DBG("discovered %d OW sensors", ret);
 
 	/* at least one sensor should be discovered */
-	ctx.do_discovery = ret <= 0U;
+	ctx.do_discovery = ret <= 0u;
 
 	ctx.remaining_to_discovery =
 		OW_DS_DISCOVERIES_PERIODICITY * ctx.expected;
@@ -175,7 +173,6 @@ static void meas_handler(struct k_work *w)
 		ctx.remaining_to_discovery -= diff;
 	}
 
-
 	/* discover devices if requested */
 	if (ctx.do_discovery == 1U) {
 		discover();
@@ -183,17 +180,43 @@ static void meas_handler(struct k_work *w)
 
 	ow_ds_sensor_t *sens = &ctx.sensors[ctx.cur];
 
-	ret = measure_sensor(sens);
+	if (sens->active) {
+		if (!sens->in_progress) {
+			ret = ow_ds_drv_read_start(&sens->id);
+			if (ret == OW_DS_DRV_SUCCESS) {
+				sens->in_progress = 1U;
+				k_event_schedule(&ctx._ev, K_MSEC(OW_DS_MEAS_DURATION_MS));
+				return;
+			}
+		} else {
+			ret = ow_ds_drv_read_handle_result(&sens->id, &sens->temp);
+			sens->in_progress = 0U;
+		}
 
-	if ((ret == -OW_DS_DRV_SENS_MEAS_FAILED) &&
-	    (sens->errors > OW_DS_MAX_CONSECUTIVE_ERRORS)) {
+		if (ret == OW_DS_DRV_SUCCESS) {
+			/* if the sensor has been discovered, try to read it's temperature */
+			LOG_INF("ow sens: %p temp: %u.%02u %%",
+				(void *)sens, sens->temp / 100, sens->temp % 100u);
 
-		/* if too many consecutive errors, deactivate the sensor
-		* and trigger a new discovery
-		*/
-		sens->active = 0U;
-		sens->errors = 0U;
-		ctx.do_discovery = 1U;
+			sens->valid = 1U;
+			sens->errors = 0U;
+		} else {
+			LOG_WRN("ow sens: %p failed", (void *)sens);
+
+			sens->valid = 0U;
+			sens->errors++;
+
+			if ((ret == -OW_DS_DRV_SENS_MEAS_FAILED) &&
+			    (sens->errors > OW_DS_MAX_CONSECUTIVE_ERRORS)) {
+
+				/* if too many consecutive errors, deactivate the sensor
+				* and trigger a new discovery
+				*/
+				sens->active = 0U;
+				sens->errors = 0U;
+				ctx.do_discovery = 1U;
+			}
+		}
 	}
 
 	/* fetch next sensor */
@@ -238,12 +261,13 @@ int8_t ds_meas_start(uint16_t period_ms)
 {
 	int8_t ret = -OW_DS_DRV_PERIODIC_MEAS_STARTED;
 
-	if (ctx.meas_running == 0U) {
-		k_sem_take(&ctx._sched_sem, K_FOREVER);
+	if (k_sem_take(&ctx._sched_sem, K_NO_WAIT) == 0) {
 		ctx.meas_running = 1U;
 		ctx.period_ms = period_ms;
 
-		ret = k_system_workqueue_submit(&ctx._work);
+		if (k_system_workqueue_submit(&ctx._work) != 0) {
+			ret = -OW_DS_DRV_SENS_OS_ERROR;
+		}
 	}
 
 	return ret;

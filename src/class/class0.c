@@ -9,6 +9,9 @@
 #include "devices/temp.h"
 #include "dev.h"
 
+#include "logging.h"
+#define LOG_LEVEL LOG_LEVEL_DBG
+
 #if defined(CONFIG_CLASS0_ENABLED)
 
 
@@ -28,7 +31,9 @@ static struct xps_context xps_ctx[4u] = {
 
 #elif defined(CONFIG_BOARD_V2)
 
-const uint8_t pins_assignment[] PROGMEM = { }
+static struct xps_context xps_ctx[] = {
+
+};
 
 #endif
 
@@ -116,6 +121,8 @@ int class0_config_apply(struct caniot_device *dev,
 
 	struct caniot_class0_config *const c0 = &config->cls0_gpio;
 
+	LOG_DBG("pcint mask=%x", mask);
+
 	pci_pin_set_enabled_for_io(BSP_OC1, mask & BIT(OC1_IDX));
 	pci_pin_set_enabled_for_io(BSP_OC2, mask & BIT(OC2_IDX));
 	pci_pin_set_enabled_for_io(BSP_RL1, mask & BIT(RL1_IDX));
@@ -125,7 +132,7 @@ int class0_config_apply(struct caniot_device *dev,
 	pci_pin_set_enabled_for_io(BSP_IN3, mask & BIT(IN3_IDX));
 	pci_pin_set_enabled_for_io(BSP_IN4, mask & BIT(IN4_IDX));
 
-	/* TODO make sure to not break an running pulse ? */
+	/* TODO make sure to not break a running pulse ? */
 	xps_ctx[OC1_IDX].reset_state = (c0->outputs_default >> OC1_IDX) & 1u;
 	xps_ctx[OC2_IDX].reset_state = (c0->outputs_default >> OC2_IDX) & 1u;
 	xps_ctx[RL1_IDX].reset_state = (c0->outputs_default >> RL1_IDX) & 1u;
