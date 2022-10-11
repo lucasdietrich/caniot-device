@@ -5,6 +5,10 @@
 #	define CONFIG_GPIO_PULSE_SUPPORT 0U
 #endif 
 
+#if !defined(CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT)
+#	define CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT 	4u
+#endif
+
 #if !defined(CONFIG_WATCHDOG)
 #	define CONFIG_WATCHDOG 0u
 #endif 

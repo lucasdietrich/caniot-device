@@ -305,7 +305,8 @@ int command_xps(struct xps_context *xpsc,
 	case CANIOT_XPS_PULSE_OFF:
 		xpsc->pev = pulse_trigger(xpsc->descr,
 					  cmd == CANIOT_XPS_PULSE_ON,
-					  duration_ms);
+					  duration_ms,
+					  NULL);
 		break;
 	case CANIOT_XPS_PULSE_CANCEL:
 		pulse_cancel(xpsc->pev);

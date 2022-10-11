@@ -11,8 +11,10 @@
 
 #if CONFIG_GPIO_PULSE_SUPPORT
 
+#if CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT
 K_MEM_SLAB_DEFINE(ctx_mems, sizeof(struct pulse_event),
 		  CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT);
+#endif
 
 
 static DEFINE_TQUEUE(ev_queue);
@@ -33,19 +35,27 @@ static DEFINE_TQUEUE(ev_queue);
 
 static struct pulse_event *alloc_context(void)
 {
+#if CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT
 	void *mem;
 
 	if (k_mem_slab_alloc(&ctx_mems, &mem, K_NO_WAIT) == 0) {
+		((struct pulse_event *)mem)->_iallocated = 1u;
 		return mem;
 	}
+#endif
 
 	return NULL;
 }
 
 static void free_context(struct pulse_event *ctx)
 {
-	k_mem_slab_free(&ctx_mems, (void *)ctx);
+#if CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT
+	if (ctx->_iallocated) {
+		k_mem_slab_free(&ctx_mems, (void *)ctx);
+	}
+#endif
 }
+
 
 static inline void output_set_state(pin_descr_t descr, bool state)
 {
@@ -69,30 +79,27 @@ static void cancel_event(struct pulse_event *ev)
 
 void pulse_init(void)
 {
-	PULSE_CONTEXT_LOCK();
-	
-	// for (struct pulse_event *ev = events;
-	//      ev < events + ARRAY_SIZE(events); ev++)
-	// {
-	// 	ev->scheduled = 0U;
-	// }
-
-	PULSE_CONTEXT_UNLOCK();
+	/* Nothing ... */
 }
 
 struct pulse_event *pulse_trigger(pin_descr_t descr,
 				  bool state,
-				  uint32_t duration_ms)
+				  uint32_t duration_ms,
+				  struct pulse_event *ev)
 {
-	struct pulse_event *ev = NULL;
-
 	if (duration_ms == 0) {
 		goto exit;
 	}
 
+	/* Try to allocate a context if not provided */
+	if (ev == NULL) {
+		ev = alloc_context();
+	} else {
+		ev->_iallocated = 0u;
+	}
+
 	PULSE_CONTEXT_LOCK();
 
-	ev = alloc_context();
 	if (ev != NULL) {
 		output_set_state(descr, state);
 		ev->scheduled = 1u;

@@ -18,7 +18,6 @@
 
 #include "bsp/bsp.h"
 
-#define CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT 	4u
 #define CONFIG_GPIO_PULSE_THREAD_SAFE 		1u
 
 struct pulse_event
@@ -30,6 +29,9 @@ struct pulse_event
 
 	/* Tells wether the pulse is active or not */
 	uint8_t scheduled: 1;
+
+	/* Tells wether the pulse context has been allocated internally */
+	uint8_t _iallocated;
 
 	/* GPIO descriptor */
 	pin_descr_t descr;
@@ -46,8 +48,12 @@ void pulse_init(void);
  * @param output RL1, RL2, OC1, OC2
  * @param state true, false
  * @param duration_ms Duration of the pulse in ms
+ * @param pe Pointer to a pulse_event struct. If NULL, a new one will be allocated
  */
-struct pulse_event *pulse_trigger(pin_descr_t descr, bool state, uint32_t duration_ms);
+struct pulse_event *pulse_trigger(pin_descr_t descr,
+				  bool state,
+				  uint32_t duration_ms,
+				  struct pulse_event *ev);
 
 /**
  * @brief Cancel a pulse being process and set pin state to state value
