@@ -256,6 +256,9 @@ int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state)
 	struct pin pin;
 
 	ret = get_pin_from_descr(descr, &pin);
+
+	LOG_DBG("descr: 0x%02x dev: %p pin: %u", descr, pin.dev, pin.pin);
+
 	if (ret == 0) {
 		bsp_pin_init(&pin, direction, state);
 	}

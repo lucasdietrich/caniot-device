@@ -18,7 +18,11 @@
 struct pin
 {
 	void *dev;
-	uint8_t pin;
+
+	/* first 3 bits contain de actual pin, 
+	 * the 4th bit tells whether the driver is the default GPIO or
+	 * the GPIO driver */
+	uint8_t pin; 
 };
 
 #define PIN_INIT(_dev, _pin, _soc) { .dev = _dev, .pin = (_pin) | ((_soc) << 3u) }
@@ -28,9 +32,10 @@ struct pin
 
 #define BSP_GPIO_PIN_GET(_pin) ((_pin) & 0x07u)
 
-#define BSP_GPIO_PIN_TYPE_GET(_pin) (((_pin) >> 3u) & 1u)
-#define BSP_GPIO_PIN_TYPE_GPIO (1u << 3u)
-#define BSP_GPIO_PIN_TYPE_EXTIO (0u << 3u)
+#define BSP_GPIO_PIN_TYPE_MASK 		(1u << 3u)
+#define BSP_GPIO_PIN_TYPE_GET(_pin) 	((_pin) & BSP_GPIO_PIN_TYPE_MASK)
+#define BSP_GPIO_PIN_TYPE_GPIO 		(0u << 3u)
+#define BSP_GPIO_PIN_TYPE_EXTIO 	(1u << 3u)
 
 /*____________________________________________________________________________*/
 
