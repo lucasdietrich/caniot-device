@@ -29,6 +29,7 @@ struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT] = {
 
 void bsp_tiny_init(struct extio_device *dev)
 {
+	/* TODO change to GPIO_LOW */
 	const uint8_t state = GPIO_HIGH;
 
 	bsp_descr_gpio_init(BSP_PC0, GPIO_OUTPUT, state);

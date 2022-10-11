@@ -256,7 +256,7 @@ int command_handler(struct caniot_device *dev,
 }
 
 __attribute__((section(".noinit"))) static struct caniot_config config;
-__STATIC_ASSERT(sizeof(config) <= 0xFF, "config to big"); /* EEPROM size depends on MCU */
+__STATIC_ASSERT(sizeof(config) <= 0xFF, "config too big"); /* EEPROM size depends on MCU */
 
 extern struct caniot_config default_config;
 
@@ -269,7 +269,8 @@ struct caniot_device device = {
 	.api = &api,
 	.driv = &drivers,
 	.flags = {
-		.request_telemetry = 0,
+		.request_telemetry = 0u,
+		.initialized = 0u,
 	},
 };
 
@@ -442,6 +443,10 @@ int config_restore_default(struct caniot_device *dev,
 	return config_on_write(&device, cfg);
 }
 
+#if CONFIG_FORCE_RESTORE_DEFAULT_CONFIG
+#	warning "CONFIG_FORCE_RESTORE_DEFAULT_CONFIG" is enabled
+#endif
+
 void config_init(void)
 {
 	bool restore = false;
@@ -471,4 +476,6 @@ void caniot_init(void)
 	set_zone(device.config->timezone);
 	
 	caniot_app_init(&device);
+
+	device.flags.initialized = 1;
 }

@@ -199,6 +199,8 @@ void bsp_pin_toggle(struct pin *pin);
 
 uint8_t bsp_pin_input_read(struct pin *pin);
 
+void bsp_pin_set_direction(struct pin *pin, uint8_t direction);
+
 /* Function for pin descriptor */
 
 int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state);
@@ -208,6 +210,9 @@ int bsp_descr_gpio_output_write(uint8_t descr, uint8_t state);
 int bsp_descr_gpio_toggle(uint8_t descr);
 
 uint8_t bsp_descr_gpio_input_read(uint8_t descr);
+
+void bsp_descr_gpio_set_direction(uint8_t descr, uint8_t direction);
+
 
 #ifdef __cplusplus
 }

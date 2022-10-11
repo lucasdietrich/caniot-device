@@ -247,7 +247,22 @@ int class1_blc_command_handler(struct caniot_device *dev,
 int class1_config_apply(struct caniot_device *dev,
 			struct caniot_config *config)
 {
-	return -CANIOT_ENOTSUP;
+	/* Initialize IO if not initialized */
+	if (!dev->flags.initialized) {
+		for (uint8_t i = 0u; i < CONFIG_IO_COUNT; i++) {
+			bsp_descr_gpio_init(
+				xps_ctx[i].descr,
+				(config->cls1_gpio.directions >> i) & 1u,
+				(config->cls1_gpio.outputs_default >> i) & 1u);
+		}
+	}
+
+	/* Apply default state */
+	for (uint8_t i = 0u; i < CONFIG_IO_COUNT; i++) {
+		xps_ctx[i].reset_state = (config->cls1_gpio.outputs_default >> i) & 1u;
+	}
+
+	return 0;
 }
 
 #endif /* CONFIG_CLASS1_ENABLED */

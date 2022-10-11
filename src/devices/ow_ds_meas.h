@@ -55,7 +55,7 @@ typedef struct
 	uint8_t errors: 4;
 
 	/**
-	 * @brief Indicates if a measurement is in progress
+	 * @brief Indicates if a measurement is in progress for the current sensor
 	 */
 	uint8_t in_progress: 1;
 } ow_ds_sensor_t;

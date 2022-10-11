@@ -231,23 +231,44 @@ uint8_t bsp_pin_input_read(struct pin *pin)
 	return 0;
 }
 
+void bsp_pin_set_direction(struct pin *pin, uint8_t direction)
+{
+	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
+		gpio_set_pin_direction(
+			(GPIO_Device *)pin->dev,
+			BSP_GPIO_PIN_GET(pin->pin),
+			direction);
+#if CONFIG_EXTIO_ENABLED
+	} else {
+		__ASSERT_THREAD_CONTEXT();
+
+		bsp_extio_set_pin_direction(
+			(struct extio_device *)pin->dev,
+			BSP_GPIO_PIN_GET(pin->pin),
+			direction);
+#endif
+	}
+}
+
 static int get_pin_from_descr(uint8_t descr, struct pin *pin)
 {
 	if (BSP_DESCR_STATUS_GET(descr) == BSP_DESCR_ACTIVE) {
 		if (BSP_DESCR_DRIVER_GET(descr) == BSP_DESCR_DRIVER_GPIO) {
 			pin->dev = BSP_DESCR_DEVICE_GET(descr);
 			pin->pin = BSP_DESCR_GPIO_PIN_GET(descr) | BSP_GPIO_PIN_TYPE_GPIO;
-			return 0;
 #if CONFIG_EXTIO_ENABLED
 		} else if (BSP_DESCR_DRIVER_GET(descr) == BSP_DESCR_DRIVER_EXTIO) {
 			pin->dev = EXTIO_DEVICE(BSP_DESCR_GPIO_PORT_GET_INDEX(descr));
 			pin->pin = BSP_DESCR_GPIO_PIN_GET(descr) | BSP_GPIO_PIN_TYPE_EXTIO;
-			return 0;
 #endif
 		}
+	} else {
+		return -ENOTSUP;
 	}
+	
+	LOG_DBG("descr: 0x%02x dev: %p pin: %u", descr, pin->dev, pin->pin);
 
-	return -ENOTSUP;
+	return 0;
 }
 
 int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state)
@@ -256,8 +277,6 @@ int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state)
 	struct pin pin;
 
 	ret = get_pin_from_descr(descr, &pin);
-
-	LOG_DBG("descr: 0x%02x dev: %p pin: %u", descr, pin.dev, pin.pin);
 
 	if (ret == 0) {
 		bsp_pin_init(&pin, direction, state);
@@ -301,4 +320,13 @@ uint8_t bsp_descr_gpio_input_read(uint8_t descr)
 	}
 
 	return 0u;
+}
+
+void bsp_descr_gpio_set_direction(uint8_t descr, uint8_t direction)
+{
+	struct pin pin;
+	
+	if (get_pin_from_descr(descr, &pin) == 0) {
+		return bsp_pin_set_direction(&pin, direction);
+	}
 }

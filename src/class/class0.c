@@ -117,9 +117,21 @@ static void pci_pin_set_enabled_for_io(uint8_t descr, uint8_t state)
 int class0_config_apply(struct caniot_device *dev,
 			struct caniot_config *config)
 {
-	uint32_t mask = config->cls0_gpio.telemetry_on_change;
+	/* TODO if !dev->flags.initialized, set port default value */
+	
+	const uint32_t mask = config->cls0_gpio.telemetry_on_change;
 
 	struct caniot_class0_config *const c0 = &config->cls0_gpio;
+
+	/* Initialize IO if not initialized */
+	if (!dev->flags.initialized) {
+		for (uint8_t i = 0u; i < ARRAY_SIZE(xps_ctx); i++) {
+			bsp_descr_gpio_init(
+				xps_ctx[i].descr,
+				GPIO_OUTPUT,
+				(config->cls0_gpio.outputs_default >> i) & 1u);
+		}
+	}
 
 	LOG_DBG("pcint mask=%x", mask);
 
