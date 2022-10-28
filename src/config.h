@@ -67,6 +67,10 @@
 #	define CONFIG_LOGGING_ENABLED 1u
 #endif
 
+#if !defined(CONFIG_CAN_CONTEXT_LOCK)
+#	define CONFIG_CAN_CONTEXT_LOCK 0u
+#endif
+
 #define CONFIG_CLASS __DEVICE_CLS__
 
 #if __DEVICE_CLS__ == 0

@@ -29,13 +29,26 @@
 static mcp2515_can can(BSP_CAN_SS_ARDUINO_PIN);
 
 /* maybe unecessary */
+
+#if CONFIG_CAN_CONTEXT_LOCK
 static K_MUTEX_DEFINE(can_mutex_if);
+
+#define CAN_CONTEXT_LOCK() 	k_mutex_lock(&can_mutex_if, K_FOREVER);
+#define CAN_CONTEXT_UNLOCK() 	k_mutex_unlock(&can_mutex_if);
+
+#else
+
+#define CAN_CONTEXT_LOCK()
+#define CAN_CONTEXT_UNLOCK()
+
+#endif
+
 
 void can_init(void)
 {
 	__ASSERT_INTERRUPT();
 
-        k_mutex_lock(&can_mutex_if, K_FOREVER);
+        CAN_CONTEXT_LOCK();
 
         while (CAN_OK != can.begin(CAN_SPEEDSET, CAN_CLOCKSET)) {
 		LOG_ERR("can init failed");
@@ -56,39 +69,44 @@ void can_init(void)
 	can.init_Filt(4, CAN_STDID, filter_broadcast);
 	can.init_Filt(5, CAN_STDID, filter_broadcast);
 
-	k_mutex_unlock(&can_mutex_if);
+	CAN_CONTEXT_UNLOCK();
 }
 
 ISR(BSP_CAN_INT_vect)
 {
-	trigger_process();
-
 #if DEBUG_INT
 	usart_transmit('%');
 #endif 
+
+	struct k_thread *ready = trigger_process();
+
+	/* Immediately yield to schedule main thread */
+	k_yield_from_isr(ready);
 }
 
 int can_recv(can_message *msg)
 {
 	__ASSERT_NOTNULL(msg);
 
-	int rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
-	if (rc == 0) {
+	int8_t rc;
 
-		if (can.checkReceive() == CAN_MSGAVAIL) {
-			uint8_t isext, rtr;
-			rc = can.readMsgBufID(can.readRxTxStatus(),
-					      (unsigned long *)&msg->id, &isext, &rtr,
-					      &msg->len, msg->buf);
-			if (rc == 0) {
-				msg->isext = isext ? CAN_EXTID : CAN_STDID;
-				msg->rtr = rtr ? 1 : 0;
-			}
-		} else {
-			rc = -EAGAIN;
+	CAN_CONTEXT_LOCK();
+
+	if (can.checkReceive() == CAN_MSGAVAIL) {
+		uint8_t isext, rtr;
+		rc = can.readMsgBufID(can.readRxTxStatus(),
+				      (unsigned long *)&msg->id, &isext, &rtr,
+				      &msg->len, msg->buf);
+		if (rc == 0) {
+			msg->isext = isext ? CAN_EXTID : CAN_STDID;
+			msg->rtr = rtr ? 1 : 0;
 		}
-		k_mutex_unlock(&can_mutex_if);
+	} else {
+		rc = -EAGAIN;
 	}
+
+	CAN_CONTEXT_UNLOCK();
+
 	return rc;
 }
 
@@ -96,13 +114,13 @@ static int can_send(can_message *msg)
 {
 	__ASSERT_NOTNULL(msg);
 
-	int rc = k_mutex_lock(&can_mutex_if, K_MSEC(100));
-	if (rc == 0) {
-		rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len,
-				    msg->buf, true);
+	CAN_CONTEXT_LOCK();
 
-		k_mutex_unlock(&can_mutex_if);
-	}
+	int rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len,
+				msg->buf, true);
+
+	CAN_CONTEXT_UNLOCK();
+	
 	return rc;
 }
 

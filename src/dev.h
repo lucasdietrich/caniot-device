@@ -40,9 +40,9 @@ bool telemetry_requested(void);
 
 void trigger_telemetry(void);
 
-static inline void trigger_process(void)
+static inline struct k_thread *trigger_process(void)
 {
-	k_signal_raise(&caniot_process_sig, 0);
+	return k_signal_raise(&caniot_process_sig, 0);
 }
 
 int caniot_process(void);

@@ -141,7 +141,15 @@ int main(void)
 
 		do {
 			ret = caniot_process();
-			if (ret != 0 && ret != -CANIOT_EAGAIN) {
+
+			if (ret == 0) {
+				/* When CAN message "sent" (actually queued to TX queue),
+				 * immediately yield after having queued the CAN message
+				 * so that it can be immediately sent.
+				 */
+				k_yield();
+
+			} else if (ret != -CANIOT_EAGAIN) {
 				// show error
 				caniot_show_error(ret);
 			}
@@ -150,11 +158,6 @@ int main(void)
 			/* I'm alive ! */
 			alive(tid);
 #endif /* CONFIG_WATCHDOG */
-
-			/* let CAN TX thread send pending CAN messages if any 
-			 * before handling the next message
-			 */
-			k_yield();
 
 		} while (ret != -CANIOT_EAGAIN);
 	}
