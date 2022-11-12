@@ -284,12 +284,6 @@ int command_xps(struct xps_context *xpsc,
 		return -ENOTSUP;
 	}
 
-#if CONFIG_GPIO_PULSE_SUPPORT
-	LOG_DBG("XPS: %u %p %u cmd=%u duration=%lu\n",
-		xpsc->descr, xpsc->pev, xpsc->reset_state,
-		cmd, duration_ms);
-#endif /* CONFIG_GPIO_PULSE_SUPPORT */
-
 	switch (cmd) {
 	case CANIOT_XPS_SET_ON:
 		bsp_descr_gpio_output_write(xpsc->descr, GPIO_HIGH);
@@ -308,6 +302,9 @@ int command_xps(struct xps_context *xpsc,
 					  cmd == CANIOT_XPS_PULSE_ON,
 					  duration_ms,
 					  NULL);
+		LOG_DBG("XPS: descr=%u pev=%p rest=%u cmd=%u dur=%lu",
+			xpsc->descr, xpsc->pev, xpsc->reset_state,
+			cmd, duration_ms);
 		break;
 	case CANIOT_XPS_PULSE_CANCEL:
 		pulse_cancel(xpsc->pev);

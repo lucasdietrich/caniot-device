@@ -59,15 +59,15 @@ void can_init(void)
 	const unsigned long filter_self = caniot_device_get_filter(did);
 	const unsigned long filter_broadcast = caniot_device_get_filter_broadcast(did);
 
-        can.init_Mask(0, CAN_STDID, mask);
-	can.init_Filt(0, CAN_STDID, filter_self);
-	can.init_Filt(1, CAN_STDID, filter_self);
+        can.init_Mask(0u, CAN_STDID, mask);
+	can.init_Filt(0u, CAN_STDID, filter_self);
+	can.init_Filt(1u, CAN_STDID, filter_self);
 
-	can.init_Mask(1, CAN_STDID, mask);
-	can.init_Filt(2, CAN_STDID, filter_broadcast);
-	can.init_Filt(3, CAN_STDID, filter_broadcast);
-	can.init_Filt(4, CAN_STDID, filter_broadcast);
-	can.init_Filt(5, CAN_STDID, filter_broadcast);
+	can.init_Mask(1u, CAN_STDID, mask);
+	can.init_Filt(2u, CAN_STDID, filter_broadcast);
+	can.init_Filt(3u, CAN_STDID, filter_broadcast);
+	can.init_Filt(4u, CAN_STDID, filter_broadcast);
+	can.init_Filt(5u, CAN_STDID, filter_broadcast);
 
 	CAN_CONTEXT_UNLOCK();
 }

@@ -107,7 +107,9 @@ int class1_blc_command_handler(struct caniot_device *dev,
 	uint64_t cmd_u64 = *(uint64_t *)cmd;
 	cmd_u64 &= 0x07ffffffffffffffllu;
 
-	LOG_DBG("cls1 cmd_u64: 0x%llx", cmd_u64);
+	LOG_DBG("cls1 cmd_u64: 0x%08lu%08lu",
+		(uint32_t)(cmd_u64 >> 32u),
+		(uint32_t)(cmd_u64 & 0xffffffffu));
 
 	uint32_t directions = cfg->directions;
 
