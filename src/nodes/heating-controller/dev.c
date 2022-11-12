@@ -34,6 +34,12 @@
 #define HEATER3_OC_NEG_GPIO GPIOC
 #define HEATER3_OC_NEG_PIN  PIN5
 
+/* Heater4 optocoupler gpios and pins */
+#define HEATER4_OC_POS_GPIO GPIOC
+#define HEATER4_OC_POS_PIN  PIN4
+#define HEATER4_OC_NEG_GPIO GPIOC
+#define HEATER4_OC_NEG_PIN  PIN5
+
 /* Shutters power supply gpio device and pin */
 #define SHUTTERS_POWER_GPIO GPIOD
 #define SHUTTERS_POWER_PIN  PIN2
@@ -79,6 +85,12 @@ const struct pin heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 		[HEATER_OC_NEG] = HEATER_OC_INIT(HEATER3_OC_NEG_GPIO, HEATER3_OC_NEG_PIN),
 	},
 #endif
+#if CONFIG_HEATERS_COUNT >= 4u
+	[HEATER4] = {
+		[HEATER_OC_POS] = HEATER_OC_INIT(HEATER4_OC_POS_GPIO, HEATER4_OC_POS_PIN),
+		[HEATER_OC_NEG] = HEATER_OC_INIT(HEATER4_OC_NEG_GPIO, HEATER4_OC_NEG_PIN),
+	},
+#endif
 };
 
 const struct shutters_system_oc ss PROGMEM = {
@@ -120,6 +132,11 @@ int app_command_handler(struct caniot_device *dev,
 #if CONFIG_HEATERS_COUNT >= 3u
 		if (cmds->heater3_cmd != CANIOT_HEATER_NONE) {
 			heater_set_mode(HEATER3, cmds->heater3_cmd - 1u);
+		}
+#endif
+#if CONFIG_HEATERS_COUNT >= 4u
+		if (cmds->heater4_cmd != CANIOT_HEATER_NONE) {
+			heater_set_mode(HEATER4, cmds->heater4_cmd - 1u);
 		}
 #endif
 

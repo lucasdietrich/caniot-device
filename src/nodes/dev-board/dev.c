@@ -13,7 +13,7 @@
 
 ISR(TIMER1_COMPA_vect)
 {
-	usart_transmit('Q');
+	// usart_transmit('Q');
 }
 
 void app_init(void)

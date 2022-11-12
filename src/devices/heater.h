@@ -10,7 +10,8 @@
 
 #define HEATER1 0u
 #define HEATER2 1u
-#define HEATER3 1u
+#define HEATER3 2u
+#define HEATER4 3u
 
 #define HEATER_OC_POS 0u
 #define HEATER_OC_NEG 1u
