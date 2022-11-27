@@ -1,3 +1,7 @@
+#if CONFIG_USART_SHELL
+
+#include "shell.h"
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -18,4 +22,4 @@ void shell_process(void)
 	}
 }
 
-#include "shell.h"
+#endif

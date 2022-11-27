@@ -7,9 +7,6 @@
 #include <avrtos/avrtos.h>
 #include <devices/ow_ds_drv.h>
 
-/* PB1 */
-#define OW_DS_ARDUINO_PIN  9U
-
 // Max errors before trying to discover again
 #define OW_DS_MAX_CONSECUTIVE_ERRORS 4U
 
@@ -61,15 +58,13 @@ typedef struct
 } ow_ds_sensor_t;
 
 /**
- * @brief Initialize the context, initialize driver, reference sensors array
+ * @brief Initialize the context, reference sensors array
  * 
- * @param pin 
  * @param array 
  * @param count Number of sensors expected
  * @return int8_t 
  */
-int8_t ds_init(uint8_t pin,
-	       ow_ds_sensor_t *array,
+int8_t ds_init(ow_ds_sensor_t *array,
 	       uint8_t count);
 
 /**

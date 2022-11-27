@@ -10,7 +10,7 @@ typedef enum {
 	TEMP_SENS_EXT_3 = 3,
 } temp_sens_t;
 
-void temp_init(void);
+void temp_start(void);
 
 int16_t temp_read(temp_sens_t sensor);
 

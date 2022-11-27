@@ -11,6 +11,7 @@
 #	define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
+#define K_MODULE K_MODULE_APPLICATION
 
 K_SIGNAL_DEFINE(caniot_process_sig);
 
@@ -145,30 +146,53 @@ const struct caniot_drivers_api drivers = {
 	.send = caniot_send,
 };
 
-static void sw_reset_work_handler(struct k_work *w)
+struct sys_work
 {
-	LOG_DBG("Reset (SW) in 1 SEC");
+	enum {
+		SYS_NONE = 0u,
+		SYS_SW_RESET = 1u,
+		SYS_WDT_RESET = 2u,
+	} action;
+	struct k_work _work;
+};
 
-	k_sleep(K_SECONDS(1));
-	k_sys_sw_reset();
-}
+static void sys_work_handler(struct k_work *w)
+{
+	struct sys_work *x = CONTAINER_OF(w, struct sys_work, _work);
 
-static void wdt_reset_work_handler(struct k_work *w)
-{	
-	LOG_DBG("Reset (WDT) in 1 SEC");
+	switch (x->action) {
+	case SYS_SW_RESET:
+	{
+		LOG_DBG("Reset (SW) in 1 SEC");
+		k_sleep(K_SECONDS(1));
 
-	k_sleep(K_SECONDS(1));
+		k_sys_sw_reset();
 
-	irq_disable();
+		CODE_UNREACHABLE;
+	}
+	case SYS_WDT_RESET:
+	{
+		LOG_DBG("Reset (WDT) in 1 SEC");
 
-	for(;;) {
-		/* wait for WDT reset */
+		k_sleep(K_SECONDS(1));
+
+		irq_disable();
+
+		for (;;) {
+			/* wait for WDT reset */
+		}
+
+		CODE_UNREACHABLE;
+	}
+	default:
+		break;
 	}
 }
 
-static struct k_work sw_reset_work = K_WORK_INIT(sw_reset_work_handler);
-
-static struct k_work wdt_reset_work = K_WORK_INIT(wdt_reset_work_handler);
+static struct sys_work sys_work = {
+	.action = SYS_NONE,
+	._work = K_WORK_INITIALIZER(sys_work_handler),
+};
 
 uint16_t get_t10_temperature(temp_sens_t sens)
 {
@@ -190,13 +214,15 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
 	if (sysc->watchdog_reset == CANIOT_SS_CMD_SET ||
 	    sysc->reset == CANIOT_SS_CMD_SET) {
 		if (WDTCSR & BIT(WDE)) {
-			ret = k_system_workqueue_submit(&wdt_reset_work) ? 0 : -EINVAL;
+			sys_work.action = SYS_WDT_RESET;
+			ret = k_system_workqueue_submit(&sys_work._work) ? 0 : -EINVAL;
 		} else {
 			LOG_WRN("WTD off");
 			ret = -EINVAL;
 		}
 	} else 	if (sysc->software_reset == CANIOT_SS_CMD_SET) {
-		ret = k_system_workqueue_submit(&sw_reset_work) == true ? 0 : -EINVAL;
+		sys_work.action = SYS_SW_RESET;
+		ret = k_system_workqueue_submit(&sys_work._work) == true ? 0 : -EINVAL;
 	} else if (sysc->watchdog == CANIOT_TS_CMD_ON) {
 		wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 		ret = 0;
@@ -279,6 +305,8 @@ int command_xps(struct xps_context *xpsc,
 		uint32_t duration_ms)
 {
 	__ASSERT_TRUE(xpsc != NULL);
+
+	LOG_DBG("%x: %u", xpsc->descr, cmd);
  
 	if (BSP_DESCR_STATUS_GET(xpsc->descr) != BSP_DESCR_ACTIVE) {
 		return -ENOTSUP;

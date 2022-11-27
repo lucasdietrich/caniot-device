@@ -230,15 +230,12 @@ static void meas_handler(struct k_work *w)
 	}
 }
 
-int8_t ds_init(uint8_t pin,
-	       ow_ds_sensor_t *array,
+int8_t ds_init(ow_ds_sensor_t *array,
 	       uint8_t count)
 {
 	int8_t ret = -EINVAL;
 
 	if (array != NULL) {
-		ow_ds_drv_init(pin);
-
 		ctx.sensors = array;
 		ctx.expected = count;
 		// ctx.discovered = 0U;

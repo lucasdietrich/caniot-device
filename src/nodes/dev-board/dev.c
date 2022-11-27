@@ -13,7 +13,7 @@
 
 ISR(TIMER1_COMPA_vect)
 {
-	// usart_transmit('Q');
+	usart_transmit('Q');
 }
 
 void app_init(void)
@@ -77,7 +77,7 @@ const struct caniot_config default_config PROGMEM = {
 #elif defined(CONFIG_BOARD_TINY)
 	.cls1_gpio = {
 		.pulse_durations = {
-			100u, 200u, 300, 400u,
+			100u, 200u, 300u, 400u,
 			500u, 600u, 700u, 800u,
 			900u, 1000u, 1100u, 1200u,
 			1300u, 1400u, 1500u, 1600u,

@@ -14,9 +14,12 @@
 #include <Wire.h>
 
 #include "config.h"
-#include "bsp.h"
 
+#include "bsp.h"
 #include "bsp/tiny/tiny.h"
+
+#include "devices/tcn75.h"
+#include "devices/ow_ds_drv.h"
 
 #include <logging.h>
 #if defined(CONFIG_BOARD_LOG_LEVEL)
@@ -25,63 +28,71 @@
 #	define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
+#define ARDUINO_ENABLE_MILLIS
+
 // @see "init" function from arduino in "wiring.c"
-static void hw_ll_init(void)
+static inline void hw_ll_init(void)
 {
-	// on the ATmega168, timer 0 is also used for fast hardware pwm
+	irq_enable();
+	
+#if defined(ARDUINO_ENABLE_MILLIS)
+	// On the ATmega168, timer 0 is also used for fast hardware pwm
 	// (using phase-correct PWM would mean that timer 0 overflowed half as often
 	// resulting in different millis() behavior on the ATmega8 and ATmega168)
+	TCCR0A |= _BV(WGM01) | _BV(WGM00);
 
-	// millis used by can library
-	SET_BIT(TCCR0A, WGM01);
-	SET_BIT(TCCR0A, WGM00);
+  	// Set timer 0 prescale factor to 64
 
-	// set timer 0 prescale factor to 64
-	// this combination is for the standard 168/328/1280/2560
-	SET_BIT(TCCR0B, CS01);
-	SET_BIT(TCCR0B, CS00);
+  	// This combination is for the standard 168/328/640/1280/1281/2560/2561
+	TCCR0B |= _BV(CS01) | _BV(CS00);
 
-	// enable timer 0 overflow interrupt
-	SET_BIT(TIMSK0, TOIE0);
+	// Enable timer 0 overflow interrupt
+  	TIMSK0 |= _BV(TOIE0);
+#endif
 
-	// timers 1 and 2 are used for phase-correct hardware pwm
+#if defined(ARDUINO_ENABLE_FAST_PWM)
+	// Timers 1 and 2 are used for phase-correct hardware pwm
 	// this is better for motors as it ensures an even waveform
 	// note, however, that fast pwm mode can achieve a frequency of up
 	// 8 MHz (with a 16 MHz clock) at 50% duty cycle
-#if ARDUINO_ENABLE_FAST_PWM
-	TCCR1B = 0;
-	SET_BIT(TCCR1B, CS11);
-	SET_BIT(TCCR1B, CS10);
-
-	SET_BIT(TCCR1A, WGM10);
+	TCCR1B = _BV(CS11); // Set timer 1 prescale factor to 64
+	TCCR1B |= _BV(CS10);
+	TCCR1A |= _BV(WGM10); // Put timer 1 in 8-bit phase correct pwm mode
 #endif
 
-	// set timer 2 prescale factor to 64
-	// sbi(TCCR2B, CS22);
-	// sbi(TCCR2A, WGM20);
+#if defined(ARDUINO_CONFIGURE_TIMERS)
+	// Set timer 2 prescale factor to 64
+	TCCR2B |= _BV(CS22);
+
+	// Configure timer 2 for phase correct pwm (8-bit)
+	TCCR2A |= _BV(WGM20);
+
+	TCCR3B |= _BV(CS31) | _BV(CS30); // Set timer 3 prescale factor to 64
+	TCCR3A |= _BV(WGM30);            // Put timer 3 in 8-bit phase correct pwm mode
+
+	TCCR4B |= _BV(CS41) | _BV(CS40); // Set timer 4 prescale factor to 64
+	TCCR4A |= _BV(WGM40);            // Put timer 4 in 8-bit phase correct pwm mode
+#endif
 
 	// set a2d prescaler so we are inside the desired 50-200 KHz range.
-#if ARDUINO_ENABLE_ANALOG
-	SET_BIT(ADCSRA, ADPS2);
-	SET_BIT(ADCSRA, ADPS1);
-	SET_BIT(ADCSRA, ADPS0);
-	SET_BIT(ADCSRA, ADEN);  // enable disable analog
+#if defined(ARDUINO_ENABLE_ANALOG)
+	ADCSRA = _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0) | _BV(ADEN);
 #endif
 
-	// the bootloader connects pins 0 and 1 to the USART; disconnect them
+	// The bootloader connects pins 0 and 1 to the USART; disconnect them
 	// here so they can be used as normal digital i/o; they will be
 	// reconnected in Serial.begin()
-	// UCSR0B = 0;
+	UCSR0B = 0;
+}
 
-	// enable interrupts before io init
-	// sei();
+void bsp_early_init(void)
+{
+	/* General low-level initialisation */
+	hw_ll_init();
 }
 
 void bsp_init(void)
 {
-	/* General low-level initialisation */
-	hw_ll_init();
-
 	/* UART initialisation */
 	const struct usart_config usart_config = {
 		.baudrate = USART_BAUD_500000,
@@ -98,14 +109,21 @@ void bsp_init(void)
 	/* i2c init */
 	Wire.begin();
 
+#if CONFIG_TCN75
+	tcn75_init();
+#endif
+
 	/* configure CAN interrupt on falling on INT0 */
 	bsp_descr_gpio_init(BSP_CAN_INT_DESCR, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	
 	exti_clear_flag(BSP_CAN_INT);
 	exti_configure(BSP_CAN_INT, ISC_FALLING);
 	exti_enable(BSP_CAN_INT);
 
-	/* Enable interrupts */
-	irq_enable();
+#if CONFIG_OW_DS_ENABLED
+	/* initialize OW */
+	ow_ds_drv_init(CONFIG_OW_DS_ARDUINO_PIN);
+#endif /* CONFIG_OW_DS_ENABLED */
 
 	/* Board specific initialisation */
 #if defined(CONFIG_BOARD_V1)
@@ -266,7 +284,9 @@ static int get_pin_from_descr(uint8_t descr, struct pin *pin)
 		return -ENOTSUP;
 	}
 	
-	LOG_DBG("descr: 0x%02x dev: %p pin: %u", descr, pin->dev, pin->pin);
+	LOG_DBG("descr=0x%02x dev=%p pin=%u ext=%u",
+		descr, pin->dev, BSP_GPIO_PIN_GET(pin->pin),
+		(BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_EXTIO) ? 1u : 0u);
 
 	return 0;
 }

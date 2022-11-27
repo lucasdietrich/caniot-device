@@ -20,6 +20,13 @@
 
 #include "devices/pcf8574.h"
 
+#include "logging.h"
+#if defined(CONFIG_BOARD_LOG_LEVEL)
+#	define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
+#else
+#	define LOG_LEVEL LOG_LEVEL_NONE
+#endif
+
 struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT] = {
 	{
 		.addr = PCF8574_ADDR,
@@ -37,29 +44,36 @@ void bsp_tiny_init(struct extio_device *dev)
 	bsp_descr_gpio_init(BSP_PC2, GPIO_OUTPUT, state);
 	bsp_descr_gpio_init(BSP_PC3, GPIO_OUTPUT, state);
 
-	bsp_descr_gpio_init(BSP_PD0, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_PD1, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_PD2, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_PD3, GPIO_OUTPUT, state);
+	bsp_descr_gpio_init(BSP_PD4, GPIO_OUTPUT, state);
+	bsp_descr_gpio_init(BSP_PD5, GPIO_OUTPUT, state);
+	bsp_descr_gpio_init(BSP_PD6, GPIO_OUTPUT, state);
+	bsp_descr_gpio_init(BSP_PD7, GPIO_OUTPUT, state);
 
 	bsp_descr_gpio_init(BSP_PB0, GPIO_OUTPUT, state);
 	bsp_descr_gpio_init(BSP_PE0, GPIO_OUTPUT, state);
 	bsp_descr_gpio_init(BSP_PE1, GPIO_OUTPUT, state);
 
-#if CONFIG_PCF8574
+#if CONFIG_PCF8574_ENABLED
 	pcf8574_init(dev->addr);
-#endif
 
 	/* Only initialize external IO once PCF8574 is initialized */
-	bsp_descr_gpio_init(BSP_EIO0, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_EIO1, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_EIO2, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_EIO3, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_EIO4, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_EIO5, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_EIO6, GPIO_OUTPUT, state);
-	bsp_descr_gpio_init(BSP_EIO7, GPIO_OUTPUT, state);
+
+	/* Comment all this */
+	// -bsp_descr_gpio_init(BSP_EIO0, GPIO_OUTPUT, state);
+	// -bsp_descr_gpio_init(BSP_EIO1, GPIO_OUTPUT, state);
+	// -bsp_descr_gpio_init(BSP_EIO2, GPIO_OUTPUT, state);
+	// -bsp_descr_gpio_init(BSP_EIO3, GPIO_OUTPUT, state);
+	// -bsp_descr_gpio_init(BSP_EIO4, GPIO_OUTPUT, state);
+	// -bsp_descr_gpio_init(BSP_EIO5, GPIO_OUTPUT, state);
+	// -bsp_descr_gpio_init(BSP_EIO6, GPIO_OUTPUT, state);
+	// -bsp_descr_gpio_init(BSP_EIO7, GPIO_OUTPUT, state);
+
+	/* Use this instead */
+	bsp_extio_write(dev, 0xFFu, 0x00u);
+#endif
 }
+
+#if CONFIG_PCF8574_ENABLED
 
 void bsp_extio_set_pin_direction(struct extio_device *dev, uint8_t pin, uint8_t direction)
 {
@@ -73,6 +87,13 @@ void bsp_extio_set_pin_direction(struct extio_device *dev, uint8_t pin, uint8_t 
 void bsp_extio_write_state(struct extio_device *dev)
 {
 	pcf8574_set(dev->addr, dev->state);
+}
+
+void bsp_extio_write(struct extio_device *dev, uint8_t mask, uint8_t value)
+{
+	dev->state = (dev->state & ~mask) | (value & mask);
+
+	bsp_extio_write_state(dev);
 }
 
 uint8_t bsp_extio_read_state(struct extio_device *dev)
@@ -102,5 +123,7 @@ uint8_t bsp_extio_read_pin_state(struct extio_device *dev, uint8_t pin)
 {
 	return (pcf8574_get(dev->addr) & (1u << pin)) ? GPIO_HIGH : GPIO_LOW;
 }
+
+#endif /* CONFIG_PCF8574_ENABLED */
 
 #endif /* CONFIG_BOARD_TINY */

@@ -25,6 +25,11 @@
 
 #define OW_DS_MEAS_DURATION_MS 1000U
 
+/* PB1 */
+#if !defined(CONFIG_OW_DS_ARDUINO_PIN)
+#	define CONFIG_OW_DS_ARDUINO_PIN 9U
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

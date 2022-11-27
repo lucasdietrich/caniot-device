@@ -18,13 +18,13 @@
 #define K_MODULE K_MODULE_CAN
 
 #if CONFIG_CAN_CLOCKSET_16MHZ
-#	define CAN_CLOCKSET MCP_16MHz
+#	define CAN_CLOCKSET 	MCP_16MHz
 #else
-#	define CAN_CLOCKSET MCP_8MHz
+#	define CAN_CLOCKSET 	MCP_8MHz
 #endif
 
-#define CAN_SPEEDSET CAN_500KBPS
-#define CAN_TX_MSGQ_SIZE 2u
+#define CAN_SPEEDSET 		CAN_500KBPS
+#define CAN_TX_MSGQ_SIZE 	2u
 
 static mcp2515_can can(BSP_CAN_SS_ARDUINO_PIN);
 
@@ -129,7 +129,8 @@ K_MSGQ_DEFINE(txq, buf, sizeof(can_message), CAN_TX_MSGQ_SIZE);
 
 static void can_tx_entry(void *arg);
 
-K_THREAD_DEFINE(can_tx_thread, can_tx_entry, 110, K_COOPERATIVE, NULL, 'C');
+K_THREAD_DEFINE(can_tx_thread, can_tx_entry, CONFIG_CAN_THREAD_STACK_SIZE, 
+		K_COOPERATIVE, NULL, 'C');
 
 static void can_tx_entry(void *arg)
 {
@@ -137,7 +138,6 @@ static void can_tx_entry(void *arg)
 	while (1) {
 		if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
 			// can_print_msg(&msg);
-
 			can_send(&msg);
 		}
 	}

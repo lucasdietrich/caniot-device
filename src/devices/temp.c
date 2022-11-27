@@ -7,7 +7,6 @@
 #include "tcn75.h"
 
 
-
 // 0x28 0xd4 0x39 0xb8 0x32 0x20 0x01 0xf2 
 // 0x28 0x2a 0x06 0x41 0x33 0x20 0x01 0x31
 // 0x28 0x3d 0x72 0xbf 0x32 0x20 0x01 0x52
@@ -48,13 +47,10 @@ ow_ds_sensor_t sensors[CONFIG_OW_DS_COUNT] = {
 };
 #endif
 
-void temp_init(void)
+void temp_start(void)
 {
-	tcn75_init();
-
 #if CONFIG_OW_DS_ENABLED
-	/* initialize OW */
-	ds_init(OW_DS_ARDUINO_PIN, sensors, ARRAY_SIZE(sensors));
+	ds_init(sensors, ARRAY_SIZE(sensors));
 
 	ds_discover();
 	ds_measure_all();
@@ -67,23 +63,24 @@ int16_t temp_read(temp_sens_t sensor)
 	int16_t temp = CANIOT_DT_T16_INVALID;
 
 	if (sensor == TEMP_SENS_INT) {
+#if CONFIG_TCN75
 		/**
-		 * @brief TCN75 is in continuous measurement mode, so 
+		 * @brief TCN75 is in continuous measurement mode, so
 		 * reading the temperature is "instantaneous".
 		 */
 		temp = tcn75_read();
-	}
+#endif
+	} else if (CONFIG_OW_DS_ENABLED) {
 #if CONFIG_OW_DS_ENABLED
-	else if (CONFIG_OW_DS_ENABLED) {
-		/* as threads a cooperative, we don't need 
-		 * a mutex to protect temperature values 
+		/* as threads a cooperative, we don't need
+		 * a mutex to protect temperature values
 		 */
 		const uint8_t index = sensor - TEMP_SENS_EXT_1;
 		if ((index < ARRAY_SIZE(sensors)) && sensors[index].valid) {
 			temp = sensors[index].temp;
 		}
-	}
 #endif
+	}
 
 	return temp;
 }

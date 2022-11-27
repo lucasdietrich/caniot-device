@@ -59,12 +59,14 @@ int main(void)
 	/* Following initialization require interrupts to be enabled
 	 * because they use Arduino millis()/micros() functions to calculate delays.
 	 */
+
+	temp_start();
 	
-	temp_init();
 #if CONFIG_GPIO_PULSE_SUPPORT
 	pulse_init();
 #endif
 	can_init();
+
 	config_init();
 	caniot_init();
 

@@ -14,10 +14,10 @@ extern "C" {
 #define BSP_PC2 BSP_GPIO_DESCR_PC2
 #define BSP_PC3 BSP_GPIO_DESCR_PC3
 
-#define BSP_PD0 BSP_GPIO_DESCR_PD0
-#define BSP_PD1 BSP_GPIO_DESCR_PD1
-#define BSP_PD2 BSP_GPIO_DESCR_PD2
-#define BSP_PD3 BSP_GPIO_DESCR_PD3
+#define BSP_PD4 BSP_GPIO_DESCR_PD4
+#define BSP_PD5 BSP_GPIO_DESCR_PD5
+#define BSP_PD6 BSP_GPIO_DESCR_PD6
+#define BSP_PD7 BSP_GPIO_DESCR_PD7
 
 #define BSP_EIO0 BSP_GPIO_DESCR_EIO0
 #define BSP_EIO1 BSP_GPIO_DESCR_EIO1
@@ -50,6 +50,8 @@ void bsp_tiny_init(struct extio_device *dev);
 void bsp_extio_set_pin_direction(struct extio_device *dev, uint8_t pin, uint8_t direction);
 
 void bsp_extio_write_state(struct extio_device *dev);
+
+void bsp_extio_write(struct extio_device *dev, uint8_t mask, uint8_t value);
 
 uint8_t bsp_extio_read_state(struct extio_device *dev);
 

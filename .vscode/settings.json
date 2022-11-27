@@ -54,7 +54,10 @@
 		"usart.h": "c",
 		"class0.h": "c",
 		"class1.h": "c",
-		"pcf8574.h": "c"
+		"pcf8574.h": "c",
+		"assert.h": "c",
+		"wire.h": "c",
+		"atomic.h": "c"
 	},
 	"editor.rulers": [80]
 }

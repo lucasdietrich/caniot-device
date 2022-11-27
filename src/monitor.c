@@ -3,6 +3,9 @@
 
 #include <time.h>
 
+#include "logging.h"
+#define LOG_LEVEL LOG_LEVEL_DBG
+
 #if DEBUG_MONITOR || DEBUG_TIME
 
 #if !KERNEL_TIMERS
@@ -46,14 +49,13 @@ static void print_datetime_work(struct k_work *w)
 	struct tm time;
 	const time_t ktime = k_time_get() - UNIX_OFFSET;
 
-	printf_P(PSTR("ktime %u\t"), ktime);
+	LOG_DBG("ktime %u\t", ktime);
 
 	localtime_r(&ktime, &time);
 
 	k_show_uptime();
 
-	// print tm structure
-	printf_P(PSTR("%d-%d-%d %d:%d:%d\n"), time.tm_year + 1900,
+	LOG_DBG("%d-%d-%d %d:%d:%d\n", time.tm_year + 1900,
 		 time.tm_mon + 1, time.tm_mday, time.tm_hour,
 		 time.tm_min, time.tm_sec);
 }

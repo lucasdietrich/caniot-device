@@ -1,12 +1,17 @@
 #ifndef _APP_CONFIG_H_
 #define _APP_CONFIG_H_
 
+/* General configuration */
+
+#define CONFIG_CAN_THREAD_STACK_SIZE 110u
+
+
 #if !defined(CONFIG_GPIO_PULSE_SUPPORT)
 #	define CONFIG_GPIO_PULSE_SUPPORT 0U
 #endif 
 
 #if !defined(CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT)
-#	define CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT 	4u
+#	define CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT 	8u
 #endif
 
 #if !defined(CONFIG_WATCHDOG)
@@ -57,10 +62,20 @@
 #	define CONFIG_PCF8574 0u
 #endif
 
-#if CONFIG_PCF8574
+#if !defined(CONFIG_PCF8574A)
+#	define CONFIG_PCF8574A 0u
+#endif
+
+#define CONFIG_PCF8574_ENABLED (CONFIG_PCF8574 || CONFIG_PCF8574A)
+
+#if CONFIG_PCF8574_ENABLED
 #	define CONFIG_EXTIO_ENABLED 1u
 #else
 #	define CONFIG_EXTIO_ENABLED 0u
+#endif
+
+#if !defined(CONFIG_TCN75)
+#	define CONFIG_TCN75 0u
 #endif
 
 #if !defined(CONFIG_LOGGING_ENABLED)

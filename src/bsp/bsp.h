@@ -177,6 +177,15 @@ typedef uint8_t pin_descr_t;
 extern "C" {
 #endif
 
+/**
+ * @brief Initialization basic hardware before C++ constructors are called.
+ * Note: https://www.nongnu.org/avr-libc/user-manual/mem_sections.html
+ */
+__attribute__((naked, used, section(".init5"))) void bsp_early_init(void);
+
+/**
+ * @brief Initialization of the reset of the hardware, in main when RTOS is running.
+ */
 void bsp_init(void);
 
 /* Functions for pin structure stored in flash */
