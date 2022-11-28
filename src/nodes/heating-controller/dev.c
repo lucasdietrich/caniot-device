@@ -27,34 +27,6 @@
 #define HEATER4_OC_POS_DESCR BSP_EIO1 /* 4H */
 #define HEATER4_OC_NEG_DESCR BSP_EIO0 /* 4L */ 
 
-/* Shutters power supply gpio device and pin */
-#define SHUTTERS_POWER_GPIO GPIOD
-#define SHUTTERS_POWER_PIN  PIN2
-
-/* Shutter1 optocoupler gpios and pins */
-#define SHUTTER1_OC_POS_GPIO GPIOD
-#define SHUTTER1_OC_POS_PIN  PIN4
-#define SHUTTER1_OC_NEG_GPIO GPIOD
-#define SHUTTER1_OC_NEG_PIN  PIN5
-
-/* Shutter2 optocoupler gpios and pins */
-#define SHUTTER2_OC_POS_GPIO GPIOB
-#define SHUTTER2_OC_POS_PIN  PIN0
-#define SHUTTER2_OC_NEG_GPIO GPIOB
-#define SHUTTER2_OC_NEG_PIN  PIN1
-
-/* Shutter3 optocoupler gpios and pins */
-#define SHUTTER3_OC_POS_GPIO GPIOC
-#define SHUTTER3_OC_POS_PIN  PIN0
-#define SHUTTER3_OC_NEG_GPIO GPIOC
-#define SHUTTER3_OC_NEG_PIN  PIN1
-
-/* Shutter4 optocoupler gpios and pins */
-#define SHUTTER4_OC_POS_GPIO GPIOC
-#define SHUTTER4_OC_POS_PIN  PIN2
-#define SHUTTER4_OC_NEG_GPIO GPIOC
-#define SHUTTER4_OC_NEG_PIN  PIN3
-
 const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 	[HEATER1] = {
 		[HEATER_OC_POS] = HEATER1_OC_POS_DESCR,
@@ -80,29 +52,9 @@ const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 #endif
 };
 
-#if CONFIG_SHUTTERS_COUNT > 0u
-const struct shutters_system_oc shutters_io PROGMEM = {
-	.power_oc = PIN_INIT_SOC(GPIOD, PIN6),
-	.shutters = {
-		[SHUTTER1] = SHUTTER_INIT(SHUTTER1_OC_POS_GPIO, SHUTTER1_OC_POS_PIN,
-					  SHUTTER1_OC_NEG_GPIO, SHUTTER1_OC_NEG_PIN),
-		[SHUTTER2] = SHUTTER_INIT(SHUTTER2_OC_POS_GPIO, SHUTTER2_OC_POS_PIN,
-					  SHUTTER2_OC_NEG_GPIO, SHUTTER2_OC_NEG_PIN),
-		[SHUTTER3] = SHUTTER_INIT(SHUTTER3_OC_POS_GPIO, SHUTTER3_OC_POS_PIN,
-					  SHUTTER3_OC_NEG_GPIO, SHUTTER3_OC_NEG_PIN),
-		[SHUTTER4] = SHUTTER_INIT(SHUTTER4_OC_POS_GPIO, SHUTTER4_OC_POS_PIN,
-					  SHUTTER4_OC_NEG_GPIO, SHUTTER4_OC_NEG_PIN),
-	},
-};
-#endif
-
 void app_init(void)
 {
 	heaters_init();
-
-#if CONFIG_SHUTTERS_COUNT > 0u
-	shutters_system_init();
-#endif
 }
 
 int app_command_handler(struct caniot_device *dev,
@@ -131,14 +83,6 @@ int app_command_handler(struct caniot_device *dev,
 			heater_set_mode(HEATER4, cmds->heater4_cmd - 1u);
 		}
 #endif
-
-#if CONFIG_SHUTTERS_COUNT > 0u
-		for (uint8_t i = 0u; i < CONFIG_SHUTTERS_COUNT; i++) {
-			if (cmds->shutters_openness[i] != CANIOT_SHUTTER_CMD_NONE) {
-				shutter_set_openness(i, cmds->shutters_openness[i]);
-			}
-		}
-#endif
 	}
 
 	return 0;
@@ -151,7 +95,7 @@ int app_telemetry_handler(struct caniot_device *dev, caniot_endpoint_t ep, char 
 
 const struct caniot_config default_config PROGMEM = {
 	.telemetry = {
-		.period = 10U,
+		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT,
 		.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,
 		.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT,
 	},
@@ -165,8 +109,30 @@ const struct caniot_config default_config PROGMEM = {
 		.region = CANIOT_LOCATION_REGION_DEFAULT,
 		.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
 	},
-	.cls0_gpio = {
-		.outputs_default = 0u,
-		.telemetry_on_change = 0u
-	}
+	.cls1_gpio = {
+		.telemetry_on_change = 0x0FF00u, /* Extio only */
+		.directions = 0x0FF00u, /* Extio as output */
+		.outputs_default = 0x0AA00u, /* Positive phase (Heaters off) */
+		.pulse_durations = {
+			[0] = 0x0u,
+			[1] = 0x0u,
+			[2] = 0x0u,
+			[3] = 0x0u,
+			[4] = 0x0u,
+			[5] = 0x0u,
+			[6] = 0x0u,
+			[7] = 0x0u,
+			[8] = 0x0u,
+			[9] = 0x0u,
+			[10] = 0x0u,
+			[11] = 0x0u,
+			[12] = 0x0u,
+			[13] = 0x0u,
+			[14] = 0x0u,
+			[15] = 0x0u,
+			[16] = 0x0u,
+			[17] = 0x0u,
+			[18] = 0x0u,
+		},
+	},
 };

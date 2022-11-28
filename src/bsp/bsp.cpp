@@ -34,20 +34,20 @@
 static inline void hw_ll_init(void)
 {
 	irq_enable();
-	
+
 #if defined(ARDUINO_ENABLE_MILLIS)
 	// On the ATmega168, timer 0 is also used for fast hardware pwm
 	// (using phase-correct PWM would mean that timer 0 overflowed half as often
 	// resulting in different millis() behavior on the ATmega8 and ATmega168)
 	TCCR0A |= _BV(WGM01) | _BV(WGM00);
 
-  	// Set timer 0 prescale factor to 64
+	// Set timer 0 prescale factor to 64
 
-  	// This combination is for the standard 168/328/640/1280/1281/2560/2561
+	// This combination is for the standard 168/328/640/1280/1281/2560/2561
 	TCCR0B |= _BV(CS01) | _BV(CS00);
 
 	// Enable timer 0 overflow interrupt
-  	TIMSK0 |= _BV(TOIE0);
+	TIMSK0 |= _BV(TOIE0);
 #endif
 
 #if defined(ARDUINO_ENABLE_FAST_PWM)
@@ -114,8 +114,8 @@ void bsp_init(void)
 #endif
 
 	/* configure CAN interrupt on falling on INT0 */
-	bsp_descr_gpio_init(BSP_CAN_INT_DESCR, GPIO_INPUT, GPIO_INPUT_PULLUP);
-	
+	bsp_descr_gpio_pin_init(BSP_CAN_INT_DESCR, GPIO_INPUT, GPIO_INPUT_PULLUP);
+
 	exti_clear_flag(BSP_CAN_INT);
 	exti_configure(BSP_CAN_INT, ISC_FALLING);
 	exti_enable(BSP_CAN_INT);
@@ -283,7 +283,7 @@ static int get_pin_from_descr(uint8_t descr, struct pin *pin)
 	} else {
 		return -ENOTSUP;
 	}
-	
+
 	LOG_DBG("descr=0x%02x dev=%p pin=%u ext=%u",
 		descr, pin->dev, BSP_GPIO_PIN_GET(pin->pin),
 		(BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_EXTIO) ? 1u : 0u);
@@ -291,7 +291,7 @@ static int get_pin_from_descr(uint8_t descr, struct pin *pin)
 	return 0;
 }
 
-int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state)
+int bsp_descr_gpio_pin_init(pin_descr_t descr, uint8_t direction, uint8_t state)
 {
 	int ret;
 	struct pin pin;
@@ -305,13 +305,13 @@ int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state)
 	return ret;
 }
 
-int bsp_descr_gpio_output_write(uint8_t descr, uint8_t state)
+int bsp_descr_gpio_output_write(pin_descr_t descr, uint8_t state)
 {
 	int ret;
 	struct pin pin;
 
 	ret = get_pin_from_descr(descr, &pin);
-	
+
 	if (ret == 0) {
 		bsp_pin_output_write(&pin, state);
 	}
@@ -319,12 +319,13 @@ int bsp_descr_gpio_output_write(uint8_t descr, uint8_t state)
 	return 0;
 }
 
-int bsp_descr_gpio_toggle(uint8_t descr)
+int bsp_descr_gpio_toggle(pin_descr_t descr)
 {
 	int ret;
 	struct pin pin;
 
 	ret = get_pin_from_descr(descr, &pin);
+	
 	if (ret == 0) {
 		bsp_pin_toggle(&pin);
 	}
@@ -332,22 +333,28 @@ int bsp_descr_gpio_toggle(uint8_t descr)
 	return 0;
 }
 
-uint8_t bsp_descr_gpio_input_read(uint8_t descr)
+uint8_t bsp_descr_gpio_input_read(pin_descr_t descr)
 {
+	int ret;
 	struct pin pin;
-	
-	if (get_pin_from_descr(descr, &pin) == 0) {
+
+	ret = get_pin_from_descr(descr, &pin);
+
+	if (ret == 0) {
 		return bsp_pin_input_read(&pin);
 	}
 
 	return 0u;
 }
 
-void bsp_descr_gpio_set_direction(uint8_t descr, uint8_t direction)
+void bsp_descr_gpio_set_direction(pin_descr_t descr, uint8_t direction)
 {
+	int ret;
 	struct pin pin;
-	
-	if (get_pin_from_descr(descr, &pin) == 0) {
+
+	ret = get_pin_from_descr(descr, &pin);
+
+	if (ret == 0) {
 		return bsp_pin_set_direction(&pin, direction);
 	}
 }

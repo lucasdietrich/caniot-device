@@ -63,24 +63,24 @@ static uint8_t pin_descr_get(uint8_t heater, uint8_t pin)
 	return pgm_read_byte(&heaters_io[heater][pin]);
 }
 
-static inline void heater_activate_oc(uint8_t descr)
+static inline void heater_activate_oc(pin_descr_t descr)
 {
 	bsp_descr_gpio_output_write(descr, GPIO_LOW);
 }
 
-static inline void heater_deactivate_oc(uint8_t descr)
+static inline void heater_deactivate_oc(pin_descr_t descr)
 {
 	bsp_descr_gpio_output_write(descr, GPIO_HIGH);
 }
 
 #define COMPLEMENT(_x) ((_x) ? 0u : 1u)
 
-static inline void heater_set_active(uint8_t descr, uint8_t active)
+static inline void heater_set_active(pin_descr_t descr, uint8_t active)
 {
 	bsp_descr_gpio_output_write(descr, COMPLEMENT(active));
 }
 
-static inline uint8_t heater_oc_is_active(uint8_t descr)
+static inline uint8_t heater_oc_is_active(pin_descr_t descr)
 {
 	return COMPLEMENT(bsp_descr_gpio_input_read(descr));
 }
@@ -90,8 +90,8 @@ void heater_ev_cb(struct k_event *ev)
 	struct heater *const heater = CONTAINER_OF(ev, struct heater, event);
 	const uint8_t heater_index = HEATER_INDEX(heater);
 
-	const uint8_t pos = pin_descr_get(heater_index, HEATER_OC_POS);
-	const uint8_t neg = pin_descr_get(heater_index, HEATER_OC_NEG);
+	const pin_descr_t pos = pin_descr_get(heater_index, HEATER_OC_POS);
+	const pin_descr_t neg = pin_descr_get(heater_index, HEATER_OC_NEG);
 
 	/* Get state of negative phase as reference  */
 	const bool to_activate = COMPLEMENT(heater_oc_is_active(neg));
@@ -156,11 +156,11 @@ int heaters_init(void)
 	int ret = 0;
 
 	for (uint8_t h = 0u; h < CONFIG_HEATERS_COUNT; h++) {
-		const uint8_t pos = pin_descr_get(h, HEATER_OC_POS);
-		const uint8_t neg = pin_descr_get(h, HEATER_OC_NEG);
+		const pin_descr_t pos = pin_descr_get(h, HEATER_OC_POS);
+		const pin_descr_t neg = pin_descr_get(h, HEATER_OC_NEG);
 
-		bsp_descr_gpio_init(pos, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
-		bsp_descr_gpio_init(neg, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_descr_gpio_pin_init(pos, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_descr_gpio_pin_init(neg, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 		/* Set initial state (Off) */
 		heater_set_mode(h, HEATER_MODE_OFF);
@@ -183,8 +183,8 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 	}
 #endif
 
-	const uint8_t pos = pin_descr_get(hid, HEATER_OC_POS);
-	const uint8_t neg = pin_descr_get(hid, HEATER_OC_NEG);
+	const pin_descr_t pos = pin_descr_get(hid, HEATER_OC_POS);
+	const pin_descr_t neg = pin_descr_get(hid, HEATER_OC_NEG);
 
 	switch (mode) {
 	case HEATER_MODE_CONFORT:

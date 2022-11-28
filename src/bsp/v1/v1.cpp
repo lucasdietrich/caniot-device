@@ -98,16 +98,16 @@ ISR(PCINT2_vect)
 NOINLINE void bsp_v1_init(void)
 {
 	/* outputs init */
-	bsp_descr_gpio_init(BSP_OC1, GPIO_OUTPUT, GPIO_LOW);
-	bsp_descr_gpio_init(BSP_OC2, GPIO_OUTPUT, GPIO_LOW);
-	bsp_descr_gpio_init(BSP_RL1, GPIO_OUTPUT, GPIO_LOW);
-	bsp_descr_gpio_init(BSP_RL2, GPIO_OUTPUT, GPIO_LOW);
+	bsp_descr_gpio_pin_init(BSP_OC1, GPIO_OUTPUT, GPIO_LOW);
+	bsp_descr_gpio_pin_init(BSP_OC2, GPIO_OUTPUT, GPIO_LOW);
+	bsp_descr_gpio_pin_init(BSP_RL1, GPIO_OUTPUT, GPIO_LOW);
+	bsp_descr_gpio_pin_init(BSP_RL2, GPIO_OUTPUT, GPIO_LOW);
 
 	/* inputs init */
-	bsp_descr_gpio_init(BSP_IN1, GPIO_INPUT, GPIO_INPUT_PULLUP);
-	bsp_descr_gpio_init(BSP_IN2, GPIO_INPUT, GPIO_INPUT_PULLUP);
-	bsp_descr_gpio_init(BSP_IN3, GPIO_INPUT, GPIO_INPUT_PULLUP);
-	bsp_descr_gpio_init(BSP_IN4, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_IN1, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_IN2, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_IN3, GPIO_INPUT, GPIO_INPUT_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_IN4, GPIO_INPUT, GPIO_INPUT_PULLUP);
 
 	/* Enable interrupts */
 	pci_configure(PCINT_0_7, 0u);

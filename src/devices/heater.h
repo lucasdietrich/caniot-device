@@ -49,7 +49,7 @@ typedef enum {
 	HEATER_MODE_FROST_FREE, /* Frost free mode */
 
 	/**
-	 * @brief  Frost free mode
+	 * @brief  Off
 	 * Pilot wire, positive phase.
 	 */
 	HEATER_MODE_OFF

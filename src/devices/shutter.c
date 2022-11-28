@@ -40,7 +40,7 @@ enum {
 struct shutter
 {
 	/* Event used to schedule the next state change
-	 * 
+	 *
 	 * Note: Keep event as first member of the structure
 	 * for optomization purposes
 	 */
@@ -63,13 +63,13 @@ struct shutter
 	uint8_t state;
 };
 
-#define FLAG_SHUTTER(_s) (1u << ((_s) + 1u))
+#define FLAG_SHUTTER(_s) 	(1u << ((_s) + 1u))
 
 #define FLAG_POWERED 		(1u << 0u)
-#define FLAG_SHUTTER_1 FLAG_SHUTTER(0u)
-#define FLAG_SHUTTER_2 FLAG_SHUTTER(1u)
-#define FLAG_SHUTTER_3 FLAG_SHUTTER(2u)
-#define FLAG_SHUTTER_4 FLAG_SHUTTER(3u)
+#define FLAG_SHUTTER_1 		FLAG_SHUTTER(0u)
+#define FLAG_SHUTTER_2 		FLAG_SHUTTER(1u)
+#define FLAG_SHUTTER_3 		FLAG_SHUTTER(2u)
+#define FLAG_SHUTTER_4 		FLAG_SHUTTER(3u)
 
 #define MASK_SHUTTERS (FLAG_SHUTTER_1 | FLAG_SHUTTER_2 | FLAG_SHUTTER_3 | FLAG_SHUTTER_4)
 
@@ -79,14 +79,14 @@ static struct shutter shutters[CONFIG_SHUTTERS_COUNT];
 
 #define SHUTTER_INDEX(_sp) ((_sp) - shutters)
 
-static const struct pin *pin_get(uint8_t shutter, uint8_t pin)
+static pin_descr_t pin_descr_get(uint8_t shutter, uint8_t pin)
 {
-	return &shutters_io.shutters[shutter][pin];
+	return pgm_read_byte(&shutters_io.shutters[shutter][pin]);
 }
 
 static void power(uint8_t state)
 {
-	bsp_pgm_pin_output_write(&shutters_io.power_oc, state);
+	bsp_descr_gpio_output_write(shutters_io.power_oc, state);
 }
 
 static inline void power_on(void)
@@ -102,8 +102,8 @@ static inline void power_off(void)
 
 static void run_direction(uint8_t s, uint8_t dir)
 {
-	const struct pin *pos = pin_get(s, SHUTTER_OC_POS);
-	const struct pin *neg = pin_get(s, SHUTTER_OC_POS);
+	const pin_descr_t pos = pin_descr_get(s, SHUTTER_OC_POS);
+	const pin_descr_t neg = pin_descr_get(s, SHUTTER_OC_POS);
 
 	uint8_t pos_state = GPIO_LOW;
 	uint8_t neg_state = GPIO_LOW;
@@ -114,8 +114,8 @@ static void run_direction(uint8_t s, uint8_t dir)
 		neg_state = GPIO_HIGH;
 	}
 
-	bsp_pgm_pin_output_write(pos, pos_state);
-	bsp_pgm_pin_output_write(neg, neg_state);
+	bsp_descr_gpio_output_write(pos, pos_state);
+	bsp_descr_gpio_output_write(neg, neg_state);
 }
 
 static void shutter_event_handler(struct k_event *ev)
@@ -168,15 +168,15 @@ static void work_cb(struct k_work *work)
 
 /* __attribute__((noinline)) */ int shutters_system_init(void)
 {
-	bsp_pgm_pin_init(&shutters_io.power_oc, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+	bsp_descr_gpio_pin_init(shutters_io.power_oc, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 	for (uint8_t i = 0u; i < CONFIG_SHUTTERS_COUNT; i++) {
-		bsp_pgm_pin_init(&shutters_io.shutters[i][SHUTTER_OC_POS],
-				 GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
-		bsp_pgm_pin_init(&shutters_io.shutters[i][SHUTTER_OC_NEG],
-				 GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_descr_gpio_pin_init(shutters_io.shutters[i][SHUTTER_OC_POS],
+					GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_descr_gpio_pin_init(shutters_io.shutters[i][SHUTTER_OC_NEG],
+					GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
-		/* Assume closed */
+		    /* Assume closed */
 		shutters[i].openness = 0u;
 		k_event_init(&shutters[i].event, event_cb);
 
@@ -205,7 +205,7 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 
 	uint8_t state;
 	uint16_t duration = SHUTTER_OPENNING_DURATION_MS +
-			    ENSURE_ADDITIONAL_DURATION_MS;
+		ENSURE_ADDITIONAL_DURATION_MS;
 
 	if (openness == 100u) {
 		/* Make sure the shutter is fully open */

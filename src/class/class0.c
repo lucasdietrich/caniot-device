@@ -126,7 +126,7 @@ int class0_config_apply(struct caniot_device *dev,
 	/* Initialize IO if not initialized */
 	if (!dev->flags.initialized) {
 		for (uint8_t i = 0u; i < ARRAY_SIZE(xps_ctx); i++) {
-			bsp_descr_gpio_init(
+			bsp_descr_gpio_pin_init(
 				xps_ctx[i].descr,
 				GPIO_OUTPUT,
 				(config->cls0_gpio.outputs_default >> i) & 1u);

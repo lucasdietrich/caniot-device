@@ -274,7 +274,7 @@ void bsp_pin_set_direction(struct pin *pin, uint8_t direction);
  * @param state 1 for high, 0 for low
  * @return int 
  */
-int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state);
+int bsp_descr_gpio_pin_init(pin_descr_t descr, uint8_t direction, uint8_t state);
 
 /**
  * @brief Write a pin from a pin descriptor.
@@ -283,7 +283,7 @@ int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state);
  * @param state 1 for high, 0 for low
  * @return int 
  */
-int bsp_descr_gpio_output_write(uint8_t descr, uint8_t state);
+int bsp_descr_gpio_output_write(pin_descr_t descr, uint8_t state);
 
 /**
  * @brief Toggle a pin from a pin descriptor.
@@ -291,7 +291,7 @@ int bsp_descr_gpio_output_write(uint8_t descr, uint8_t state);
  * @param descr 
  * @return int 
  */
-int bsp_descr_gpio_toggle(uint8_t descr);
+int bsp_descr_gpio_toggle(pin_descr_t descr);
 
 /**
  * @brief Read input pin from descriptor
@@ -299,7 +299,7 @@ int bsp_descr_gpio_toggle(uint8_t descr);
  * @param pin 
  * @return uint8_t 1 if high, 0 if low
  */
-uint8_t bsp_descr_gpio_input_read(uint8_t descr);
+uint8_t bsp_descr_gpio_input_read(pin_descr_t descr);
 
 /**
  * @brief Set pin direction for a pin descriptor.
@@ -307,7 +307,7 @@ uint8_t bsp_descr_gpio_input_read(uint8_t descr);
  * @param descr 
  * @param direction 1 for output, 0 for input
  */
-void bsp_descr_gpio_set_direction(uint8_t descr, uint8_t direction);
+void bsp_descr_gpio_set_direction(pin_descr_t descr, uint8_t direction);
 
 
 #ifdef __cplusplus

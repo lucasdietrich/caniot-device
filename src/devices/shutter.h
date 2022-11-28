@@ -18,8 +18,8 @@
 #define SHUTTER_OC_NEG 1u
 
 struct shutters_system_oc {
-	struct pin power_oc;
-	struct pin shutters[CONFIG_SHUTTERS_COUNT][2u];
+	pin_descr_t power_oc;
+	pin_descr_t shutters[CONFIG_SHUTTERS_COUNT][2u];
 };
 
 /**
@@ -32,14 +32,16 @@ extern const struct shutters_system_oc shutters_io PROGMEM;
 		[SHUTTER_OC_NEG] = PIN_INIT_SOC(_neg_dev, _neg_pin) \
 	}
 
-
+/**
+ * @brief Initialize the shutters system.
+ */
 int shutters_system_init(void);
 
 /**
  * @brief Set shutter position
  * 
- * @param s 
- * @param openness 
+ * @param s Shutter index to set the position.
+ * @param openness Shutter openness in percent.
  * @return int 
  */
 int shutter_set_openness(uint8_t s, uint8_t openness);
