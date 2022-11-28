@@ -58,6 +58,8 @@ static struct heater hs[CONFIG_HEATERS_COUNT];
 
 #define HEATER_INDEX(_hp) ((_hp) - hs)
 
+#define COMPLEMENT(_x) ((_x) ? 0u : 1u)
+
 static uint8_t pin_descr_get(uint8_t heater, uint8_t pin)
 {
 	return pgm_read_byte(&heaters_io[heater][pin]);
@@ -72,8 +74,6 @@ static inline void heater_deactivate_oc(pin_descr_t descr)
 {
 	bsp_descr_gpio_output_write(descr, GPIO_HIGH);
 }
-
-#define COMPLEMENT(_x) ((_x) ? 0u : 1u)
 
 static inline void heater_set_active(pin_descr_t descr, uint8_t active)
 {
@@ -193,8 +193,13 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 		break;
 	case HEATER_MODE_CONFORT_MIN_1:
 	case HEATER_MODE_CONFORT_MIN_2:
-		/* Set mode immediately, in case the event is immediately called */
+		/* Set mode immediately before event handler gets called */
 		hs[hid].mode = mode;
+
+		/* If event is already scheduled, it won't be sceduled again, 
+		 * heater state will be properly applied on next iteration.
+		 * 300 seconds later at maximum. (TODO does this needs to be improved ?)
+		 */
 		k_event_schedule(&hs[hid].event, K_NO_WAIT);
 		break;
 	case HEATER_MODE_ENERGY_SAVING:

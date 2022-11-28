@@ -6,6 +6,9 @@
 
 #include "shutter.h"
 
+#include "logging.h"
+#define LOG_LEVEL LOG_LEVEL_DBG
+
 #if !CONFIG_KERNEL_EVENTS
 #error "Heaters controller needs CONFIG_KERNEL_EVENTS to be set"
 #endif
@@ -63,9 +66,9 @@ struct shutter
 	uint8_t state;
 };
 
-#define FLAG_SHUTTER(_s) 	(1u << ((_s) + 1u))
-
 #define FLAG_POWERED 		(1u << 0u)
+
+#define FLAG_SHUTTER(_s) 	(1u << ((_s) + 1u))
 #define FLAG_SHUTTER_1 		FLAG_SHUTTER(0u)
 #define FLAG_SHUTTER_2 		FLAG_SHUTTER(1u)
 #define FLAG_SHUTTER_3 		FLAG_SHUTTER(2u)
@@ -79,43 +82,53 @@ static struct shutter shutters[CONFIG_SHUTTERS_COUNT];
 
 #define SHUTTER_INDEX(_sp) ((_sp) - shutters)
 
+#define COMPLEMENT(_x) ((_x) ? 0u : 1u)
+
 static pin_descr_t pin_descr_get(uint8_t shutter, uint8_t pin)
 {
 	return pgm_read_byte(&shutters_io.shutters[shutter][pin]);
 }
 
-static void power(uint8_t state)
+static void set_power(uint8_t active)
 {
-	bsp_descr_gpio_output_write(shutters_io.power_oc, state);
+	bsp_descr_gpio_output_write(shutters_io.power_oc, COMPLEMENT(active));
+}
+
+static inline void set_active(pin_descr_t pin, uint8_t active)
+{
+	bsp_descr_gpio_output_write(pin, COMPLEMENT(active));
 }
 
 static inline void power_on(void)
 {
-	power(GPIO_HIGH);
+	set_power(1u);
 }
 
 static inline void power_off(void)
 {
 	flags &= ~FLAG_POWERED;
-	power(GPIO_LOW);
+	set_power(0u);
 }
 
 static void run_direction(uint8_t s, uint8_t dir)
 {
 	const pin_descr_t pos = pin_descr_get(s, SHUTTER_OC_POS);
-	const pin_descr_t neg = pin_descr_get(s, SHUTTER_OC_POS);
+	const pin_descr_t neg = pin_descr_get(s, SHUTTER_OC_NEG);
 
-	uint8_t pos_state = GPIO_LOW;
-	uint8_t neg_state = GPIO_LOW;
+	uint8_t pos_active = 0u;
+	uint8_t neg_active = 0u;
 
 	if (dir == SHUTTER_STATE_OPENNING) {
-		pos_state = GPIO_HIGH;
+		pos_active = 1u;
 	} else if (dir == SHUTTER_STATE_CLOSING) {
-		neg_state = GPIO_HIGH;
+		neg_active = 1u;
 	}
 
-	bsp_descr_gpio_output_write(pos, pos_state);
-	bsp_descr_gpio_output_write(neg, neg_state);
+	LOG_DBG("Shutter %u: run %u/100 [ pos %u -> %x ] [ neg %u -> %x ]",
+		s, dir, pos_active, pos, neg_active, neg);
+
+	set_active(pos, pos_active);
+	set_active(neg, neg_active);
 }
 
 static void shutter_event_handler(struct k_event *ev)
@@ -268,6 +281,16 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 	}
 
 	return 0;
+}
+
+int shutter_get_openness(uint8_t s)
+{
+#if CONFIG_CHECKS
+	if (s >= CONFIG_SHUTTERS_COUNT)
+		return -EINVAL;
+#endif 
+
+	return shutters[s].openness;
 }
 
 #endif /* CONFIG_SHUTTERS */

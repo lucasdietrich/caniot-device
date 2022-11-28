@@ -172,6 +172,11 @@ static void sys_work_handler(struct k_work *w)
 	}
 	case SYS_WDT_RESET:
 	{
+		/* Enable watchdog if off */
+		if ((WDTCSR & BIT(WDE)) == 0u) {
+			wdt_enable(WATCHDOG_TIMEOUT_WDTO);
+		}
+		
 		LOG_DBG("Reset (WDT) in 1 SEC");
 
 		k_sleep(K_SECONDS(1));
@@ -213,13 +218,8 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
 
 	if (sysc->watchdog_reset == CANIOT_SS_CMD_SET ||
 	    sysc->reset == CANIOT_SS_CMD_SET) {
-		if (WDTCSR & BIT(WDE)) {
-			sys_work.action = SYS_WDT_RESET;
-			ret = k_system_workqueue_submit(&sys_work._work) ? 0 : -EINVAL;
-		} else {
-			LOG_WRN("WTD off");
-			ret = -EINVAL;
-		}
+		sys_work.action = SYS_WDT_RESET;
+		ret = k_system_workqueue_submit(&sys_work._work) ? 0 : -EINVAL;
 	} else 	if (sysc->software_reset == CANIOT_SS_CMD_SET) {
 		sys_work.action = SYS_SW_RESET;
 		ret = k_system_workqueue_submit(&sys_work._work) == true ? 0 : -EINVAL;
@@ -263,22 +263,35 @@ int command_handler(struct caniot_device *dev,
 		    const char *buf,
 		    uint8_t len)
 {
-	if (ep == CANIOT_ENDPOINT_BOARD_CONTROL) {
-		switch (CANIOT_DID_CLS(identification.did)) {
+	int ret = -CANIOT_ENOTSUP;
+
+	switch (ep) {
+	case CANIOT_ENDPOINT_BOARD_CONTROL:
+		switch (__DEVICE_CLS__) {
 #if defined(CONFIG_CLASS0_ENABLED)
 		case CANIOT_DEVICE_CLASS0:
-			return class0_blc_command_handler(dev, buf, len);
+			ret = class0_blc_command_handler(dev, buf, len);
+			break;
 #endif
 #if defined(CONFIG_CLASS1_ENABLED)
 		case CANIOT_DEVICE_CLASS1:
-			return class1_blc_command_handler(dev, buf, len);
+			ret = class1_blc_command_handler(dev, buf, len);
+			break;
 #endif
 		default:
-			return -CANIOT_ENOTSUP;
+			break;
 		}
-	} else {
-		return app_command_handler(dev, ep, buf, len);
+		break;
+	case CANIOT_ENDPOINT_APP:
+	case CANIOT_ENDPOINT_1:
+	case CANIOT_ENDPOINT_2:
+		ret = app_command_handler(dev, ep, buf, len);
+		break;
+	default:
+		break;
 	}
+
+	return ret;
 }
 
 __attribute__((section(".noinit"))) static struct caniot_config config;

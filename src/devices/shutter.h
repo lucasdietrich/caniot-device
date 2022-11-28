@@ -46,4 +46,11 @@ int shutters_system_init(void);
  */
 int shutter_set_openness(uint8_t s, uint8_t openness);
 
+/**
+ * @brief Get shutter position
+ * 
+ * @return int Shutter openness in percent.
+ */
+int shutter_get_openness(uint8_t s);
+
 #endif /* _BOARD_SHUTTER_H_ */

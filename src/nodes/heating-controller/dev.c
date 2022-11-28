@@ -90,6 +90,22 @@ int app_command_handler(struct caniot_device *dev,
 
 int app_telemetry_handler(struct caniot_device *dev, caniot_endpoint_t ep, char *buf, uint8_t *len)
 {
+	if (ep == CANIOT_ENDPOINT_APP) {
+		struct caniot_heating_control *const res =
+			(struct caniot_heating_control *)buf;
+
+		res->heater1_cmd = heater_get_mode(HEATER1) + 1u;
+#if CONFIG_HEATERS_COUNT >= 2u
+		res->heater2_cmd = heater_get_mode(HEATER2) + 1u;
+#endif
+#if CONFIG_HEATERS_COUNT >= 3u
+		res->heater3_cmd = heater_get_mode(HEATER3) + 1u;
+#endif
+#if CONFIG_HEATERS_COUNT >= 4u
+		res->heater4_cmd = heater_get_mode(HEATER4) + 1u;
+#endif
+		*len = 8u;
+	}
 	return 0;
 }
 
@@ -102,7 +118,7 @@ const struct caniot_config default_config PROGMEM = {
 	.flags = {
 		.error_response = 1u,
 		.telemetry_delay_rdm = 1u,
-		.telemetry_endpoint = CANIOT_ENDPOINT_BOARD_CONTROL
+		.telemetry_endpoint = CANIOT_ENDPOINT_APP,
 	},
 	.timezone = CANIOT_TIMEZONE_DEFAULT,
 	.location = {

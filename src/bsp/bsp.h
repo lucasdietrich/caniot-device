@@ -15,8 +15,13 @@
 
 /*____________________________________________________________________________*/
 
+/**
+ * @brief Represent a pin on the board associated with its driver.
+ */
 struct pin
 {
+	/* Driver address if GPIO;,
+	 * I2C address if PCF8574 */
 	void *dev;
 
 	/* first 3 bits contain de actual pin, 
@@ -164,10 +169,6 @@ struct pin
 #endif
 
 /*____________________________________________________________________________*/
-
-/* TODO remove */
-typedef uint8_t output_t;
-typedef uint8_t input_t;
 
 typedef uint8_t pin_descr_t;
 
