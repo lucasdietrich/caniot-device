@@ -6,7 +6,7 @@
 
 #include "devices/gpio.h"
 
-#define HEATERS_COUNT_MAX 3u
+#define HEATERS_COUNT_MAX 4u
 
 #define HEATER1 0u
 #define HEATER2 1u
@@ -16,29 +16,72 @@
 #define HEATER_OC_POS 0u
 #define HEATER_OC_NEG 1u
 
-#define HEATER_CONFORT_MIN_1_HIGH_DURATION_MS 	(3*MSEC_PER_SEC)
-#define HEATER_CONFORT_MIN_2_HIGH_DURATION_MS 	(7*MSEC_PER_SEC)
-#define HEATER_CONFORT_MIN_PERIOD_MS		(300*MSEC_PER_SEC)
-#define HEATER_CONFORT_MIN_1_LOW_DURATION_MS 	\
-	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_1_HIGH_DURATION_MS)
-#define HEATER_CONFORT_MIN_2_LOW_DURATION_MS 	\
-	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_2_HIGH_DURATION_MS)
-
-#define HEATER_OC_INIT(_dev, _pin) PIN_INIT_SOC(_dev, _pin)
-
 typedef enum {
-	HEATER_MODE_CONFORT = 0u, /* Confort mode */
+	/**
+	 * @brief Comfort mode: Pilot wire, no signal.
+	 */
+	HEATER_MODE_CONFORT = 0u,
+
+	/**
+	 * @brief Comfort mode minus 1 °C. 
+	 * Pilot wire, complete 3 seconds high per period of 300 seconds.
+	 * No signal rest of period.
+	 */
 	HEATER_MODE_CONFORT_MIN_1, /* Confort mode minus 1 °C */
+
+	/**
+	 * @brief Comfort mode minus 2 °C. 
+	 * Pilot wire, complete 7 seconds high per period of 300 seconds.
+	 * No signal rest of period.
+	 */
 	HEATER_MODE_CONFORT_MIN_2, /* Confort mode minus 2 °C */
+
+	/**
+	 * @brief  Energy saving mode.
+	 * Pilot wire, complete signal.
+	 */
 	HEATER_MODE_ENERGY_SAVING, /* Energy saving mode */
+
+	/**
+	 * @brief  Frost free mode
+	 * Pilot wire, negative phase.
+	 */
 	HEATER_MODE_FROST_FREE, /* Frost free mode */
-	HEATER_MODE_OFF /* Off mode */
+
+	/**
+	 * @brief  Frost free mode
+	 * Pilot wire, positive phase.
+	 */
+	HEATER_MODE_OFF
 } heater_mode_t;
 
+/**
+ * @brief Heater control structure to be defined by the application.
+ */
+extern const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM;
+
+/**
+ * @brief Initialize all defined heaters
+ * 
+ * @return int 
+ */
 int heaters_init(void);
 
+/**
+ * @brief Set heater mode 
+ * 
+ * @param hid 
+ * @param mode 
+ * @return int 
+ */
 int heater_set_mode(uint8_t hid, heater_mode_t mode);
 
+/**
+ * @brief Get heater mode
+ * 
+ * @param hid 
+ * @return heater_mode_t 
+ */
 heater_mode_t heater_get_mode(uint8_t hid);
 
 #endif /* _BOARD_HEATER_H_ */

@@ -1,9 +1,26 @@
 # CANIOT 2 devices
 
+## Nomenclature
+
+- CANIOT address
+- Magic number
+- Board (v1/Tiny)
+- MCU (P/PB)
+- TCN75	(A)
+  - Address
+- PCF8574 (A)
+  - Address
+- Software features:
+  - PULSE support
+  - Heaters
+  - Shutters
+
 ## Devices :
 
 - Garage Door Controller
 - Alarm Controller
+- Heating Controller	
+- Shutters Controller
 
 ## Arch
 

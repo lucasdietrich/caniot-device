@@ -7,6 +7,8 @@
 
 #include <avrtos/kernel.h>
 
+#include <bsp/bsp.h>
+
 #include "bsp/bsp.h"
 #include "devices/heater.h"
 #include "devices/shutter.h"
@@ -16,29 +18,14 @@
 #include <logging.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
-/* Heater1 optocoupler gpios and pins */
-#define HEATER1_OC_POS_GPIO GPIOD
-#define HEATER1_OC_POS_PIN  PIN7
-#define HEATER1_OC_NEG_GPIO GPIOD
-#define HEATER1_OC_NEG_PIN  PIN3
-
-/* Heater2 optocoupler gpios and pins */
-#define HEATER2_OC_POS_GPIO GPIOD
-#define HEATER2_OC_POS_PIN  PIN0
-#define HEATER2_OC_NEG_GPIO GPIOD
-#define HEATER2_OC_NEG_PIN  PIN1
-
-/* Heater3 optocoupler gpios and pins */
-#define HEATER3_OC_POS_GPIO GPIOC
-#define HEATER3_OC_POS_PIN  PIN4
-#define HEATER3_OC_NEG_GPIO GPIOC
-#define HEATER3_OC_NEG_PIN  PIN5
-
-/* Heater4 optocoupler gpios and pins */
-#define HEATER4_OC_POS_GPIO GPIOC
-#define HEATER4_OC_POS_PIN  PIN4
-#define HEATER4_OC_NEG_GPIO GPIOC
-#define HEATER4_OC_NEG_PIN  PIN5
+#define HEATER1_OC_POS_DESCR BSP_EIO7 /* 1H */
+#define HEATER1_OC_NEG_DESCR BSP_EIO6 /* 1L */
+#define HEATER2_OC_POS_DESCR BSP_EIO5 /* 2H */
+#define HEATER2_OC_NEG_DESCR BSP_EIO4 /* 2L */
+#define HEATER3_OC_POS_DESCR BSP_EIO3 /* 3H */
+#define HEATER3_OC_NEG_DESCR BSP_EIO2 /* 3L */
+#define HEATER4_OC_POS_DESCR BSP_EIO1 /* 4H */
+#define HEATER4_OC_NEG_DESCR BSP_EIO0 /* 4L */ 
 
 /* Shutters power supply gpio device and pin */
 #define SHUTTERS_POWER_GPIO GPIOD
@@ -68,32 +55,33 @@
 #define SHUTTER4_OC_NEG_GPIO GPIOC
 #define SHUTTER4_OC_NEG_PIN  PIN3
 
-const struct pin heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
+const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 	[HEATER1] = {
-		[HEATER_OC_POS] = HEATER_OC_INIT(HEATER1_OC_POS_GPIO, HEATER1_OC_POS_PIN),
-		[HEATER_OC_NEG] = HEATER_OC_INIT(HEATER1_OC_NEG_GPIO, HEATER1_OC_NEG_PIN),
+		[HEATER_OC_POS] = HEATER1_OC_POS_DESCR,
+		[HEATER_OC_NEG] = HEATER1_OC_NEG_DESCR,
 	},
 #if CONFIG_HEATERS_COUNT >= 2u
 	[HEATER2] = {
-		[HEATER_OC_POS] = HEATER_OC_INIT(HEATER2_OC_POS_GPIO, HEATER2_OC_POS_PIN),
-		[HEATER_OC_NEG] = HEATER_OC_INIT(HEATER2_OC_NEG_GPIO, HEATER2_OC_NEG_PIN),
+		[HEATER_OC_POS] = HEATER2_OC_POS_DESCR,
+		[HEATER_OC_NEG] = HEATER2_OC_NEG_DESCR,
 	},
 #endif
 #if CONFIG_HEATERS_COUNT >= 3u
 	[HEATER3] = {
-		[HEATER_OC_POS] = HEATER_OC_INIT(HEATER3_OC_POS_GPIO, HEATER3_OC_POS_PIN),
-		[HEATER_OC_NEG] = HEATER_OC_INIT(HEATER3_OC_NEG_GPIO, HEATER3_OC_NEG_PIN),
+		[HEATER_OC_POS] = HEATER3_OC_POS_DESCR,
+		[HEATER_OC_NEG] = HEATER3_OC_NEG_DESCR,
 	},
 #endif
 #if CONFIG_HEATERS_COUNT >= 4u
 	[HEATER4] = {
-		[HEATER_OC_POS] = HEATER_OC_INIT(HEATER4_OC_POS_GPIO, HEATER4_OC_POS_PIN),
-		[HEATER_OC_NEG] = HEATER_OC_INIT(HEATER4_OC_NEG_GPIO, HEATER4_OC_NEG_PIN),
+		[HEATER_OC_POS] = HEATER4_OC_POS_DESCR,
+		[HEATER_OC_NEG] = HEATER4_OC_NEG_DESCR,
 	},
 #endif
 };
 
-const struct shutters_system_oc ss PROGMEM = {
+#if CONFIG_SHUTTERS_COUNT > 0u
+const struct shutters_system_oc shutters_io PROGMEM = {
 	.power_oc = PIN_INIT_SOC(GPIOD, PIN6),
 	.shutters = {
 		[SHUTTER1] = SHUTTER_INIT(SHUTTER1_OC_POS_GPIO, SHUTTER1_OC_POS_PIN,
@@ -106,11 +94,15 @@ const struct shutters_system_oc ss PROGMEM = {
 					  SHUTTER4_OC_NEG_GPIO, SHUTTER4_OC_NEG_PIN),
 	},
 };
+#endif
 
 void app_init(void)
 {
 	heaters_init();
+
+#if CONFIG_SHUTTERS_COUNT > 0u
 	shutters_system_init();
+#endif
 }
 
 int app_command_handler(struct caniot_device *dev,
@@ -140,11 +132,13 @@ int app_command_handler(struct caniot_device *dev,
 		}
 #endif
 
+#if CONFIG_SHUTTERS_COUNT > 0u
 		for (uint8_t i = 0u; i < CONFIG_SHUTTERS_COUNT; i++) {
 			if (cmds->shutters_openness[i] != CANIOT_SHUTTER_CMD_NONE) {
 				shutter_set_openness(i, cmds->shutters_openness[i]);
 			}
 		}
+#endif
 	}
 
 	return 0;

@@ -109,6 +109,8 @@ void bsp_extio_write_pin_state(struct extio_device *dev, uint8_t pin, uint8_t st
 		dev->state &= ~(1u << pin);
 	}
 
+	LOG_DBG("extio: write pin %u state %u", pin, state);
+
 	bsp_extio_write_state(dev);
 }
 
@@ -121,7 +123,11 @@ void bsp_extio_toggle_pin(struct extio_device *dev, uint8_t pin)
 
 uint8_t bsp_extio_read_pin_state(struct extio_device *dev, uint8_t pin)
 {
-	return (pcf8574_get(dev->addr) & (1u << pin)) ? GPIO_HIGH : GPIO_LOW;
+	const uint8_t r = (pcf8574_get(dev->addr) & (1u << pin)) ? GPIO_HIGH : GPIO_LOW;
+	
+	LOG_DBG("extio: read pin %u state %u", pin, r);
+
+	return r;
 }
 
 #endif /* CONFIG_PCF8574_ENABLED */

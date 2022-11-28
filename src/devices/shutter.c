@@ -1,3 +1,5 @@
+#if CONFIG_SHUTTERS_COUNT > 0u
+
 #include <avrtos/kernel.h>
 
 #include <avr/pgmspace.h>
@@ -28,9 +30,6 @@
 	< SHUTTER_MINIMAL_ALLOWED_DURATION_MS
 #error "Minimal allowed duration is less than minimal allowed openness diff"
 #endif
-
-
-extern const struct shutters_system_oc ss PROGMEM;
 
 enum {
 	SHUTTER_STATE_STOPPED,
@@ -82,12 +81,12 @@ static struct shutter shutters[CONFIG_SHUTTERS_COUNT];
 
 static const struct pin *pin_get(uint8_t shutter, uint8_t pin)
 {
-	return &ss.shutters[shutter][pin];
+	return &shutters_io.shutters[shutter][pin];
 }
 
 static void power(uint8_t state)
 {
-	bsp_pgm_pin_output_write(&ss.power_oc, state);
+	bsp_pgm_pin_output_write(&shutters_io.power_oc, state);
 }
 
 static inline void power_on(void)
@@ -169,12 +168,12 @@ static void work_cb(struct k_work *work)
 
 /* __attribute__((noinline)) */ int shutters_system_init(void)
 {
-	bsp_pgm_pin_init(&ss.power_oc, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+	bsp_pgm_pin_init(&shutters_io.power_oc, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 	for (uint8_t i = 0u; i < CONFIG_SHUTTERS_COUNT; i++) {
-		bsp_pgm_pin_init(&ss.shutters[i][SHUTTER_OC_POS],
+		bsp_pgm_pin_init(&shutters_io.shutters[i][SHUTTER_OC_POS],
 				 GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
-		bsp_pgm_pin_init(&ss.shutters[i][SHUTTER_OC_NEG],
+		bsp_pgm_pin_init(&shutters_io.shutters[i][SHUTTER_OC_NEG],
 				 GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 		/* Assume closed */
@@ -191,6 +190,7 @@ static void work_cb(struct k_work *work)
 
 int shutter_set_openness(uint8_t s, uint8_t openness)
 {
+#if CONFIG_CHECKS
 	if (s >= CONFIG_SHUTTERS_COUNT)
 		return -EINVAL;
 
@@ -199,6 +199,7 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 
 	if (flags & FLAG_SHUTTER(s))
 		return -EBUSY;
+#endif 
 
 	struct shutter *const shutter = &shutters[s];
 
@@ -268,3 +269,5 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 
 	return 0;
 }
+
+#endif /* CONFIG_SHUTTERS */

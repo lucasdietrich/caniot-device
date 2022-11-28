@@ -7,7 +7,7 @@
 #include "devices/gpio.h"
 #include "bsp/bsp.h"
 
-#define CONFIG_SHUTTERS_COUNT 4u
+#define SHUTTERS_COUNT_MAX 4u
 
 #define SHUTTER1 0u
 #define SHUTTER2 1u
@@ -21,6 +21,11 @@ struct shutters_system_oc {
 	struct pin power_oc;
 	struct pin shutters[CONFIG_SHUTTERS_COUNT][2u];
 };
+
+/**
+ * @brief Shutter control structure to be defined by the application.
+ */
+extern const struct shutters_system_oc shutters_io PROGMEM;
 
 #define SHUTTER_INIT(_pos_dev, _pos_pin, _neg_dev, _neg_pin) { \
 		[SHUTTER_OC_POS] = PIN_INIT_SOC(_pos_dev, _pos_pin), \

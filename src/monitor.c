@@ -41,7 +41,7 @@ static void work_handler(struct k_work *work)
 {
 	dump_stack_canaries();
 
-	k_thread_dump_all();
+	// k_thread_dump_all();
 }
 
 static void print_datetime_work(struct k_work *w)

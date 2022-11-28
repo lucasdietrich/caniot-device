@@ -1,3 +1,5 @@
+#if CONFIG_GPIO_PULSE_SUPPORT
+
 #include <stdbool.h>
 
 #include <avrtos/mutex.h>
@@ -9,14 +11,14 @@
 
 #include "bsp/bsp.h"
 
-#if CONFIG_GPIO_PULSE_SUPPORT
-
 #define K_MODULE K_MODULE_APPLICATION
 
-#if CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT
+#if CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT == 0
+#error CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT == 0 while PULSE support is enabled
+#endif
+
 K_MEM_SLAB_DEFINE(ctx_mems, sizeof(struct pulse_event),
 		  CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT);
-#endif
 
 
 static DEFINE_TQUEUE(ev_queue);
@@ -37,25 +39,21 @@ static DEFINE_TQUEUE(ev_queue);
 
 static struct pulse_event *alloc_context(void)
 {
-#if CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT
 	void *mem;
 
 	if (k_mem_slab_alloc(&ctx_mems, &mem, K_NO_WAIT) == 0) {
 		((struct pulse_event *)mem)->_iallocated = 1u;
 		return mem;
 	}
-#endif
 
 	return NULL;
 }
 
 static void free_context(struct pulse_event *ctx)
 {
-#if CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT
 	if (ctx->_iallocated) {
 		k_mem_slab_free(&ctx_mems, (void *)ctx);
 	}
-#endif
 }
 
 

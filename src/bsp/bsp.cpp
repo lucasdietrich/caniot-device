@@ -311,6 +311,7 @@ int bsp_descr_gpio_output_write(uint8_t descr, uint8_t state)
 	struct pin pin;
 
 	ret = get_pin_from_descr(descr, &pin);
+	
 	if (ret == 0) {
 		bsp_pin_output_write(&pin, state);
 	}

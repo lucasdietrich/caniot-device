@@ -190,36 +190,123 @@ void bsp_init(void);
 
 /* Functions for pin structure stored in flash */
 
+/**
+ * @brief Initialize a pin from a pin structure stored in flash.
+ * 
+ * @param farp_pin 
+ * @param direction 1 for output, 0 for input
+ * @param state 1 for high, 0 for low
+ */
 void bsp_pgm_pin_init(const struct pin *farp_pin, uint8_t direction, uint8_t state);
 
+/**
+ * @brief Set a pin from a pin structure stored in flash.
+ * 
+ * @param farp_pin 
+ * @param state 1 for high, 0 for low
+ */
 void bsp_pgm_pin_output_write(const struct pin *farp_pin, uint8_t state);
 
+/**
+ * @brief Toggle a pin from a pin structure stored in flash.
+ * 
+ * @param farp_pin 
+ */
 void bsp_pgm_pin_toggle(const struct pin *farp_pin);
 
+/**
+ * @brief Read input pin from pin structure stored in flash
+ * 
+ * @param pin 
+ * @return uint8_t 1 if high, 0 if low
+ */
 uint8_t bsp_pgm_pin_input_read(const struct pin *farp_pin);
 
 /* Functions for pin structure stored in ram */
 
+/**
+ * @brief Initialize a pin from a pin structure stored in ram.
+ * 
+ * @param pin 
+ * @param direction 1 for output, 0 for input
+ * @param state 1 for high, 0 for low
+ */
 void bsp_pin_init(struct pin *pin, uint8_t direction, uint8_t state);
 
+/**
+ * @brief Set a pin from a pin structure stored in ram.
+ * 
+ * @param pin 
+ * @param state 1 for high, 0 for low
+ */
 void bsp_pin_output_write(struct pin *pin, uint8_t state);
 
+/**
+ * @brief Toggle a pin from a pin structure stored in ram.
+ * 
+ * @param pin 
+ */
 void bsp_pin_toggle(struct pin *pin);
 
+/**
+ * @brief Read input pin
+ * 
+ * @param pin 
+ * @return uint8_t 1 if high, 0 if low
+ */
 uint8_t bsp_pin_input_read(struct pin *pin);
 
+/**
+ * @brief Set pin direction for a pin structure stored in ram.
+ * 
+ * @param pin 
+ * @param direction 1 for output, 0 for input
+ */
 void bsp_pin_set_direction(struct pin *pin, uint8_t direction);
 
 /* Function for pin descriptor */
 
+/**
+ * @brief Initialize a pin from a pin descriptor.
+ * 
+ * @param descr 
+ * @param direction 1 for output, 0 for input
+ * @param state 1 for high, 0 for low
+ * @return int 
+ */
 int bsp_descr_gpio_init(uint8_t descr, uint8_t direction, uint8_t state);
 
+/**
+ * @brief Write a pin from a pin descriptor.
+ * 
+ * @param descr 
+ * @param state 1 for high, 0 for low
+ * @return int 
+ */
 int bsp_descr_gpio_output_write(uint8_t descr, uint8_t state);
 
+/**
+ * @brief Toggle a pin from a pin descriptor.
+ * 
+ * @param descr 
+ * @return int 
+ */
 int bsp_descr_gpio_toggle(uint8_t descr);
 
+/**
+ * @brief Read input pin from descriptor
+ * 
+ * @param pin 
+ * @return uint8_t 1 if high, 0 if low
+ */
 uint8_t bsp_descr_gpio_input_read(uint8_t descr);
 
+/**
+ * @brief Set pin direction for a pin descriptor.
+ * 
+ * @param descr 
+ * @param direction 1 for output, 0 for input
+ */
 void bsp_descr_gpio_set_direction(uint8_t descr, uint8_t direction);
 
 

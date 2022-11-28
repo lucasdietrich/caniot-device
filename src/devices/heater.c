@@ -7,6 +7,9 @@
 
 #include <avr/pgmspace.h>
 
+#include <logging.h>
+#define LOG_LEVEL LOG_LEVEL_WRN
+
 #if !CONFIG_KERNEL_DELAY_OBJECT_U32
 #error "Heaters controller needs CONFIG_KERNEL_DELAY_OBJECT_U32 to be set"
 #endif
@@ -23,7 +26,15 @@
 #error "Heaters controller needs CONFIG_SYSTEM_WORKQUEUE_ENABLE to be set"
 #endif
 
-extern const struct pin heaters[CONFIG_HEATERS_COUNT][2u] PROGMEM;
+#define HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS 	(3*MSEC_PER_SEC)
+#define HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS 	(7*MSEC_PER_SEC)
+#define HEATER_CONFORT_MIN_PERIOD_MS			(300*MSEC_PER_SEC)
+// #define HEATER_CONFORT_MIN_PERIOD_MS			(20*MSEC_PER_SEC) // For testing only
+
+#define HEATER_CONFORT_MIN_1_INACTIVE_DURATION_MS \
+	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS)
+#define HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS \
+	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS)
 
 struct heater
 {
@@ -47,29 +58,31 @@ static struct heater hs[CONFIG_HEATERS_COUNT];
 
 #define HEATER_INDEX(_hp) ((_hp) - hs)
 
-static const struct pin *pin_get(uint8_t heater, uint8_t pin)
+static uint8_t pin_descr_get(uint8_t heater, uint8_t pin)
 {
-	return &heaters[heater][pin];
+	return pgm_read_byte(&heaters_io[heater][pin]);
 }
 
-static inline void heater_activate_oc(const struct pin *farp_pin)
+static inline void heater_activate_oc(uint8_t descr)
 {
-	bsp_pgm_pin_output_write(farp_pin, GPIO_LOW);
+	bsp_descr_gpio_output_write(descr, GPIO_LOW);
 }
 
-static inline void heater_deactivate_oc(const struct pin *farp_pin)
+static inline void heater_deactivate_oc(uint8_t descr)
 {
-	bsp_pgm_pin_output_write(farp_pin, GPIO_HIGH);
+	bsp_descr_gpio_output_write(descr, GPIO_HIGH);
 }
 
-static inline void heater_set_active(const struct pin *farp_pin, uint8_t active)
+#define COMPLEMENT(_x) ((_x) ? 0u : 1u)
+
+static inline void heater_set_active(uint8_t descr, uint8_t active)
 {
-	bsp_pgm_pin_output_write(farp_pin, active);
+	bsp_descr_gpio_output_write(descr, COMPLEMENT(active));
 }
 
-static inline uint8_t heater_oc_is_active(const struct pin *farp_pin)
+static inline uint8_t heater_oc_is_active(uint8_t descr)
 {
-	return 1u - bsp_pgm_pin_input_read(farp_pin);
+	return COMPLEMENT(bsp_descr_gpio_input_read(descr));
 }
 
 void heater_ev_cb(struct k_event *ev)
@@ -77,38 +90,47 @@ void heater_ev_cb(struct k_event *ev)
 	struct heater *const heater = CONTAINER_OF(ev, struct heater, event);
 	const uint8_t heater_index = HEATER_INDEX(heater);
 
-	const struct pin *pos = pin_get(heater_index, HEATER_OC_POS);
-	const struct pin *neg = pin_get(heater_index, HEATER_OC_NEG);
+	const uint8_t pos = pin_descr_get(heater_index, HEATER_OC_POS);
+	const uint8_t neg = pin_descr_get(heater_index, HEATER_OC_NEG);
 
-	/* Get current state */
-	bool next_active = !heater_oc_is_active(pos);
+	/* Get state of negative phase as reference  */
+	const bool to_activate = COMPLEMENT(heater_oc_is_active(neg));
+
+	LOG_DBG("Heater idx=%u [%p] mode=%u to_activate=%u", 
+		heater_index, heater, heater->mode, to_activate);
+
+	bool z_reschedule = true;
 
 	/* Get next period */
 	uint32_t next_timeout_ms = 0u;
 	switch (heater->mode) {
 	case HEATER_MODE_CONFORT_MIN_1:
-		next_timeout_ms = next_active ?
-			HEATER_CONFORT_MIN_1_HIGH_DURATION_MS :
-			HEATER_CONFORT_MIN_1_LOW_DURATION_MS;
+		next_timeout_ms = to_activate ?
+			HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS :
+			HEATER_CONFORT_MIN_1_INACTIVE_DURATION_MS;
 		break;
 	case HEATER_MODE_CONFORT_MIN_2:
-		next_timeout_ms = next_active ?
-			HEATER_CONFORT_MIN_2_HIGH_DURATION_MS :
-			HEATER_CONFORT_MIN_2_LOW_DURATION_MS;
+		next_timeout_ms = to_activate ?
+			HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS :
+			HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS;
 		break;
 	default:
 		/* We changed mode so we don't apply any change and
 		 * don't reschedule the event */
-		return;
+		z_reschedule = false;
+		break;
 	}
 
-	/* Apply new state */
-	const uint8_t active = next_active ? GPIO_HIGH : GPIO_LOW;
-	heater_set_active(pos, active);
-	heater_set_active(neg, active);
+	/* Schedule next phase */
+	if (z_reschedule) {
+		/* Apply new state */
+		const uint8_t active = to_activate ? GPIO_HIGH : GPIO_LOW;
+		heater_set_active(pos, active);
+		heater_set_active(neg, active);
 
-	/* Reschedule the event */
-	k_event_schedule(ev, K_MSEC(next_timeout_ms));
+		/* Reschedule the event */
+		k_event_schedule(ev, K_MSEC(next_timeout_ms));
+	}
 }
 
 static void event_cb(struct k_event *ev)
@@ -134,11 +156,11 @@ int heaters_init(void)
 	int ret = 0;
 
 	for (uint8_t h = 0u; h < CONFIG_HEATERS_COUNT; h++) {
-		const struct pin *pos = pin_get(h, HEATER_OC_POS);
-		const struct pin *neg = pin_get(h, HEATER_OC_NEG);
+		const uint8_t pos = pin_descr_get(h, HEATER_OC_POS);
+		const uint8_t neg = pin_descr_get(h, HEATER_OC_NEG);
 
-		bsp_pgm_pin_init(pos, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
-		bsp_pgm_pin_init(neg, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_descr_gpio_init(pos, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+		bsp_descr_gpio_init(neg, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 		/* Set initial state (Off) */
 		heater_set_mode(h, HEATER_MODE_OFF);
@@ -155,12 +177,14 @@ int heaters_init(void)
 
 int heater_set_mode(uint8_t hid, heater_mode_t mode)
 {
+#if CONFIG_CHECKS
 	if (hid >= CONFIG_HEATERS_COUNT) {
 		return -EINVAL;
 	}
+#endif
 
-	const struct pin *pos = pin_get(hid, HEATER_OC_POS);
-	const struct pin *neg = pin_get(hid, HEATER_OC_NEG);
+	const uint8_t pos = pin_descr_get(hid, HEATER_OC_POS);
+	const uint8_t neg = pin_descr_get(hid, HEATER_OC_NEG);
 
 	switch (mode) {
 	case HEATER_MODE_CONFORT:
@@ -196,9 +220,11 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 
 heater_mode_t heater_get_mode(uint8_t hid)
 {
+#if CONFIG_CHECKS
 	if (hid >= CONFIG_HEATERS_COUNT) {
 		return HEATER_MODE_OFF;
 	}
+#endif
 
 	return hs[hid].mode;
 }

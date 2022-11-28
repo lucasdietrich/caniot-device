@@ -38,6 +38,10 @@
 #	define CONFIG_HEATERS_COUNT 0U
 #endif
 
+#if !defined(CONFIG_SHUTTERS_COUNT)
+#	define CONFIG_SHUTTERS_COUNT 0U
+#endif
+
 #if !defined(CONFIG_WORKQUEUE_HEATERS_EXECUTION)
 #	define CONFIG_WORKQUEUE_HEATERS_EXECUTION 1u
 #endif
@@ -84,6 +88,10 @@
 
 #if !defined(CONFIG_CAN_CONTEXT_LOCK)
 #	define CONFIG_CAN_CONTEXT_LOCK 0u
+#endif
+
+#if !defined(CONFIG_CHECKS)
+#	define CONFIG_CHECKS 1u
 #endif
 
 #define CONFIG_CLASS __DEVICE_CLS__

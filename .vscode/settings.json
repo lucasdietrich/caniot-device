@@ -57,7 +57,12 @@
 		"pcf8574.h": "c",
 		"assert.h": "c",
 		"wire.h": "c",
-		"atomic.h": "c"
+		"atomic.h": "c",
+		"tiny.h": "c",
+		"exti.h": "c",
+		"timer.h": "c",
+		"logging.h": "c",
+		"mutex.h": "c"
 	},
 	"editor.rulers": [80]
 }
