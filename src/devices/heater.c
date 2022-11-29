@@ -85,9 +85,8 @@ static inline uint8_t heater_oc_is_active(pin_descr_t descr)
 	return COMPLEMENT(bsp_descr_gpio_input_read(descr));
 }
 
-void heater_ev_cb(struct k_event *ev)
+void heater_ev_cb(struct heater *heater)
 {
-	struct heater *const heater = CONTAINER_OF(ev, struct heater, event);
 	const uint8_t heater_index = HEATER_INDEX(heater);
 
 	const pin_descr_t pos = pin_descr_get(heater_index, HEATER_OC_POS);
@@ -129,17 +128,18 @@ void heater_ev_cb(struct k_event *ev)
 		heater_set_active(neg, active);
 
 		/* Reschedule the event */
-		k_event_schedule(ev, K_MSEC(next_timeout_ms));
+		k_event_schedule(&heater->event, K_MSEC(next_timeout_ms));
 	}
 }
 
 static void event_cb(struct k_event *ev)
 {
-#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
 	struct heater *const heater = CONTAINER_OF(ev, struct heater, event);
+
+#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
 	k_system_workqueue_submit(&heater->work);
 #else
-	heater_ev_cb(ev);
+	heater_ev_cb(heater);
 #endif /* CONFIG_WORKQUEUE_HEATERS_EXECUTION */
 }
 
@@ -147,7 +147,7 @@ static void event_cb(struct k_event *ev)
 static void work_cb(struct k_work *work)
 {
 	struct heater *const heater = CONTAINER_OF(work, struct heater, work);
-	heater_ev_cb(&heater->event);
+	heater_ev_cb(heater);
 }
 #endif /* CONFIG_WORKQUEUE_HEATERS_EXECUTION */
 
