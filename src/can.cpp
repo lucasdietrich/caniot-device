@@ -81,7 +81,7 @@ ISR(BSP_CAN_INT_vect)
 	struct k_thread *ready = trigger_process();
 
 	/* Immediately yield to schedule main thread */
-	k_yield_from_isr(ready);
+	k_yield_from_isr_cond(ready);
 }
 
 int can_recv(can_message *msg)

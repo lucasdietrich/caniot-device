@@ -67,7 +67,7 @@ ISR(PCINT0_vect)
 #endif
 	trigger_telemetry();
 
-	/* TODO add k_yield_from_isr() */
+	/* TODO add k_yield_from_isr_cond() */
 }
 #endif
 
@@ -79,7 +79,7 @@ ISR(PCINT1_vect)
 #endif
 	trigger_telemetry();
 
-	/* TODO add k_yield_from_isr() */
+	/* TODO add k_yield_from_isr_cond() */
 }
 #endif
 
@@ -91,7 +91,7 @@ ISR(PCINT2_vect)
 #endif
 	trigger_telemetry();
 
-	/* TODO add k_yield_from_isr() */
+	/* TODO add k_yield_from_isr_cond() */
 }
 #endif
 
