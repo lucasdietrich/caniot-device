@@ -24,6 +24,6 @@ int main(void)
 		const int16_t temp = tcn75_read();
 		LOG_DBG("temp: %d", temp);
 
-		k_sleep(K_SECONDS(1));
+		_delay_ms(1000);
 	}
 }

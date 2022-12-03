@@ -22,11 +22,7 @@
 #include "devices/ow_ds_drv.h"
 
 #include <logging.h>
-#if defined(CONFIG_BOARD_LOG_LEVEL)
-#	define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
-#else
-#	define LOG_LEVEL LOG_LEVEL_NONE
-#endif
+#define LOG_LEVEL LOG_LEVEL_DBG
 
 #define ARDUINO_ENABLE_MILLIS
 
@@ -105,6 +101,8 @@ void bsp_init(void)
 		.speed_mode = USART_SPEED_MODE_NORMAL
 	};
 	usart_ll_drv_init(BSP_USART, &usart_config);
+
+	LOG_DBG("Uart init done");
 
 	/* i2c init */
 	Wire.begin();
