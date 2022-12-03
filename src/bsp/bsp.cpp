@@ -109,28 +109,7 @@ void bsp_init(void)
 	/* i2c init */
 	Wire.begin();
 
-#if CONFIG_TCN75
 	tcn75_init();
-#endif
-
-	/* configure CAN interrupt on falling on INT0 */
-	bsp_descr_gpio_pin_init(BSP_CAN_INT_DESCR, GPIO_INPUT, GPIO_INPUT_PULLUP);
-
-	exti_clear_flag(BSP_CAN_INT);
-	exti_configure(BSP_CAN_INT, ISC_FALLING);
-	exti_enable(BSP_CAN_INT);
-
-#if CONFIG_OW_DS_ENABLED
-	/* initialize OW */
-	ow_ds_drv_init(CONFIG_OW_DS_ARDUINO_PIN);
-#endif /* CONFIG_OW_DS_ENABLED */
-
-	/* Board specific initialisation */
-#if defined(CONFIG_BOARD_V1)
-	bsp_v1_init();
-#elif defined(CONFIG_BOARD_TINY)
-	bsp_tiny_init(EXTIO_DEVICE(0u));
-#endif
 }
 
 static void get_pin_from_pgm(struct pin *pin, const struct pin *farp_pin)
