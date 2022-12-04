@@ -89,6 +89,9 @@ void bsp_early_init(void)
 
 void bsp_init(void)
 {
+			__malloc_heap_end = __malloc_heap_start; \
+			__brkval = __malloc_heap_start; \
+			
 	/* UART initialisation */
 	const struct usart_config usart_config = {
 		.baudrate = USART_BAUD_500000,
@@ -105,9 +108,9 @@ void bsp_init(void)
 	LOG_DBG("Uart init done");
 
 	/* i2c init */
-	Wire.begin();
+	// Wire.begin();
 
-	tcn75_init();
+	// tcn75_init();
 }
 
 static void get_pin_from_pgm(struct pin *pin, const struct pin *farp_pin)

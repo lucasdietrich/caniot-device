@@ -62,7 +62,9 @@
 		"exti.h": "c",
 		"timer.h": "c",
 		"logging.h": "c",
-		"mutex.h": "c"
+		"mutex.h": "c",
+		"portpins.h": "c",
+		"version.h": "c"
 	},
 	"editor.rulers": [80]
 }

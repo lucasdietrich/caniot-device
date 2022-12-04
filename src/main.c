@@ -6,6 +6,8 @@
 #include <time.h>
 #include "devices/tcn75.h"
 
+#include <stdlib.h>
+
 #include "config.h"
 
 #include "logging.h"
@@ -15,10 +17,19 @@
 
 K_KERNEL_LINK_INIT();
 
+extern char _k_main_stack[THREAD_MAIN_STACK_SIZE];
+
 int main(void)
 {
 	/* Board Support Package */
 	bsp_init();
+		// __malloc_heap_end = __malloc_heap_start;
+
+	void *p = malloc(0x50);
+
+	LOG_DBG("malloc(0x50) = %p", p);
+
+	_k_main_stack[0] = 0x55;
 
 	for (;;) {
 		const int16_t temp = tcn75_read();
