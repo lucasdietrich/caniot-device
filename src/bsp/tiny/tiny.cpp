@@ -6,7 +6,7 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
-#include <avrtos/misc/uart.h>
+#include <avrtos/misc/serial.h>
 #include <avrtos/kernel.h>
 #include <avrtos/drivers/gpio.h>
 #include <avrtos/drivers/exti.h>

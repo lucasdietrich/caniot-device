@@ -8,7 +8,7 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
-#include <avrtos/misc/uart.h>
+#include <avrtos/misc/serial.h>
 #include <avrtos/kernel.h>
 #include <avrtos/drivers/gpio.h>
 #include <avrtos/drivers/exti.h>
@@ -63,11 +63,11 @@ extern "C" void trigger_telemetry(void);
 ISR(PCINT0_vect)
 {
 #if DEBUG_INT
-	usart_transmit('*');
+	serial_transmit('*');
 #endif
 	trigger_telemetry();
 
-	/* TODO add k_yield_from_isr_cond() */
+	/* TODO add k_yield_from_isr() */
 }
 #endif
 
@@ -75,11 +75,11 @@ ISR(PCINT0_vect)
 ISR(PCINT1_vect)
 {
 #if DEBUG_INT
-	usart_transmit('!');
+	serial_transmit('!');
 #endif
 	trigger_telemetry();
 
-	/* TODO add k_yield_from_isr_cond() */
+	/* TODO add k_yield_from_isr() */
 }
 #endif
 
@@ -87,11 +87,11 @@ ISR(PCINT1_vect)
 ISR(PCINT2_vect)
 {
 #if DEBUG_INT
-	usart_transmit('%');
+	serial_transmit('%');
 #endif
 	trigger_telemetry();
 
-	/* TODO add k_yield_from_isr_cond() */
+	/* TODO add k_yield_from_isr() */
 }
 #endif
 

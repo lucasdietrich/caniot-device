@@ -1,6 +1,6 @@
 #include <avrtos/kernel.h>
 #include <avrtos/debug.h>
-#include <avrtos/misc/uart.h>
+#include <avrtos/misc/serial.h>
 #include <avrtos/misc/led.h>
 
 #include <caniot/device.h>

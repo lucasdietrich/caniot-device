@@ -75,7 +75,7 @@ void can_init(void)
 ISR(BSP_CAN_INT_vect)
 {
 #if DEBUG_INT
-	usart_transmit('%');
+	serial_transmit('%');
 #endif 
 
 	struct k_thread *ready = trigger_process();

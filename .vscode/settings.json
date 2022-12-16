@@ -25,7 +25,7 @@
 		"wdt.h": "c",
 		"caniot_errors.h": "c",
 		"debug.h": "c",
-		"uart.h": "c",
+		"serial.h": "c",
 		"supervision.h": "c",
 		"config.h": "c",
 		"tqueue.h": "c",

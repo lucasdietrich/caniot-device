@@ -104,7 +104,7 @@ void bsp_init(void)
 		.databits = USART_DATA_BITS_8,
 		.speed_mode = USART_SPEED_MODE_NORMAL
 	};
-	usart_ll_drv_init(BSP_USART, &usart_config);
+	ll_usart_init(BSP_USART, &usart_config);
 
 	/* i2c init */
 	Wire.begin();
@@ -170,11 +170,11 @@ uint8_t bsp_pgm_pin_input_read(const struct pin *farp_pin)
 void bsp_pin_init(struct pin *pin, uint8_t direction, uint8_t state)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
-		gpio_set_pin_direction(
+		gpio_pin_set_direction(
 			(GPIO_Device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin),
 			direction);
-		gpio_write_pin_state(
+		gpio_pin_write_state(
 			(GPIO_Device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin),
 			state);
@@ -197,7 +197,7 @@ void bsp_pin_init(struct pin *pin, uint8_t direction, uint8_t state)
 void bsp_pin_output_write(struct pin *pin, uint8_t state)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
-		gpio_write_pin_state(
+		gpio_pin_write_state(
 			(GPIO_Device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin),
 			state);
@@ -216,7 +216,7 @@ void bsp_pin_output_write(struct pin *pin, uint8_t state)
 void bsp_pin_toggle(struct pin *pin)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
-		gpio_toggle_pin(
+		gpio_pin_toggle(
 			(GPIO_Device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin));
 #if CONFIG_EXTIO_ENABLED
@@ -233,7 +233,7 @@ void bsp_pin_toggle(struct pin *pin)
 uint8_t bsp_pin_input_read(struct pin *pin)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
-		return gpio_read_pin_state(
+		return gpio_pin_read_state(
 			(GPIO_Device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin));
 #if CONFIG_EXTIO_ENABLED
@@ -252,7 +252,7 @@ uint8_t bsp_pin_input_read(struct pin *pin)
 void bsp_pin_set_direction(struct pin *pin, uint8_t direction)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
-		gpio_set_pin_direction(
+		gpio_pin_set_direction(
 			(GPIO_Device *)pin->dev,
 			BSP_GPIO_PIN_GET(pin->pin),
 			direction);

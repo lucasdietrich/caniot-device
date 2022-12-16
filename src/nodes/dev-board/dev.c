@@ -13,7 +13,7 @@
 
 ISR(TIMER1_COMPA_vect)
 {
-	usart_transmit('Q');
+	serial_transmit('Q');
 }
 
 void app_init(void)
@@ -24,7 +24,7 @@ void app_init(void)
 		.counter = TIMER_CALC_COUNTER_VALUE(1000000LU, 1024LU),
 		.timsk = BIT(OCIEnA)
 	};
-	ll_timer16_drv_init(TIMER1_DEVICE, 1U, &cfg);
+	ll_timer16_init(TIMER1_DEVICE, 1U, &cfg);
 }
 
 #include <dev.h>
