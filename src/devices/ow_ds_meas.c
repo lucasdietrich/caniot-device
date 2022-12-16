@@ -5,7 +5,7 @@
 #include "ow_ds_drv.h"
 #include "ow_ds_meas.h"
 
-#include "logging.h"
+#include <avrtos/logging.h>
 #if defined(CONFIG_OW_LOG_LEVEL)
 #	define LOG_LEVEL CONFIG_OW_LOG_LEVEL
 #else

@@ -9,7 +9,7 @@
 #include "devices/temp.h"
 #include "dev.h"
 
-#include "logging.h"
+#include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #if defined(CONFIG_CLASS0_ENABLED)

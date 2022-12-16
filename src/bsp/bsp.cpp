@@ -21,7 +21,7 @@
 #include "devices/tcn75.h"
 #include "devices/ow_ds_drv.h"
 
-#include <logging.h>
+#include <avrtos/logging.h>
 #if defined(CONFIG_BOARD_LOG_LEVEL)
 #	define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 #else

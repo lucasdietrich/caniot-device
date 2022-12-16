@@ -3,7 +3,7 @@
 
 #include <time.h>
 
-#include "logging.h"
+#include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #if DEBUG_MONITOR || DEBUG_TIME

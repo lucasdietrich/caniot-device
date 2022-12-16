@@ -13,10 +13,14 @@
 #include "devices/heater.h"
 #include "devices/shutter.h"
 
+#include "phease_crossing_counter.h"
+
 #include <dev.h>
 
-#include <logging.h>
+#include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
+
+#define PHASE_CROSSING_COUNTER_ENABLED 0u
 
 #define HEATER1_OC_POS_DESCR BSP_EIO7 /* 1H */
 #define HEATER1_OC_NEG_DESCR BSP_EIO6 /* 1L */
@@ -26,10 +30,6 @@
 #define HEATER3_OC_NEG_DESCR BSP_EIO2 /* 3L */
 #define HEATER4_OC_POS_DESCR BSP_EIO1 /* 4H */
 #define HEATER4_OC_NEG_DESCR BSP_EIO0 /* 4L */ 
-
-#define PHASE_ZERO_CROSSING_COUNTER_PORT 	PORTC
-#define PHASE_ZERO_CROSSING_COUNTER_PIN  	PINC1
-#define PHASE_ZERO_CROSSING_COUNTER_DESCR  	BSP_PC1
 
 const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 	[HEATER1] = {
@@ -59,6 +59,10 @@ const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 void app_init(void)
 {
 	heaters_init();
+
+#if PHASE_CROSSING_COUNTER_ENABLED
+	pcc_init();
+#endif
 }
 
 int app_command_handler(struct caniot_device *dev,

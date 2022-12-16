@@ -6,7 +6,7 @@
 #define K_MODULE_TCN75  0x23
 #define K_MODULE K_MODULE_TCN75
 
-#include "logging.h"
+#include <avrtos/logging.h>
 #if defined(CONFIG_TCN75_LOG_LEVEL)
 #	define LOG_LEVEL CONFIG_TCN75_LOG_LEVEL
 #else

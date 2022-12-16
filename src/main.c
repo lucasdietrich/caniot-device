@@ -21,7 +21,7 @@
 
 #include "config.h"
 
-#include "logging.h"
+#include <avrtos/logging.h>
 #if defined(CONFIG_MAIN_LOG_LEVEL)
 #	define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
 #else
@@ -43,6 +43,13 @@ K_KERNEL_LINK_INIT();
 
 int main(void)
 {
+	/* Interrupt should already be enabled */
+
+	/* as we don't (always) use mutex/semaphore to synchronize threads 
+	 * we need the initialization to not be preempted.
+	 */
+	__ASSERT_SCHED_LOCKED();
+
 	/* Board Support Package */
 	bsp_init();
 
@@ -50,15 +57,6 @@ int main(void)
 	k_thread_dump_all();
 	dump_stack_canaries();
 #endif
-
-	/* as we don't (always) use mutex/semaphore to synchronize threads 
-	 * we need the initialization to not be preempted.
-	 */
-	__ASSERT_SCHED_LOCKED();
-
-	/* Following initialization require interrupts to be enabled
-	 * because they use Arduino millis()/micros() functions to calculate delays.
-	 */
 
 	temp_start();
 	

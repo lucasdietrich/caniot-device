@@ -20,7 +20,7 @@
 
 #include "devices/pcf8574.h"
 
-#include "logging.h"
+#include <avrtos/logging.h>
 #if defined(CONFIG_BOARD_LOG_LEVEL)
 #	define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 #else

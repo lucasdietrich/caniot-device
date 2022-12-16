@@ -14,7 +14,7 @@
 
 #include <dev.h>
 
-#include <logging.h>
+#include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #define SHUTTER_POWER_DESCR BSP_PB0

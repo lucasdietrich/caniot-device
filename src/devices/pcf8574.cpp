@@ -6,7 +6,7 @@
 
 #if CONFIG_PCF8574_ENABLED
 
-#include "logging.h"
+#include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_NONE
 
 void pcf8574_init(uint8_t i2c_addr)

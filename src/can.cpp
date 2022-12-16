@@ -5,7 +5,7 @@
 #include <mcp2515_can.h>
 #include <mcp2515_can_dfs.h>
 
-#include "logging.h"
+#include <avrtos/logging.h>
 #if defined(CONFIG_CAN_LOG_LEVEL)
 #	define LOG_LEVEL CONFIG_CAN_LOG_LEVEL
 #else

@@ -7,7 +7,7 @@
 
 #include <avr/pgmspace.h>
 
-#include <logging.h>
+#include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_WRN
 
 #if !CONFIG_KERNEL_DELAY_OBJECT_U32
