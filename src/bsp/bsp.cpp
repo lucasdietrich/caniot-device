@@ -361,11 +361,18 @@ void bsp_descr_gpio_set_direction(pin_descr_t descr, uint8_t direction)
 
 void bsp_pin_pci_set_enabled(uint8_t descr, uint8_t state)
 {
-	if (state) {
-		pci_pin_enable_group_line(BSP_GPIO_PCINT_DESCR_GROUP(descr),
-					  BSP_GPIO_PCINT_DESCR_LINE(descr));
-	} else {
-		pci_pin_disable_group_line(BSP_GPIO_PCINT_DESCR_GROUP(descr),
-					   BSP_GPIO_PCINT_DESCR_LINE(descr));
+	const uint8_t pci_group = BSP_GPIO_PCINT_DESCR_GROUP(descr);
+
+	if (pci_group < PCI_GROUPS_COUNT) {
+		const uint8_t pci_line = BSP_GPIO_PCINT_DESCR_LINE(descr);
+
+		LOG_WRN("pci enablle descr=%x grp=%x state=%x line=%x", 
+			descr, pci_group, state, pci_line);
+
+		if (state) {
+			pci_pin_enable_group_line(pci_group, pci_line);
+		} else {
+			pci_pin_disable_group_line(pci_group, pci_line);
+		}
 	}
 }

@@ -121,8 +121,6 @@ int class0_config_apply(struct caniot_device *dev,
 
 	const uint32_t mask = c0->telemetry_on_change;
 
-	LOG_DBG("pcint mask=%x", mask);
-
 	bsp_pin_pci_set_enabled(BSP_OC1, mask & BIT(OC1_IDX));
 	bsp_pin_pci_set_enabled(BSP_OC2, mask & BIT(OC2_IDX));
 	bsp_pin_pci_set_enabled(BSP_RL1, mask & BIT(RL1_IDX));
@@ -131,6 +129,12 @@ int class0_config_apply(struct caniot_device *dev,
 	bsp_pin_pci_set_enabled(BSP_IN2, mask & BIT(IN2_IDX));
 	bsp_pin_pci_set_enabled(BSP_IN3, mask & BIT(IN3_IDX));
 	bsp_pin_pci_set_enabled(BSP_IN4, mask & BIT(IN4_IDX));
+
+	LOG_DBG("c0 mask=%x PCMSK reg 0=%hhx 1=%hhx 2=%hhx",
+		mask,
+		PCI_CTRL_DEVICE->PCMSK[0u],
+		PCI_CTRL_DEVICE->PCMSK[1u],
+		PCI_CTRL_DEVICE->PCMSK[2u]);
 
 	// /* TODO make sure to not break a running pulse ? */
 	// xps_ctx[OC1_IDX].reset_state = (c0->outputs_default >> OC1_IDX) & 1u;
