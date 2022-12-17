@@ -65,9 +65,9 @@ void tcn75_init(void);
 
 int16_t tcn75_read(void);
 
-float tcn75_temp2float(uint8_t t1, uint8_t t2);
+float tcn75_temp2float(uint8_t msb, uint8_t lsb);
 
-int16_t tcn75_temp2int16(uint8_t t1, uint8_t t2);
+int16_t tcn75_temp2int16(uint8_t msb, uint8_t lsb);
 
 float tcn75_int16tofloat(int16_t t);
 
