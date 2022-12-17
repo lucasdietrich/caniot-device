@@ -366,7 +366,7 @@ void bsp_pin_pci_set_enabled(uint8_t descr, uint8_t state)
 	if (pci_group < PCI_GROUPS_COUNT) {
 		const uint8_t pci_line = BSP_GPIO_PCINT_DESCR_LINE(descr);
 
-		LOG_WRN("pci enablle descr=%x grp=%x state=%x line=%x", 
+		LOG_DBG("pci enablle descr=%x grp=%x state=%x line=%x", 
 			descr, pci_group, state, pci_line);
 
 		if (state) {
