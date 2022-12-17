@@ -16,9 +16,22 @@
 
 void shell_process(void)
 {
-	int chr = usart0_drv_getc();
+	int chr = usart0_getc();
+
 	if (chr >= 0) {
 		LOG_INF("shell: %c", chr);
+
+		switch ((uint8_t)chr) {
+#if CONFIG_WATCHDOG
+		case 'W':
+			/* Watchdog reset test */
+			irq_disable();
+			for (;;) { }
+			break;
+#endif
+		default:
+			break;
+		}
 	}
 }
 

@@ -97,8 +97,8 @@ static int8_t measure_sensor(ow_ds_sensor_t *sens)
 	} else if (ow_ds_drv_read(&sens->id, &sens->temp) == OW_DS_DRV_SUCCESS) {
 
 		/* if the sensor has been discovered, try to read it's temperature */
-		LOG_INF("ow sens: %p temp: %.2f %%",
-			(void *)sens, sens->temp / 100.0);
+		LOG_INF("ow sens: %p temp: %u.%02u °C",
+			(void *)sens, sens->temp / 100, sens->temp % 100u);
 
 		sens->valid = 1U;
 		sens->errors = 0U;
@@ -140,7 +140,7 @@ static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
 		sensor->in_progress = 0U;
 	}
 
-	LOG_INF("ds_discovered_cb(id=%p), sensor=%p", id, sensor);
+	LOG_DBG("ds_discovered_cb(id=%p), sensor=%p", id, sensor);
 
 	return sensor != NULL;
 }
@@ -195,7 +195,7 @@ static void meas_handler(struct k_work *w)
 
 		if (ret == OW_DS_DRV_SUCCESS) {
 			/* if the sensor has been discovered, try to read it's temperature */
-			LOG_INF("ow sens: %p temp: %u.%02u %%",
+			LOG_INF("ow sens: %p temp: %u.%02u °C",
 				(void *)sens, sens->temp / 100, sens->temp % 100u);
 
 			sens->valid = 1U;

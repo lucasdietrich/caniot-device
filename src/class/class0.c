@@ -103,24 +103,10 @@ int class0_blc_command_handler(struct caniot_device *dev,
 	return dev_apply_blc_sys_command(dev, &cmd->sys);
 }
 
-static void pci_pin_set_enabled_for_io(uint8_t descr, uint8_t state)
-{
-	if (state) {
-		pci_pin_enable_group_line(BSP_GPIO_EXTI_DESCR_GROUP(descr),
-					  BSP_GPIO_EXTI_DESCR_LINE(descr));
-	} else {
-		pci_pin_disable_group_line(BSP_GPIO_EXTI_DESCR_GROUP(descr),
-					   BSP_GPIO_EXTI_DESCR_LINE(descr));
-	}
-}
-
 int class0_config_apply(struct caniot_device *dev,
 			struct caniot_config *config)
 {
 	/* TODO if !dev->flags.initialized, set port default value */
-	
-	const uint32_t mask = config->cls0_gpio.telemetry_on_change;
-
 	struct caniot_class0_config *const c0 = &config->cls0_gpio;
 
 	/* Initialize IO if not initialized */
@@ -129,26 +115,28 @@ int class0_config_apply(struct caniot_device *dev,
 			bsp_descr_gpio_pin_init(
 				xps_ctx[i].descr,
 				GPIO_OUTPUT,
-				(config->cls0_gpio.outputs_default >> i) & 1u);
+				(c0->outputs_default >> i) & 1u);
 		}
 	}
 
+	const uint32_t mask = c0->telemetry_on_change;
+
 	LOG_DBG("pcint mask=%x", mask);
 
-	pci_pin_set_enabled_for_io(BSP_OC1, mask & BIT(OC1_IDX));
-	pci_pin_set_enabled_for_io(BSP_OC2, mask & BIT(OC2_IDX));
-	pci_pin_set_enabled_for_io(BSP_RL1, mask & BIT(RL1_IDX));
-	pci_pin_set_enabled_for_io(BSP_RL2, mask & BIT(RL2_IDX));
-	pci_pin_set_enabled_for_io(BSP_IN1, mask & BIT(IN1_IDX));
-	pci_pin_set_enabled_for_io(BSP_IN2, mask & BIT(IN2_IDX));
-	pci_pin_set_enabled_for_io(BSP_IN3, mask & BIT(IN3_IDX));
-	pci_pin_set_enabled_for_io(BSP_IN4, mask & BIT(IN4_IDX));
+	bsp_pin_pci_set_enabled(BSP_OC1, mask & BIT(OC1_IDX));
+	bsp_pin_pci_set_enabled(BSP_OC2, mask & BIT(OC2_IDX));
+	bsp_pin_pci_set_enabled(BSP_RL1, mask & BIT(RL1_IDX));
+	bsp_pin_pci_set_enabled(BSP_RL2, mask & BIT(RL2_IDX));
+	bsp_pin_pci_set_enabled(BSP_IN1, mask & BIT(IN1_IDX));
+	bsp_pin_pci_set_enabled(BSP_IN2, mask & BIT(IN2_IDX));
+	bsp_pin_pci_set_enabled(BSP_IN3, mask & BIT(IN3_IDX));
+	bsp_pin_pci_set_enabled(BSP_IN4, mask & BIT(IN4_IDX));
 
-	/* TODO make sure to not break a running pulse ? */
-	xps_ctx[OC1_IDX].reset_state = (c0->outputs_default >> OC1_IDX) & 1u;
-	xps_ctx[OC2_IDX].reset_state = (c0->outputs_default >> OC2_IDX) & 1u;
-	xps_ctx[RL1_IDX].reset_state = (c0->outputs_default >> RL1_IDX) & 1u;
-	xps_ctx[RL2_IDX].reset_state = (c0->outputs_default >> RL2_IDX) & 1u;
+	// /* TODO make sure to not break a running pulse ? */
+	// xps_ctx[OC1_IDX].reset_state = (c0->outputs_default >> OC1_IDX) & 1u;
+	// xps_ctx[OC2_IDX].reset_state = (c0->outputs_default >> OC2_IDX) & 1u;
+	// xps_ctx[RL1_IDX].reset_state = (c0->outputs_default >> RL1_IDX) & 1u;
+	// xps_ctx[RL2_IDX].reset_state = (c0->outputs_default >> RL2_IDX) & 1u;
 
 	return 0;
 }

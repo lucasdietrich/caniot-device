@@ -358,3 +358,14 @@ void bsp_descr_gpio_set_direction(pin_descr_t descr, uint8_t direction)
 		return bsp_pin_set_direction(&pin, direction);
 	}
 }
+
+void bsp_pin_pci_set_enabled(uint8_t descr, uint8_t state)
+{
+	if (state) {
+		pci_pin_enable_group_line(BSP_GPIO_PCINT_DESCR_GROUP(descr),
+					  BSP_GPIO_PCINT_DESCR_LINE(descr));
+	} else {
+		pci_pin_disable_group_line(BSP_GPIO_PCINT_DESCR_GROUP(descr),
+					   BSP_GPIO_PCINT_DESCR_LINE(descr));
+	}
+}

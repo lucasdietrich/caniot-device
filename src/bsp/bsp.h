@@ -135,8 +135,8 @@ struct pin
 #define BSP_GPIO_DESCR_EIO7 (BSP_DESCR_DRIVER_EXTIO | PIN7 | BSP_GPIO_EXTIO_ACTIVE)
 
 /* Get EXTI line for given GPIO */
-#define BSP_GPIO_EXTI_DESCR_GROUP(_descr) GPIO_EXTI_GROUP(BSP_DESCR_DEVICE_GET(_descr))
-#define BSP_GPIO_EXTI_DESCR_LINE(_descr) (BIT(BSP_DESCR_GPIO_PIN_GET(_descr)))
+#define BSP_GPIO_PCINT_DESCR_GROUP(_descr) GPIO_PCINT_GROUP(BSP_DESCR_DEVICE_GET(_descr))
+#define BSP_GPIO_PCINT_DESCR_LINE(_descr) (BIT(BSP_DESCR_GPIO_PIN_GET(_descr)))
 
 #define BSP_INT0_DESCR 		BSP_GPIO_DESCR_PD2
 #define BSP_INT1_DESCR 		BSP_GPIO_DESCR_PD3
@@ -310,6 +310,7 @@ uint8_t bsp_descr_gpio_input_read(pin_descr_t descr);
  */
 void bsp_descr_gpio_set_direction(pin_descr_t descr, uint8_t direction);
 
+void bsp_pin_pci_set_enabled(uint8_t descr, uint8_t state);
 
 #ifdef __cplusplus
 }
