@@ -75,21 +75,28 @@ float tcn75_temp2float(uint8_t t1, uint8_t t2)
 	return temp;
 }
 
-int16_t tcn75_temp2int16(uint8_t t1, uint8_t t2)
+int16_t tcn75_temp2int16(uint8_t msb, uint8_t lsb)
 {
-	int16_t temp;
+	int16_t i16_temp;
 
-	const uint8_t sign = t1 >> 7;
-	const uint16_t abs = ((t1 & 0x7F) << 4) | (t2 >> 4);
+	const uint8_t neg = msb >> 7u;
 
-	/* temp < 0 */
-	if (sign) {
-		temp = -6.25 * abs;
-	} else { /* temp >= 0 */
-		temp = 6.25 * abs;
+	/* Resolution of abs is 2^-4 °C */
+	uint16_t abs = (msb << 4u) | (lsb >> 4u);
+	if (neg) { /* 2s complement if negative value */
+		abs = ~abs + 1u;
+	}
+	/* cast to 12 bits value */
+	abs &= 0x7ffu;
+
+	/* i16_temp resolution is 0.01°C */
+	i16_temp = (100.0/16) * abs;
+	
+	if (neg) {
+		i16_temp = -i16_temp;
 	}
 
-	return temp;
+	return i16_temp;
 }
 
 float tcn75_int16tofloat(int16_t t)
