@@ -82,10 +82,6 @@
 #	define CONFIG_TCN75 0u
 #endif
 
-#if !defined(CONFIG_LOGGING_ENABLED)
-#	define CONFIG_LOGGING_ENABLED 1u
-#endif
-
 #if !defined(CONFIG_CAN_CONTEXT_LOCK)
 #	define CONFIG_CAN_CONTEXT_LOCK 0u
 #endif

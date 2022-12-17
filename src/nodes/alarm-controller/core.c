@@ -62,6 +62,11 @@ const struct caniot_config default_config PROGMEM = {
 			[SIREN] = 20000u,
 		},
 		.outputs_default = 0u,
-		.telemetry_on_change = 0x97u, /* OC1, OC2, RL1, IN1, IN4 */
+		.telemetry_on_change = 
+			BIT(OC1_IDX) |
+			BIT(OC2_IDX) |
+			BIT(RL1_IDX) |
+			BIT(IN1_IDX) |
+			BIT(IN4_IDX), /* OC1, OC2, RL1, IN1, IN4 */
 	}
 };
