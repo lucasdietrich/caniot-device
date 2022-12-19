@@ -1,58 +1,125 @@
-# CANIOT 2 devices
+# CAN-IoT device (v2)
 
-## Nomenclature
+**Disclaimer: This is a still work in progress personal project. I'm having fun
+reinventing the wheel.**
 
-- CANIOT address
-- Magic number
-- Board (v1/Tiny)
-- MCU (P/PB)
-- TCN75	(A)
-  - Address
-- PCF8574 (A)
-  - Address
-- Software features:
-  - PULSE support
+This repository contains the for firmware for the CAN IoT device boards based on
+the AVR ATmega328P (B) MCU.
+
+It implements the custom CANIOT protocol, which is a simple protocol base on
+CAN. It enables a Gateway to received telemetry from the device, send generic 
+commands and make essential configuration. Full implementation and documentation of the protocol is available at 
+[caniot-lib](git@github.com:lucasdietrich/caniot-lib.git).
+
+This firmware also runs a custom RTOS, which provides simple features like 
+cooperative multitasking, synchronization primitives, workqueues, low-level
+drivers and more. Full implementation and documentation of the RTOS is available at
+[AVRTOS](https://github.com/lucasdietrich/AVRTOS).
+
+This firmware does not implement any specific device logic, but allow
+a gateway to control several types of devices, such as garage door, shutters,
+heaters and more through the CANIOT protocol.
+
+## Boards
+
+Following boards are supported:
+
+| Board                                                    | MCU           | Controllable pins | Devices/Drivers support           | CANIOT Class |
+| -------------------------------------------------------- | ------------- | ----------------- | --------------------------------- | ------------ |
+| V1                                                       | ATmega328P(B) | 8                 | TCN75<br>DS18S20                  | CLASS0       |
+| Tiny rev A - [schematic](./res/tiny_rev_A_schematic.pdf) | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
+| Tiny rev B                                               | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
+
+
+## Tiny
+
+Most important part of the work related to schematic, PCB drawing and board 
+assembly was made by my father.
+
+The schematic is freely available here: [tiny_rev_A_schematic.pdf](./res/tiny_rev_A_schematic.pdf).
+If you are interested in the board, feel free to contact me. EasyEDA was used as CAD tool.
+
+![](./pics/tiny_rev_A_sch_arduino.png)
+![](./pics/tiny_rev_A_sch_power_can.png)
+
+![](./pics/tiny_rev_A_board_top_illus.png)
+![](./pics/tiny_rev_A_board_bot_illus.png)
+
+## V1
+
+- Documentation TODO
+
+## All features
+
+- Boards
+  - v1
+  - Tiny
+- MCU Support
+  - ATmega328P
+  - ATmega328PB
+- Communication
+  - CAN
+  - CANIOT protocol
+- Device support
+  - TCN75 (A) (I2C)
+  - DS18S20 (one wire)
+  - PCF8574 (A) (I2C)
+- More high-level features
+  - GPIO Pulse support
   - Heaters
   - Shutters
 
-## Devices :
+## Project structure
+
+```
+├── docs : documentation
+├── include
+├── lib : external libraries
+│   ├── AVRTOS : Custom RTOS for AVR MCUs
+│   ├── caniot-lib : Custom CAN application protocol
+├── pics
+├── res : Ressources (board schematics, ...)
+├── platformio.ini : PlatformIO configuration
+├── readme.md : This file
+├── scripts
+└── src : Source code
+    ├── bsp : Board support package for supported boards (v1, tiny, ...)
+    ├── class : Code specific to a specific CANIOT class (see CANIOT protocol documentation)
+    ├── devices : Drivers for supported devices (TCN75, DS18S20, heater, shutter, ...)
+    ├── nodes : Specific code to achieve device role (garage door, heater, ...)
+``` 
+
+## Build the firmware
+
+PlatformIO for VSCode is required to build the firmware. Then simply select the
+application you want to build and press the build button.
+
+## Bootloader
+
+[Minicore bootloader](https://github.com/MCUdude/MiniCore) is required.
+
+## Flash the firmware
+
+Flash with PlatformIO or avrdude.
+
+## Monitor
+
+With pyserial miniterm: `python3 -m serial.tools.miniterm /dev/ttyACM0 500000`.
+Exit with `Ctrl + T` then `Q`
+
+Or screen: `screen /dev/ttyACM0 500000`.
+Exit screen with shortcuts : `Ctrl + A` and `Ctrl + \` meaning (AltGr + 8), then `y`.
+
+---
+
+## Devices
 
 - Garage Door Controller
 - Alarm Controller
 - Heating Controller	
 - Shutters Controller
 
-## Arch
-
-- IDLE thread
-- Main thread -> CANIOT
-- CAN Thread
-- Workqueue : Monitoring, measurements, tasks
-
-## Todo
-
-- Set pullup to inputs and INT0
-- Define specific device configuration, add support for configuration in persistant memory
-- Add documentation for data types
-  - Use endpoints for specific uses (normal, configuration, ...)
-- ~~Implement precision uptime~~
-- Implement invalid value handling for telemetry (e.g. temperature, etc...)
-
-## Monitor using screen (on linux)
-
-```
-screen /dev/ttyACM0 115200
-```
-
-Exit screen with shortcuts : `Ctrl + A` and `Ctrl + \` meaning (AltGr + 8), then `y`.
-
-## 1. Garage Door Controller
-
-## 2. Alarm Controller
-
-- Turn lights on when alarm is triggered
-- Don't turn lights on during daytime
-- Don't send first telemetry before external temperature is available
+## Expected result with Alarm Controller (outdated) 
 
 Logs
 ```
@@ -95,7 +162,7 @@ version = c8
 [I] CANARIES until @0220 [found 17], MAX usage = 41 / 58 + 1 (sentinel)
 ```
 
-## Bootloader
+## Ressources (to cleanup)
 
 - https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
 - https://arduino.stackexchange.com/questions/36071/how-does-avrdude-burn-a-bootloader-much-quicker-than-the-arduino-ide
@@ -110,19 +177,4 @@ version = c8
 - https://www.avrfreaks.net/forum/watchdog-reset-or-any-other-software-reset
 - https://www.avrfreaks.net/forum/software-reset-6
 - https://www.avrfreaks.net/forum/how-use-avr-watchdog
-
 - https://www.avrfreaks.net/comment/178013#comment-178013
-
-## 
-
-After (2 less RAM bytes used) + some flash
-```
-RAM:   [========  ]  78.6% (used 1610 bytes from 2048 bytes)
-Flash: [========= ]  88.5% (used 27183 bytes from 30720 bytes)
-```
-
-Before
-```
-RAM:   [========  ]  78.7% (used 1612 bytes from 2048 bytes)
-Flash: [========= ]  87.9% (used 26993 bytes from 30720 bytes)
-```
