@@ -8,7 +8,7 @@
 
 #if DEBUG_MONITOR || DEBUG_TIME
 
-#if !KERNEL_TIMERS
+#if !CONFIG_KERNEL_TIMERS
 #	error KERNEL_TIMERS disabled
 #endif
 
@@ -39,7 +39,7 @@ static void timer_handler(struct k_timer *timer)
 
 static void work_handler(struct k_work *work)
 {
-	dump_stack_canaries();
+	k_dump_stack_canaries();
 
 	// k_thread_dump_all();
 }

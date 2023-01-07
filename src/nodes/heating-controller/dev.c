@@ -119,14 +119,14 @@ int app_telemetry_handler(struct caniot_device *dev, caniot_endpoint_t ep, char 
 
 const struct caniot_config default_config PROGMEM = {
 	.telemetry = {
-		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT,
+		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT_MS,
 		.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,
 		.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT,
 	},
 	.flags = {
 		.error_response = 1u,
 		.telemetry_delay_rdm = 1u,
-		.telemetry_endpoint = CANIOT_ENDPOINT_APP,
+		.telemetry_endpoint = CANIOT_ENDPOINT_BOARD_CONTROL,
 	},
 	.timezone = CANIOT_TIMEZONE_DEFAULT,
 	.location = {

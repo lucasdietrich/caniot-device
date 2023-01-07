@@ -55,7 +55,7 @@ int main(void)
 
 #if LOG_LEVEL >= LOG_LEVEL_DBG
 	k_thread_dump_all();
-	dump_stack_canaries();
+	k_dump_stack_canaries();
 #endif
 
 	temp_start();

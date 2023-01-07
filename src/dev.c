@@ -38,10 +38,12 @@ void get_time(uint32_t *sec, uint16_t *ms)
 		return;
 	}
 
-	*sec = k_time_get();
+	const uint32_t uptime_ms = k_uptime_get_ms32();
+
+	*sec = uptime_ms / 1000U;
 
 	if (ms != NULL) {
-		*ms = 0x0000U;
+		*ms = uptime_ms % 1000U;
 	}
 }
 

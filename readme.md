@@ -162,6 +162,21 @@ version = c8
 [I] CANARIES until @0220 [found 17], MAX usage = 41 / 58 + 1 (sentinel)
 ```
 
+## Capability mask
+
+| bit(s) | name                | description                   |
+| ------ | ------------------- | ----------------------------- |
+| 0      | watchdog support    | yes/no                        |
+| 1      | dfu support         | yes/no                        |
+| 2      | release             | yes/no                        |
+| 3:4    | microcontroller     | 0: atmega328p, 1: atmega328pb |
+| 5:6    | DS18B20 support     | 0: no, 1,2,3: DS max count    |
+| 7:8    | TCN75 support       | 0: no, 1: TCN75, 2: TCN75A    |
+| 9:10   | heaters support     | 0: no, 1,2,3: max count       |
+| 11:12  | shutters support    | 0: no, 1,2,3: max count       |
+| 13:14  | relays support      | 0: no, 1,2,3: max count       |
+| 15:16  | optocoupler support | 0: no, 1,2,3: max count       |
+
 ## Ressources (to cleanup)
 
 - https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP

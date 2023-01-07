@@ -41,7 +41,7 @@ int app_command_handler(struct caniot_device *dev,
 
 const struct caniot_config default_config PROGMEM = {
 	.telemetry = {
-		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT,
+		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT_MS,
 		.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,
 		.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT,
 	},
