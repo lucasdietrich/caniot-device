@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define CONFIG_IO_COUNT 		(19u)
+#define CONFIG_IO_COUNT (19u)
 
 #define BSP_PC0 BSP_GPIO_DESCR_PC0
 #define BSP_PC1 BSP_GPIO_DESCR_PC1
@@ -32,11 +32,9 @@ extern "C" {
 #define BSP_PE0 BSP_GPIO_DESCR_PE0
 #define BSP_PE1 BSP_GPIO_DESCR_PE1
 
+#define CONFIG_EXTIO_DEVICES_COUNT (1u)
 
-#define CONFIG_EXTIO_DEVICES_COUNT	(1u)
-
-struct extio_device
-{
+struct extio_device {
 	uint8_t addr;
 	uint8_t state;
 };
@@ -47,7 +45,9 @@ extern struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT];
 
 void bsp_tiny_init(struct extio_device *dev);
 
-void bsp_extio_set_pin_direction(struct extio_device *dev, uint8_t pin, uint8_t direction);
+void bsp_extio_set_pin_direction(struct extio_device *dev,
+				 uint8_t pin,
+				 uint8_t direction);
 
 void bsp_extio_write_state(struct extio_device *dev);
 

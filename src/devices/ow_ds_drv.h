@@ -4,12 +4,13 @@
  * @brief OneWire driver for DS18B20 temperature sensor
  * @version 0.1
  * @date 2021-12-29
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  * - https://www.pjrc.com/teensy/td_libs_OneWire.html
- * - https://github.com/zephyrproject-rtos/zephyr/blob/69468dc52b8e1f4de06e1854d369f3af02107ecc/drivers/sensor/ds18b20/ds18b20.c
- * 
+ * -
+ * https://github.com/zephyrproject-rtos/zephyr/blob/69468dc52b8e1f4de06e1854d369f3af02107ecc/drivers/sensor/ds18b20/ds18b20.c
+ *
  */
 
 // ROM = 28 bc 49 9c 32 20 1 83
@@ -20,14 +21,14 @@
 #ifndef _OW_DS_DRV_H_
 #define _OW_DS_DRV_H_
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define OW_DS_MEAS_DURATION_MS 1000U
 
 /* PB1 */
 #if !defined(CONFIG_OW_DS_ARDUINO_PIN)
-#	define CONFIG_OW_DS_ARDUINO_PIN 9U
+#define CONFIG_OW_DS_ARDUINO_PIN 9U
 #endif
 
 #ifdef __cplusplus
@@ -57,18 +58,18 @@ enum {
 
 /**
  * @brief Initialize OneWire pin
- * 
+ *
  * @param pin
  */
 void ow_ds_drv_init(uint8_t pin);
 
 /**
- * @brief Discover DS devices on the one wire "bus", 
+ * @brief Discover DS devices on the one wire "bus",
  *       and call callback for each device found.
  * 	 Callback should return true if device should be registered, false to be ignored.
- * 
- * @param discovered_cb 
- * @return int8_t 
+ *
+ * @param discovered_cb
+ * @return int8_t
  */
 int8_t ow_ds_drv_discover_iter(uint8_t max_devices,
 			       bool (*discovered_cb)(ow_ds_id_t *, void *),
@@ -94,7 +95,7 @@ int8_t ow_ds_drv_read(ow_ds_id_t *id, int16_t *temperature);
 
 /**
  * @brief Start read from the given DS temperature sensor
- * 
+ *
  * @param id Device address
  * @param temperature Variable to store the temperature in (in 1e-2 °C)
  * @return int8_t 0 on success, negative value on error
@@ -103,7 +104,7 @@ int8_t ow_ds_drv_read_start(ow_ds_id_t *id);
 
 /**
  * @brief Handle read from the given DS temperature sensor (after at least 750ms)
- * 
+ *
  * @param id Device address
  * @param temperature Variable to store the temperature in (in 1e-2 °C)
  * @return int8_t 0 on success, negative value on error

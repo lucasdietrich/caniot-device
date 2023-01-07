@@ -1,8 +1,9 @@
-#include <avrtos/kernel.h>
-#include <Wire.h>
-
 #include "config.h"
 #include "pcf8574.h"
+
+#include <avrtos/kernel.h>
+
+#include <Wire.h>
 
 #if CONFIG_PCF8574_ENABLED
 
@@ -11,13 +12,12 @@
 
 void pcf8574_init(uint8_t i2c_addr)
 {
-
 }
 
 void pcf8574_set(uint8_t i2c_addr, uint8_t value)
 {
 	Wire.beginTransmission(i2c_addr);
-	size_t w = Wire.write(value);
+	size_t w   = Wire.write(value);
 	uint8_t et = Wire.endTransmission();
 
 	LOG_DBG("PCF8574 val=%u w=%u et=%u", value, w, et);

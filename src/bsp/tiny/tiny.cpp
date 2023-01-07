@@ -1,38 +1,31 @@
 #if defined(CONFIG_BOARD_TINY)
 
-#include <stdio.h>
-
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
-
-#include <avrtos/misc/serial.h>
-#include <avrtos/kernel.h>
-#include <avrtos/drivers/gpio.h>
-#include <avrtos/drivers/exti.h>
-
-#include <caniot/datatype.h>
-
-#include <mcp_can.h>
-#include <Wire.h>
-
+#include "devices/pcf8574.h"
 #include "tiny.h"
 
-#include "devices/pcf8574.h"
+#include <stdio.h>
 
+#include <avrtos/drivers/exti.h>
+#include <avrtos/drivers/gpio.h>
+#include <avrtos/kernel.h>
 #include <avrtos/logging.h>
+#include <avrtos/misc/serial.h>
+
+#include <Wire.h>
+#include <avr/interrupt.h>
+#include <avr/io.h>
+#include <avr/pgmspace.h>
+#include <caniot/datatype.h>
+#include <mcp_can.h>
 #if defined(CONFIG_BOARD_LOG_LEVEL)
-#	define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
+#define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 #else
-#	define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
-struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT] = {
-	{
-		.addr = PCF8574_ADDR,
-		.state = 0u, /* All outputs low */
-	}
-};
+struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT] = {{
+	.addr = PCF8574_ADDR, .state = 0u, /* All outputs low */
+}};
 
 void bsp_tiny_init(struct extio_device *dev)
 {

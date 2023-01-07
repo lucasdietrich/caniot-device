@@ -1,15 +1,14 @@
-#include <avrtos/kernel.h>
-#include <avrtos/debug.h>
-
 #include <time.h>
 
+#include <avrtos/debug.h>
+#include <avrtos/kernel.h>
 #include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #if DEBUG_MONITOR || DEBUG_TIME
 
 #if !CONFIG_KERNEL_TIMERS
-#	error KERNEL_TIMERS disabled
+#error KERNEL_TIMERS disabled
 #endif
 
 static void timer_handler(struct k_timer *tim);
@@ -19,7 +18,6 @@ static void print_datetime_work(struct k_work *w);
 K_TIMER_DEFINE(monitor_timer, timer_handler, K_SECONDS(30), 30000U);
 K_WORK_DEFINE(monitor_work, work_handler);
 K_WORK_DEFINE(datetime_work, print_datetime_work);
-
 
 void schedule_print_datetime(void)
 {
@@ -55,10 +53,13 @@ static void print_datetime_work(struct k_work *w)
 
 	k_show_uptime();
 
-	LOG_DBG("%d-%d-%d %d:%d:%d\n", time.tm_year + 1900,
-		 time.tm_mon + 1, time.tm_mday, time.tm_hour,
-		 time.tm_min, time.tm_sec);
+	LOG_DBG("%d-%d-%d %d:%d:%d\n",
+		time.tm_year + 1900,
+		time.tm_mon + 1,
+		time.tm_mday,
+		time.tm_hour,
+		time.tm_min,
+		time.tm_sec);
 }
-
 
 #endif /* DEBUG_MONITOR || DEBUG_TIME */

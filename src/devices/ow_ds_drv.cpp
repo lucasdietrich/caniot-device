@@ -1,24 +1,21 @@
-#include <avrtos/kernel.h>
-
-#include <OneWire.h>
-
 #include "../bsp/bsp.h"
 #include "ow_ds_drv.h"
 
+#include <avrtos/kernel.h>
 #include <avrtos/logging.h>
+
+#include <OneWire.h>
 #if defined(CONFIG_OW_LOG_LEVEL)
-#	define LOG_LEVEL CONFIG_OW_LOG_LEVEL
+#define LOG_LEVEL CONFIG_OW_LOG_LEVEL
 #else
-#	define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
 struct ow_dev {
 	OneWire ow;
 };
 
-static struct ow_dev dev = {
-	.ow = OneWire()
-};
+static struct ow_dev dev = {.ow = OneWire()};
 
 void ow_ds_drv_init(uint8_t pin)
 {
@@ -119,7 +116,7 @@ int8_t ow_ds_drv_read_start(ow_ds_id_t *id)
 	}
 
 	dev.ow.select(id->addr);
-	dev.ow.write(0x44, 1);        // start conversion, with parasite power on at the end
+	dev.ow.write(0x44, 1); // start conversion, with parasite power on at the end
 
 	return OW_DS_DRV_SUCCESS;
 }
@@ -129,7 +126,7 @@ int8_t ow_ds_drv_read_handle_result(ow_ds_id_t *id, int16_t *temperature)
 	if (!id || !temperature) {
 		return -OW_DS_DRV_INVALID_PARAMS;
 	}
-	
+
 	// we might do a ds.depower() here, but the reset will take care of it.
 
 	if (dev.ow.reset() != 1U) {
@@ -137,7 +134,7 @@ int8_t ow_ds_drv_read_handle_result(ow_ds_id_t *id, int16_t *temperature)
 	}
 
 	dev.ow.select(id->addr);
-	dev.ow.write(0xBE);         // Read Scratchpad
+	dev.ow.write(0xBE); // Read Scratchpad
 
 	// we need 9 bytes
 	uint8_t data[9];
@@ -165,15 +162,18 @@ int8_t ow_ds_drv_read_handle_result(ow_ds_id_t *id, int16_t *temperature)
 	if (id->type) {
 		tmp = tmp << 3; // 9 bit resolution default
 		if (data[7] == 0x10) {
-		  // "count remain" gives full 12 bit resolution
+			// "count remain" gives full 12 bit resolution
 			tmp = (tmp & 0xFFF0) + 12 - data[6];
 		}
 	} else {
 		uint8_t res = (data[4] & 0x60);
 		// at lower res, the low bits are undefined, so let's zero them
-		if (res == 0x00) tmp = tmp & ~7;  // 9 bit resolution, 93.75 ms
-		else if (res == 0x20) tmp = tmp & ~3; // 10 bit res, 187.5 ms
-		else if (res == 0x40) tmp = tmp & ~1; // 11 bit res, 375 ms
+		if (res == 0x00)
+			tmp = tmp & ~7; // 9 bit resolution, 93.75 ms
+		else if (res == 0x20)
+			tmp = tmp & ~3; // 10 bit res, 187.5 ms
+		else if (res == 0x40)
+			tmp = tmp & ~1; // 11 bit res, 375 ms
 		//// default is 12 bit resolution, 750 ms conversion time
 
 		LOG_DBG("res: %hhx", res);

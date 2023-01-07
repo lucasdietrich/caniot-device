@@ -1,39 +1,40 @@
-#include <avrtos/kernel.h>
-#include <avrtos/debug.h>
-#include <avrtos/misc/serial.h>
-#include <avrtos/misc/led.h>
-
-#include <caniot/device.h>
-
 #include "bsp/bsp.h"
-#include "devices/temp.h"
-
-#include <time.h>
-#include <avr/io.h>
-#include <avr/wdt.h>
-#include <avr/sleep.h>
-
-#include "dev.h"
 #include "can.h"
-#include "supervision.h"
+#include "config.h"
+#include "dev.h"
+#include "devices/temp.h"
 #include "pulse.h"
 #include "shell.h"
+#include "supervision.h"
 
-#include "config.h"
+#include <time.h>
 
+#include <avrtos/debug.h>
+#include <avrtos/kernel.h>
 #include <avrtos/logging.h>
+#include <avrtos/misc/led.h>
+#include <avrtos/misc/serial.h>
+
+#include <avr/io.h>
+#include <avr/sleep.h>
+#include <avr/wdt.h>
+#include <caniot/device.h>
 #if defined(CONFIG_MAIN_LOG_LEVEL)
-#	define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
+#define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
 #else
-#	define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
 #define K_MODULE K_MODULE_APPLICATION
 
-__attribute__ ((weak)) void app_init(void) { }
-__attribute__ ((weak)) void app_process(void) { }
+__attribute__((weak)) void app_init(void)
+{
+}
+__attribute__((weak)) void app_process(void)
+{
+}
 
-/* 
+/*
  * Max interval between two app_process() calls (ms)
  * Note: Should be choiced carefully, because of the watchdog timer.
  */
@@ -45,7 +46,7 @@ int main(void)
 {
 	/* Interrupt should already be enabled */
 
-	/* as we don't (always) use mutex/semaphore to synchronize threads 
+	/* as we don't (always) use mutex/semaphore to synchronize threads
 	 * we need the initialization to not be preempted.
 	 */
 	__ASSERT_SCHED_LOCKED();
@@ -59,7 +60,7 @@ int main(void)
 #endif
 
 	temp_start();
-	
+
 #if CONFIG_GPIO_PULSE_SUPPORT
 	pulse_init();
 #endif
@@ -74,7 +75,7 @@ int main(void)
 
 	/* Enable watchdog */
 	wdt_enable(WATCHDOG_TIMEOUT_WDTO);
-#endif 
+#endif
 
 	/* Specific application initialization */
 	app_init();
@@ -97,26 +98,20 @@ int main(void)
 		 * - Caniot telemetry
 		 * - Pulse event
 		 */
-		uint32_t timeout_ms = MIN(
-			max_process_interval,
-			get_telemetry_timeout()
-		);
+		uint32_t timeout_ms = MIN(max_process_interval, get_telemetry_timeout());
 
 #if CONFIG_GPIO_PULSE_SUPPORT
-		timeout_ms = MIN(
-			timeout_ms,
-			pulse_remaining()
-		);
+		timeout_ms = MIN(timeout_ms, pulse_remaining());
 #endif
-		
+
 		/* set unready after processing,
-		 * as some functions called may trigger the signal 
+		 * as some functions called may trigger the signal
 		 * in order to request telemetry
 		 */
 		if (telemetry_requested() == false) {
 			K_SIGNAL_SET_UNREADY(&caniot_process_sig);
 		}
-		
+
 		k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
 
 #if CONFIG_WATCHDOG

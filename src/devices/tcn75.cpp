@@ -1,29 +1,27 @@
 #include "tcn75.h"
 
-#include <Wire.h>
 #include <avrtos/kernel.h>
 
-#define K_MODULE_TCN75  0x23
-#define K_MODULE K_MODULE_TCN75
+#include <Wire.h>
+
+#define K_MODULE_TCN75 0x23
+#define K_MODULE       K_MODULE_TCN75
 
 #include <avrtos/logging.h>
 #if defined(CONFIG_TCN75_LOG_LEVEL)
-#	define LOG_LEVEL CONFIG_TCN75_LOG_LEVEL
+#define LOG_LEVEL CONFIG_TCN75_LOG_LEVEL
 #else
-#	define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
 #define TCN75_ALWAYS_SELECT_DATA_REGISTER 0x00
 
 static void tcn75_configure(void)
 {
-	const uint8_t value = 
-		TCN75_NORMAL_OPERATION |
-		TCN75_COMPARATOR_MODE |
-		TCN75_COMPINT_POLARITY_ACTIVE_LOW |
-		TCN75_FAULT_QUEUE_NB_CONVERSION_6 |
-	     	TCN75_RESOLUTION_12BIT |
-		TCN75_CONTINUOUS;
+	const uint8_t value = TCN75_NORMAL_OPERATION | TCN75_COMPARATOR_MODE |
+			      TCN75_COMPINT_POLARITY_ACTIVE_LOW |
+			      TCN75_FAULT_QUEUE_NB_CONVERSION_6 | TCN75_RESOLUTION_12BIT |
+			      TCN75_CONTINUOUS;
 
 	Wire.beginTransmission(TCN75_ADDR);
 	Wire.write((uint8_t)TCN75_CONFIG_REGISTER);
@@ -60,7 +58,7 @@ int16_t tcn75_read(void)
 #if TCN75_ALWAYS_SELECT_DATA_REGISTER
 	tcn75_select_data_register();
 #endif
-	
+
 	Wire.requestFrom(TCN75_ADDR, 2u);
 	if (Wire.available() == 2u) {
 		const uint8_t msb = Wire.read();
@@ -91,7 +89,7 @@ float tcn75_temp2float(uint8_t msb, uint8_t lsb)
 
 	/* i16_temp resolution is 0.01°C */
 	f_temp = abs / 16.0;
-	
+
 	if (neg) {
 		f_temp = -f_temp;
 	}
@@ -114,8 +112,8 @@ int16_t tcn75_temp2int16(uint8_t msb, uint8_t lsb)
 	abs &= 0x7ffu;
 
 	/* i16_temp resolution is 0.01°C */
-	i16_temp = (100.0/16) * abs;
-	
+	i16_temp = (100.0 / 16) * abs;
+
 	if (neg) {
 		i16_temp = -i16_temp;
 	}

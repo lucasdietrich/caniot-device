@@ -10,8 +10,8 @@ void pcc_init(void);
 
 /**
  * @brief Get the current calculated frequency.
- * 
- * @return uint8_t 
+ *
+ * @return uint8_t
  */
 uint8_t pcc_get_current_frequency(void);
 

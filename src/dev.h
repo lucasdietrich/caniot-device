@@ -1,32 +1,30 @@
 #ifndef _CANIOT_DEV_DEV_H_
 #define _CANIOT_DEV_DEV_H_
 
-#include <time.h>
+#include "bsp/bsp.h"
+#include "can.h"
+#include "config.h"
+#include "devices/temp.h"
+#include "pulse.h"
 
-#include <avr/pgmspace.h>
-#include <avr/eeprom.h>
-#include <avr/wdt.h>
-#include <util/delay.h>
+#include <time.h>
 
 #include <avrtos/kernel.h>
 
+#include <avr/eeprom.h>
+#include <avr/pgmspace.h>
+#include <avr/wdt.h>
 #include <caniot/caniot.h>
-#include <caniot/device.h>
 #include <caniot/datatype.h>
-
-#include "bsp/bsp.h"
-#include "devices/temp.h"
-
-#include "can.h"
-#include "config.h"
-#include "pulse.h"
+#include <caniot/device.h>
+#include <util/delay.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define WATCHDOG_TIMEOUT_MS 	8000
-#define WATCHDOG_TIMEOUT_WDTO 	WDTO_8S
+#define WATCHDOG_TIMEOUT_MS   8000
+#define WATCHDOG_TIMEOUT_WDTO WDTO_8S
 
 extern const caniot_did_t did;
 
@@ -48,35 +46,30 @@ static inline struct k_thread *trigger_process(void)
 int caniot_process(void);
 
 uint32_t get_telemetry_timeout(void);
-						  
-int config_on_read(struct caniot_device *dev,
-		   struct caniot_config *config);
 
-int config_on_write(struct caniot_device *dev,
-		   struct caniot_config *config);
+int config_on_read(struct caniot_device *dev, struct caniot_config *config);
 
-int config_restore_default(struct caniot_device *dev,
-			   struct caniot_config *cfg);
+int config_on_write(struct caniot_device *dev, struct caniot_config *config);
+
+int config_restore_default(struct caniot_device *dev, struct caniot_config *cfg);
 
 void config_init(void);
 
 void caniot_init(void);
 
-struct xps_context
-{
+struct xps_context {
 	pin_descr_t descr;
 
-	uint8_t reset_state: 1;
+	uint8_t reset_state : 1;
 
 #if CONFIG_GPIO_PULSE_SUPPORT
 	struct pulse_event *pev;
 #endif /* CONFIG_GPIO_PULSE_SUPPORT */
 };
 
-#define XPS_CONTEXT_INIT(_descr, _reset_state) \
-	{ \
-		.descr = _descr, \
-		.reset_state = _reset_state, \
+#define XPS_CONTEXT_INIT(_descr, _reset_state)                                           \
+	{                                                                                \
+		.descr = _descr, .reset_state = _reset_state,                            \
 	}
 
 int command_xps(struct xps_context *xpsc,

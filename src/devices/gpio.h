@@ -5,6 +5,4 @@
 
 #include <avrtos/drivers/gpio.h>
 
-
-
 #endif /* _CUSTOMPCB_GPIO_H_ */

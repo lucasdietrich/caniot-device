@@ -1,19 +1,17 @@
+#include "class.h"
+#include "dev.h"
+#include "devices/temp.h"
+#include "pulse.h"
+
 #include <stdint.h>
 
 #include <avrtos/kernel.h>
+#include <avrtos/logging.h>
 
 #include <caniot/classes/class1.h>
-
-#include "class.h"
-#include "pulse.h"
-#include "devices/temp.h"
-#include "dev.h"
-
-#include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #if defined(CONFIG_CLASS1_ENABLED)
-
 
 #if defined(CONFIG_BOARD_TINY)
 static struct xps_context xps_ctx[19u] = {
@@ -51,12 +49,9 @@ static struct xps_context xps_ctx[4u] = {
 
 #endif
 
-int class1_blc_telemetry_handler(struct caniot_device *dev,
-				 char *buf,
-				 uint8_t *len)
+int class1_blc_telemetry_handler(struct caniot_device *dev, char *buf, uint8_t *len)
 {
-	struct caniot_blc1_telemetry *const data =
-		AS_BLC1_TELEMETRY(buf);
+	struct caniot_blc1_telemetry *const data = AS_BLC1_TELEMETRY(buf);
 
 	data->pcpd |= bsp_descr_gpio_input_read(BSP_PC0) << PC0_IDX;
 	data->pcpd |= bsp_descr_gpio_input_read(BSP_PC1) << PC1_IDX;
@@ -81,13 +76,11 @@ int class1_blc_telemetry_handler(struct caniot_device *dev,
 	data->pe1 = bsp_descr_gpio_input_read(BSP_PE1);
 
 #if CONFIG_CANIOT_FAKE_TEMPERATURE
-	data->ext_temperature =
-		caniot_fake_get_temp(dev);
-	data->int_temperature =
-		caniot_fake_get_temp(dev);
+	data->ext_temperature = caniot_fake_get_temp(dev);
+	data->int_temperature = caniot_fake_get_temp(dev);
 #else
-	data->int_temperature = get_t10_temperature(TEMP_SENS_INT);
-	data->ext_temperature = get_t10_temperature(TEMP_SENS_EXT_1);
+	data->int_temperature  = get_t10_temperature(TEMP_SENS_INT);
+	data->ext_temperature  = get_t10_temperature(TEMP_SENS_EXT_1);
 	data->ext_temperature2 = get_t10_temperature(TEMP_SENS_EXT_2);
 	data->ext_temperature3 = get_t10_temperature(TEMP_SENS_EXT_3);
 #endif
@@ -97,11 +90,9 @@ int class1_blc_telemetry_handler(struct caniot_device *dev,
 	return 0;
 }
 
-int class1_blc_command_handler(struct caniot_device *dev,
-			       const char *buf,
-			       uint8_t len)
+int class1_blc_command_handler(struct caniot_device *dev, const char *buf, uint8_t len)
 {
-	struct caniot_blc_command *const cmd = AS_BLC_COMMAND(buf);
+	struct caniot_blc_command *const cmd   = AS_BLC_COMMAND(buf);
 	struct caniot_class1_config *const cfg = &dev->config->cls1_gpio;
 
 	uint32_t directions = cfg->directions;
@@ -111,11 +102,7 @@ int class1_blc_command_handler(struct caniot_device *dev,
 			caniot_cmd_blc1_parse_xps(&cmd->blc1, i);
 
 		if (directions & 1u) {
-			command_xps(
-				&xps_ctx[i],
-				xps,
-				cfg->pulse_durations[i]
-			);
+			command_xps(&xps_ctx[i], xps, cfg->pulse_durations[i]);
 		}
 
 		directions >>= 1u;
@@ -124,16 +111,15 @@ int class1_blc_command_handler(struct caniot_device *dev,
 	return dev_apply_blc_sys_command(dev, &cmd->sys);
 }
 
-int class1_config_apply(struct caniot_device *dev,
-			struct caniot_config *config)
+int class1_config_apply(struct caniot_device *dev, struct caniot_config *config)
 {
 	/* Initialize IO if not initialized */
 	if (!dev->flags.initialized) {
 		for (uint8_t i = 0u; i < CONFIG_IO_COUNT; i++) {
-			bsp_descr_gpio_pin_init(
-				xps_ctx[i].descr,
-				(config->cls1_gpio.directions >> i) & 1u,
-				(config->cls1_gpio.outputs_default >> i) & 1u);
+			bsp_descr_gpio_pin_init(xps_ctx[i].descr,
+						(config->cls1_gpio.directions >> i) & 1u,
+						(config->cls1_gpio.outputs_default >> i) &
+							1u);
 		}
 	}
 

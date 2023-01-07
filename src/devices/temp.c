@@ -1,27 +1,26 @@
+#include "ow_ds_drv.h"
+#include "ow_ds_meas.h"
+#include "tcn75.h"
 #include "temp.h"
 
 #include <caniot/datatype.h>
 
-#include "ow_ds_drv.h"
-#include "ow_ds_meas.h"
-#include "tcn75.h"
-
-
-// 0x28 0xd4 0x39 0xb8 0x32 0x20 0x01 0xf2 
+// 0x28 0xd4 0x39 0xb8 0x32 0x20 0x01 0xf2
 // 0x28 0x2a 0x06 0x41 0x33 0x20 0x01 0x31
 // 0x28 0x3d 0x72 0xbf 0x32 0x20 0x01 0x52
 
-#define OW_DS_SN_NONE() \
-	{ \
-		.registered = 0U, \
+#define OW_DS_SN_NONE()                                                                  \
+	{                                                                                \
+		.registered = 0U,                                                        \
 	}
 
-#define OW_DS_SN_REGISTER(sn_array) \
-	{ \
-		.id = { \
-			.addr = { sn_array }, \
-		}, \
-		.registered = 1U, \
+#define OW_DS_SN_REGISTER(sn_array)                                                      \
+	{                                                                                \
+		.id =                                                                    \
+			{                                                                \
+				.addr = {sn_array},                                      \
+			},                                                               \
+		.registered = 1U,                                                        \
 	}
 
 #if CONFIG_OW_DS_ENABLED

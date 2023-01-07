@@ -1,15 +1,14 @@
-#include <avrtos/kernel.h>
-
-#include <bsp/bsp.h>
-
 #include "ow_ds_drv.h"
 #include "ow_ds_meas.h"
 
+#include <avrtos/kernel.h>
 #include <avrtos/logging.h>
+
+#include <bsp/bsp.h>
 #if defined(CONFIG_OW_LOG_LEVEL)
-#	define LOG_LEVEL CONFIG_OW_LOG_LEVEL
+#define LOG_LEVEL CONFIG_OW_LOG_LEVEL
 #else
-#	define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
 struct meas_context {
@@ -98,9 +97,11 @@ static int8_t measure_sensor(ow_ds_sensor_t *sens)
 
 		/* if the sensor has been discovered, try to read it's temperature */
 		LOG_INF("ow sens: %p temp: %d.%02u °C",
-			(void *)sens, sens->temp / 100, sens->temp % 100u);
+			(void *)sens,
+			sens->temp / 100,
+			sens->temp % 100u);
 
-		sens->valid = 1U;
+		sens->valid  = 1U;
 		sens->errors = 0U;
 
 		ret = 0;
@@ -134,9 +135,9 @@ static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
 
 	if (sensor != NULL) {
 		/* reset sensor state */
-		sensor->errors = 0U;
-		sensor->valid = 0U;
-		sensor->active = 1U;
+		sensor->errors	    = 0U;
+		sensor->valid	    = 0U;
+		sensor->active	    = 1U;
 		sensor->in_progress = 0U;
 	}
 
@@ -147,17 +148,14 @@ static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
 
 static int8_t discover()
 {
-	int8_t ret = ow_ds_drv_discover_iter(ctx.expected,
-					     ds_discovered_cb,
-					     NULL);
+	int8_t ret = ow_ds_drv_discover_iter(ctx.expected, ds_discovered_cb, NULL);
 
 	LOG_DBG("discovered %d OW sensors", ret);
 
 	/* at least one sensor should be discovered */
 	ctx.do_discovery = ret <= 0u;
 
-	ctx.remaining_to_discovery =
-		OW_DS_DISCOVERIES_PERIODICITY * ctx.expected;
+	ctx.remaining_to_discovery = OW_DS_DISCOVERIES_PERIODICITY * ctx.expected;
 
 	return ret;
 }
@@ -185,7 +183,8 @@ static void meas_handler(struct k_work *w)
 			ret = ow_ds_drv_read_start(&sens->id);
 			if (ret == OW_DS_DRV_SUCCESS) {
 				sens->in_progress = 1U;
-				k_event_schedule(&ctx._ev, K_MSEC(OW_DS_MEAS_DURATION_MS));
+				k_event_schedule(&ctx._ev,
+						 K_MSEC(OW_DS_MEAS_DURATION_MS));
 				return;
 			}
 		} else {
@@ -194,11 +193,14 @@ static void meas_handler(struct k_work *w)
 		}
 
 		if (ret == OW_DS_DRV_SUCCESS) {
-			/* if the sensor has been discovered, try to read it's temperature */
+			/* if the sensor has been discovered, try to read it's temperature
+			 */
 			LOG_INF("ow sens: %p temp: %d.%02u °C",
-				(void *)sens, sens->temp / 100, sens->temp % 100u);
+				(void *)sens,
+				sens->temp / 100,
+				sens->temp % 100u);
 
-			sens->valid = 1U;
+			sens->valid  = 1U;
 			sens->errors = 0U;
 		} else {
 			LOG_WRN("ow sens: %p failed", (void *)sens);
@@ -210,10 +212,10 @@ static void meas_handler(struct k_work *w)
 			    (sens->errors > OW_DS_MAX_CONSECUTIVE_ERRORS)) {
 
 				/* if too many consecutive errors, deactivate the sensor
-				* and trigger a new discovery
-				*/
-				sens->active = 0U;
-				sens->errors = 0U;
+				 * and trigger a new discovery
+				 */
+				sens->active	 = 0U;
+				sens->errors	 = 0U;
 				ctx.do_discovery = 1U;
 			}
 		}
@@ -230,17 +232,16 @@ static void meas_handler(struct k_work *w)
 	}
 }
 
-int8_t ds_init(ow_ds_sensor_t *array,
-	       uint8_t count)
+int8_t ds_init(ow_ds_sensor_t *array, uint8_t count)
 {
 	int8_t ret = -EINVAL;
 
 	if (array != NULL) {
-		ctx.sensors = array;
+		ctx.sensors  = array;
 		ctx.expected = count;
 		// ctx.discovered = 0U;
 
-		ctx.cur = 0U;
+		ctx.cur		 = 0U;
 		ctx.do_discovery = 1U;
 		ctx.meas_running = 0U;
 
@@ -260,7 +261,7 @@ int8_t ds_meas_start(uint16_t period_ms)
 
 	if (k_sem_take(&ctx._sched_sem, K_NO_WAIT) == 0) {
 		ctx.meas_running = 1U;
-		ctx.period_ms = period_ms;
+		ctx.period_ms	 = period_ms;
 
 		if (k_system_workqueue_submit(&ctx._work) != 0) {
 			ret = -OW_DS_DRV_SENS_OS_ERROR;
@@ -276,7 +277,7 @@ int8_t ds_meas_stop(void)
 
 	if (ctx.meas_running == 1U) {
 		ctx.meas_running = 0U;
-		ret = OW_DS_DRV_SUCCESS;
+		ret		 = OW_DS_DRV_SUCCESS;
 	}
 
 	return ret;

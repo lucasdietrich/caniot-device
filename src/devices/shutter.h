@@ -1,11 +1,11 @@
 #ifndef _BOARD_SHUTTER_H_
 #define _BOARD_SHUTTER_H_
 
-#include <avrtos/kernel.h>
-#include <avrtos/drivers/gpio.h>
-
-#include "devices/gpio.h"
 #include "bsp/bsp.h"
+#include "devices/gpio.h"
+
+#include <avrtos/drivers/gpio.h>
+#include <avrtos/kernel.h>
 
 #define SHUTTERS_COUNT_MAX 4u
 
@@ -27,9 +27,10 @@ struct shutters_system_oc {
  */
 extern const struct shutters_system_oc shutters_io PROGMEM;
 
-#define SHUTTER_INIT(_pos_dev, _pos_pin, _neg_dev, _neg_pin) { \
-		[SHUTTER_OC_POS] = PIN_INIT_SOC(_pos_dev, _pos_pin), \
-		[SHUTTER_OC_NEG] = PIN_INIT_SOC(_neg_dev, _neg_pin) \
+#define SHUTTER_INIT(_pos_dev, _pos_pin, _neg_dev, _neg_pin)                             \
+	{                                                                                \
+		[SHUTTER_OC_POS] = PIN_INIT_SOC(_pos_dev, _pos_pin),                     \
+		[SHUTTER_OC_NEG] = PIN_INIT_SOC(_neg_dev, _neg_pin)                      \
 	}
 
 /**
@@ -39,16 +40,16 @@ int shutters_system_init(void);
 
 /**
  * @brief Set shutter position
- * 
+ *
  * @param s Shutter index to set the position.
  * @param openness Shutter openness in percent.
- * @return int 
+ * @return int
  */
 int shutter_set_openness(uint8_t s, uint8_t openness);
 
 /**
  * @brief Get shutter position
- * 
+ *
  * @return int Shutter openness in percent.
  */
 int shutter_get_openness(uint8_t s);

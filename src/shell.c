@@ -1,16 +1,14 @@
 #if CONFIG_USART_SHELL
 
-#include "shell.h"
-
-#include <stdio.h>
-#include <stdint.h>
-
-#include <avrtos/drivers/usart.h>
-
+#include "bsp/bsp.h"
 #include "config.h"
 #include "dev.h"
-#include "bsp/bsp.h"
+#include "shell.h"
 
+#include <stdint.h>
+#include <stdio.h>
+
+#include <avrtos/drivers/usart.h>
 #include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_INF
 
@@ -26,7 +24,8 @@ void shell_process(void)
 		case 'W':
 			/* Watchdog reset test */
 			irq_disable();
-			for (;;) { }
+			for (;;) {
+			}
 			break;
 #endif
 		default:

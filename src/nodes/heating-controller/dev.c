@@ -1,23 +1,19 @@
-#include <stdio.h>
-#include <avr/pgmspace.h>
-
-#include <caniot/caniot.h>
-#include <caniot/device.h>
-#include <caniot/datatype.h>
-
-#include <avrtos/kernel.h>
-
-#include <bsp/bsp.h>
-
 #include "bsp/bsp.h"
 #include "devices/heater.h"
 #include "devices/shutter.h"
-
 #include "phease_crossing_counter.h"
 
-#include <dev.h>
+#include <stdio.h>
 
+#include <avrtos/kernel.h>
 #include <avrtos/logging.h>
+
+#include <avr/pgmspace.h>
+#include <bsp/bsp.h>
+#include <caniot/caniot.h>
+#include <caniot/datatype.h>
+#include <caniot/device.h>
+#include <dev.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #define PHASE_CROSSING_COUNTER_ENABLED 0u
@@ -29,30 +25,34 @@
 #define HEATER3_OC_POS_DESCR BSP_EIO3 /* 3H */
 #define HEATER3_OC_NEG_DESCR BSP_EIO2 /* 3L */
 #define HEATER4_OC_POS_DESCR BSP_EIO1 /* 4H */
-#define HEATER4_OC_NEG_DESCR BSP_EIO0 /* 4L */ 
+#define HEATER4_OC_NEG_DESCR BSP_EIO0 /* 4L */
 
 const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
-	[HEATER1] = {
-		[HEATER_OC_POS] = HEATER1_OC_POS_DESCR,
-		[HEATER_OC_NEG] = HEATER1_OC_NEG_DESCR,
-	},
+	[HEATER1] =
+		{
+			[HEATER_OC_POS] = HEATER1_OC_POS_DESCR,
+			[HEATER_OC_NEG] = HEATER1_OC_NEG_DESCR,
+		},
 #if CONFIG_HEATERS_COUNT >= 2u
-	[HEATER2] = {
-		[HEATER_OC_POS] = HEATER2_OC_POS_DESCR,
-		[HEATER_OC_NEG] = HEATER2_OC_NEG_DESCR,
-	},
+	[HEATER2] =
+		{
+			[HEATER_OC_POS] = HEATER2_OC_POS_DESCR,
+			[HEATER_OC_NEG] = HEATER2_OC_NEG_DESCR,
+		},
 #endif
 #if CONFIG_HEATERS_COUNT >= 3u
-	[HEATER3] = {
-		[HEATER_OC_POS] = HEATER3_OC_POS_DESCR,
-		[HEATER_OC_NEG] = HEATER3_OC_NEG_DESCR,
-	},
+	[HEATER3] =
+		{
+			[HEATER_OC_POS] = HEATER3_OC_POS_DESCR,
+			[HEATER_OC_NEG] = HEATER3_OC_NEG_DESCR,
+		},
 #endif
 #if CONFIG_HEATERS_COUNT >= 4u
-	[HEATER4] = {
-		[HEATER_OC_POS] = HEATER4_OC_POS_DESCR,
-		[HEATER_OC_NEG] = HEATER4_OC_NEG_DESCR,
-	},
+	[HEATER4] =
+		{
+			[HEATER_OC_POS] = HEATER4_OC_POS_DESCR,
+			[HEATER_OC_NEG] = HEATER4_OC_NEG_DESCR,
+		},
 #endif
 };
 
@@ -66,7 +66,8 @@ void app_init(void)
 }
 
 int app_command_handler(struct caniot_device *dev,
-			caniot_endpoint_t ep, char *buf,
+			caniot_endpoint_t ep,
+			char *buf,
 			uint8_t len)
 {
 	if (ep == CANIOT_ENDPOINT_APP) {
@@ -96,7 +97,10 @@ int app_command_handler(struct caniot_device *dev,
 	return 0;
 }
 
-int app_telemetry_handler(struct caniot_device *dev, caniot_endpoint_t ep, char *buf, uint8_t *len)
+int app_telemetry_handler(struct caniot_device *dev,
+			  caniot_endpoint_t ep,
+			  char *buf,
+			  uint8_t *len)
 {
 	if (ep == CANIOT_ENDPOINT_APP) {
 		struct caniot_heating_control *const res =
@@ -118,45 +122,38 @@ int app_telemetry_handler(struct caniot_device *dev, caniot_endpoint_t ep, char 
 }
 
 const struct caniot_config default_config PROGMEM = {
-	.telemetry = {
-		.period = CANIOT_TELEMETRY_PERIOD_DEFAULT_MS,
-		.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,
-		.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT,
-	},
-	.flags = {
-		.error_response = 1u,
-		.telemetry_delay_rdm = 1u,
-		.telemetry_endpoint = CANIOT_ENDPOINT_BOARD_CONTROL,
-	},
-	.timezone = CANIOT_TIMEZONE_DEFAULT,
-	.location = {
-		.region = CANIOT_LOCATION_REGION_DEFAULT,
-		.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
-	},
-	.cls1_gpio = {
-		.telemetry_on_change = 0x0FF00u, /* Extio only */
-		.directions = 0x0FF00u, /* Extio as output */
-		.outputs_default = 0x0AA00u, /* Positive phase (Heaters off) */
-		.pulse_durations = {
-			[0] = 0x0u,
-			[1] = 0x0u,
-			[2] = 0x0u,
-			[3] = 0x0u,
-			[4] = 0x0u,
-			[5] = 0x0u,
-			[6] = 0x0u,
-			[7] = 0x0u,
-			[8] = 0x0u,
-			[9] = 0x0u,
-			[10] = 0x0u,
-			[11] = 0x0u,
-			[12] = 0x0u,
-			[13] = 0x0u,
-			[14] = 0x0u,
-			[15] = 0x0u,
-			[16] = 0x0u,
-			[17] = 0x0u,
-			[18] = 0x0u,
+	.telemetry =
+		{
+			.period	   = CANIOT_TELEMETRY_PERIOD_DEFAULT_MS,
+			.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT,
+			.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT,
 		},
-	},
+	.flags =
+		{
+			.error_response	     = 1u,
+			.telemetry_delay_rdm = 1u,
+			.telemetry_endpoint  = CANIOT_ENDPOINT_BOARD_CONTROL,
+		},
+	.timezone = CANIOT_TIMEZONE_DEFAULT,
+	.location =
+		{
+			.region	 = CANIOT_LOCATION_REGION_DEFAULT,
+			.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
+		},
+	.cls1_gpio =
+		{
+			.telemetry_on_change = 0x0FF00u, /* Extio only */
+			.directions	     = 0x0FF00u, /* Extio as output */
+			.outputs_default = 0x0AA00u, /* Positive phase (Heaters off) */
+			.pulse_durations =
+				{
+					[0] = 0x0u,  [1] = 0x0u,  [2] = 0x0u,
+					[3] = 0x0u,  [4] = 0x0u,  [5] = 0x0u,
+					[6] = 0x0u,  [7] = 0x0u,  [8] = 0x0u,
+					[9] = 0x0u,  [10] = 0x0u, [11] = 0x0u,
+					[12] = 0x0u, [13] = 0x0u, [14] = 0x0u,
+					[15] = 0x0u, [16] = 0x0u, [17] = 0x0u,
+					[18] = 0x0u,
+				},
+		},
 };

@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 typedef enum {
-	TEMP_SENS_INT = 0,
+	TEMP_SENS_INT	= 0,
 	TEMP_SENS_EXT_1 = 1,
 	TEMP_SENS_EXT_2 = 2,
 	TEMP_SENS_EXT_3 = 3,

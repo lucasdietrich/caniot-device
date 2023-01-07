@@ -1,13 +1,12 @@
 #if CONFIG_HEATERS_COUNT
 
-#include "heater.h"
-#include "config.h"
-
 #include "bsp/bsp.h"
-
-#include <avr/pgmspace.h>
+#include "config.h"
+#include "heater.h"
 
 #include <avrtos/logging.h>
+
+#include <avr/pgmspace.h>
 #define LOG_LEVEL LOG_LEVEL_WRN
 
 #if !CONFIG_KERNEL_DELAY_OBJECT_U32
@@ -26,18 +25,18 @@
 #error "Heaters controller needs CONFIG_SYSTEM_WORKQUEUE_ENABLE to be set"
 #endif
 
-#define HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS 	(3*MSEC_PER_SEC)
-#define HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS 	(7*MSEC_PER_SEC)
-#define HEATER_CONFORT_MIN_PERIOD_MS			(300*MSEC_PER_SEC)
-// #define HEATER_CONFORT_MIN_PERIOD_MS			(20*MSEC_PER_SEC) // For testing only
+#define HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS (3 * MSEC_PER_SEC)
+#define HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS (7 * MSEC_PER_SEC)
+#define HEATER_CONFORT_MIN_PERIOD_MS		(300 * MSEC_PER_SEC)
+// #define HEATER_CONFORT_MIN_PERIOD_MS			(20*MSEC_PER_SEC) // For testing
+// only
 
-#define HEATER_CONFORT_MIN_1_INACTIVE_DURATION_MS \
+#define HEATER_CONFORT_MIN_1_INACTIVE_DURATION_MS                                        \
 	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS)
-#define HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS \
+#define HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS                                        \
 	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS)
 
-struct heater
-{
+struct heater {
 	/* Event used to schedule the next state change
 	 *
 	 * Note: Keep event as first member of the structure
@@ -56,7 +55,7 @@ struct heater
 /* Heaters state */
 static struct heater hs[CONFIG_HEATERS_COUNT];
 
-#define HEATER_INDEX(_hp) ((_hp) - hs)
+#define HEATER_INDEX(_hp) ((_hp)-hs)
 
 #define COMPLEMENT(_x) ((_x) ? 0u : 1u)
 
@@ -88,7 +87,7 @@ static inline uint8_t heater_oc_is_active(pin_descr_t descr)
 void heater_ev_cb(struct k_event *ev)
 {
 	struct heater *const heater = CONTAINER_OF(ev, struct heater, event);
-	const uint8_t heater_index = HEATER_INDEX(heater);
+	const uint8_t heater_index  = HEATER_INDEX(heater);
 
 	const pin_descr_t pos = pin_descr_get(heater_index, HEATER_OC_POS);
 	const pin_descr_t neg = pin_descr_get(heater_index, HEATER_OC_NEG);
@@ -96,8 +95,11 @@ void heater_ev_cb(struct k_event *ev)
 	/* Get state of negative phase as reference  */
 	const bool to_activate = COMPLEMENT(heater_oc_is_active(neg));
 
-	LOG_DBG("Heater idx=%u [%p] mode=%u to_activate=%u", 
-		heater_index, heater, heater->mode, to_activate);
+	LOG_DBG("Heater idx=%u [%p] mode=%u to_activate=%u",
+		heater_index,
+		heater,
+		heater->mode,
+		to_activate);
 
 	bool z_reschedule = true;
 
@@ -105,14 +107,12 @@ void heater_ev_cb(struct k_event *ev)
 	uint32_t next_timeout_ms = 0u;
 	switch (heater->mode) {
 	case HEATER_MODE_CONFORT_MIN_1:
-		next_timeout_ms = to_activate ?
-			HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS :
-			HEATER_CONFORT_MIN_1_INACTIVE_DURATION_MS;
+		next_timeout_ms = to_activate ? HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS
+					      : HEATER_CONFORT_MIN_1_INACTIVE_DURATION_MS;
 		break;
 	case HEATER_MODE_CONFORT_MIN_2:
-		next_timeout_ms = to_activate ?
-			HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS :
-			HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS;
+		next_timeout_ms = to_activate ? HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS
+					      : HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS;
 		break;
 	default:
 		/* We changed mode so we don't apply any change and
@@ -196,7 +196,7 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 		/* Set mode immediately before event handler gets called */
 		hs[hid].mode = mode;
 
-		/* If event is already scheduled, it won't be sceduled again, 
+		/* If event is already scheduled, it won't be sceduled again,
 		 * heater state will be properly applied on next iteration.
 		 * 300 seconds later at maximum. (TODO does this needs to be improved ?)
 		 */

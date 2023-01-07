@@ -1,14 +1,13 @@
-#include "dev.h"
 #include "class/class.h"
-
-
-#include <caniot/fake.h>
+#include "dev.h"
 
 #include <avrtos/logging.h>
+
+#include <caniot/fake.h>
 #if defined(CONFIG_DEV_LOG_LEVEL)
-#	define LOG_LEVEL CONFIG_DEV_LOG_LEVEL
+#define LOG_LEVEL CONFIG_DEV_LOG_LEVEL
 #else
-#	define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
 #define K_MODULE K_MODULE_APPLICATION
@@ -17,11 +16,10 @@ K_SIGNAL_DEFINE(caniot_process_sig);
 
 const caniot_did_t did = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__);
 
-static const struct caniot_identification identification PROGMEM =
-{
-	.did = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__),
-	.version = __FIRMWARE_VERSION__,
-	.name = __DEVICE_NAME__,
+static const struct caniot_identification identification PROGMEM = {
+	.did	      = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__),
+	.version      = __FIRMWARE_VERSION__,
+	.name	      = __DEVICE_NAME__,
 	.magic_number = __MAGIC_NUMBER__,
 };
 
@@ -49,17 +47,17 @@ void get_time(uint32_t *sec, uint16_t *ms)
 
 static void caniot2msg(can_message *msg, const struct caniot_frame *frame)
 {
-	msg->ext = 0U;
+	msg->ext   = 0U;
 	msg->isext = 0U;
-	msg->rtr = 0U;
-	msg->std = caniot_id_to_canid(frame->id);
-	msg->len = frame->len;
+	msg->rtr   = 0U;
+	msg->std   = caniot_id_to_canid(frame->id);
+	msg->len   = frame->len;
 	memcpy(msg->buf, frame->buf, MIN(frame->len, 8U));
 }
 
 static void msg2caniot(struct caniot_frame *frame, const can_message *msg)
 {
-	frame->id = caniot_canid_to_id(msg->std);
+	frame->id  = caniot_canid_to_id(msg->std);
 	frame->len = msg->len;
 	memcpy(frame->buf, msg->buf, msg->len);
 }
@@ -79,7 +77,7 @@ static int caniot_recv(struct caniot_frame *frame)
 		caniot_explain_frame(frame);
 		LOG_INF_RAW("\n");
 #endif
-		
+
 	} else if (ret == -EAGAIN) {
 		ret = -CANIOT_EAGAIN;
 	}
@@ -87,8 +85,7 @@ static int caniot_recv(struct caniot_frame *frame)
 	return ret;
 }
 
-struct delayed_msg
-{
+struct delayed_msg {
 	struct k_event ev;
 	can_message msg;
 };
@@ -117,14 +114,14 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 		ret = can_txq_message(&msg);
 	} else {
 		struct delayed_msg *dmsg;
-		
+
 		ret = k_mem_slab_alloc(&dmsg_slab, (void **)&dmsg, K_NO_WAIT);
 		if (ret == 0) {
 			caniot2msg(&dmsg->msg, frame);
 			k_event_init(&dmsg->ev, dmsg_handler);
 			ret = k_event_schedule(&dmsg->ev, K_MSEC(delay_ms));
 			if (ret != 0) {
-				k_mem_slab_free(&dmsg_slab, (void*) dmsg);
+				k_mem_slab_free(&dmsg_slab, (void *)dmsg);
 			}
 		}
 	}
@@ -141,18 +138,17 @@ static int caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 }
 
 const struct caniot_drivers_api drivers = {
-	.entropy = entropy,
+	.entropy  = entropy,
 	.get_time = get_time,
 	.set_time = k_time_set,
-	.recv = caniot_recv,
-	.send = caniot_send,
+	.recv	  = caniot_recv,
+	.send	  = caniot_send,
 };
 
-struct sys_work
-{
+struct sys_work {
 	enum {
-		SYS_NONE = 0u,
-		SYS_SW_RESET = 1u,
+		SYS_NONE      = 0u,
+		SYS_SW_RESET  = 1u,
 		SYS_WDT_RESET = 2u,
 	} action;
 	struct k_work _work;
@@ -163,8 +159,7 @@ static void sys_work_handler(struct k_work *w)
 	struct sys_work *x = CONTAINER_OF(w, struct sys_work, _work);
 
 	switch (x->action) {
-	case SYS_SW_RESET:
-	{
+	case SYS_SW_RESET: {
 		LOG_DBG("Reset (SW) in 1 SEC");
 		k_sleep(K_SECONDS(1));
 
@@ -172,13 +167,12 @@ static void sys_work_handler(struct k_work *w)
 
 		CODE_UNREACHABLE;
 	}
-	case SYS_WDT_RESET:
-	{
+	case SYS_WDT_RESET: {
 		/* Enable watchdog if off */
 		if ((WDTCSR & BIT(WDE)) == 0u) {
 			wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 		}
-		
+
 		LOG_DBG("Reset (WDT) in 1 SEC");
 
 		k_sleep(K_SECONDS(1));
@@ -198,7 +192,7 @@ static void sys_work_handler(struct k_work *w)
 
 static struct sys_work sys_work = {
 	.action = SYS_NONE,
-	._work = K_WORK_INITIALIZER(sys_work_handler),
+	._work	= K_WORK_INITIALIZER(sys_work_handler),
 };
 
 uint16_t get_t10_temperature(temp_sens_t sens)
@@ -222,7 +216,7 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
 	    sysc->reset == CANIOT_SS_CMD_SET) {
 		sys_work.action = SYS_WDT_RESET;
 		ret = k_system_workqueue_submit(&sys_work._work) ? 0 : -EINVAL;
-	} else 	if (sysc->software_reset == CANIOT_SS_CMD_SET) {
+	} else if (sysc->software_reset == CANIOT_SS_CMD_SET) {
 		sys_work.action = SYS_SW_RESET;
 		ret = k_system_workqueue_submit(&sys_work._work) == true ? 0 : -EINVAL;
 	} else if (sysc->watchdog == CANIOT_TS_CMD_ON) {
@@ -297,22 +291,24 @@ int command_handler(struct caniot_device *dev,
 }
 
 __attribute__((section(".noinit"))) static struct caniot_config config;
-__STATIC_ASSERT(sizeof(config) <= 0xFF, "config too big"); /* EEPROM size depends on MCU */
+__STATIC_ASSERT(sizeof(config) <= 0xFF,
+		"config too big"); /* EEPROM size depends on MCU */
 
 extern struct caniot_config default_config;
 
-const struct caniot_api api = CANIOT_API_STD_INIT(command_handler, telemetry_handler,
-						  config_on_read, config_on_write);
+const struct caniot_api api = CANIOT_API_STD_INIT(
+	command_handler, telemetry_handler, config_on_read, config_on_write);
 
 struct caniot_device device = {
 	.identification = &identification,
-	.config = &config,
-	.api = &api,
-	.driv = &drivers,
-	.flags = {
-		.request_telemetry = 0u,
-		.initialized = 0u,
-	},
+	.config		= &config,
+	.api		= &api,
+	.driv		= &drivers,
+	.flags =
+		{
+			.request_telemetry = 0u,
+			.initialized	   = 0u,
+		},
 };
 
 int command_xps(struct xps_context *xpsc,
@@ -322,7 +318,7 @@ int command_xps(struct xps_context *xpsc,
 	__ASSERT_TRUE(xpsc != NULL);
 
 	LOG_DBG("%x: %u", xpsc->descr, cmd);
- 
+
 	if (BSP_DESCR_STATUS_GET(xpsc->descr) != BSP_DESCR_ACTIVE) {
 		return -ENOTSUP;
 	}
@@ -341,18 +337,19 @@ int command_xps(struct xps_context *xpsc,
 #if CONFIG_GPIO_PULSE_SUPPORT
 	case CANIOT_XPS_PULSE_ON:
 	case CANIOT_XPS_PULSE_OFF:
-		xpsc->pev = pulse_trigger(xpsc->descr,
-					  cmd == CANIOT_XPS_PULSE_ON,
-					  duration_ms,
-					  NULL);
+		xpsc->pev = pulse_trigger(
+			xpsc->descr, cmd == CANIOT_XPS_PULSE_ON, duration_ms, NULL);
 		LOG_DBG("XPS: descr=%u pev=%p rest=%u cmd=%u dur=%lu",
-			xpsc->descr, xpsc->pev, xpsc->reset_state,
-			cmd, duration_ms);
+			xpsc->descr,
+			xpsc->pev,
+			xpsc->reset_state,
+			cmd,
+			duration_ms);
 		break;
 	case CANIOT_XPS_PULSE_CANCEL:
 		pulse_cancel(xpsc->pev);
 		break;
-#endif 
+#endif
 
 	case CANIOT_XPS_RESET:
 #if CONFIG_GPIO_PULSE_SUPPORT
@@ -373,7 +370,7 @@ void print_indentification(void)
 
 uint32_t get_magic_number(void)
 {
-	return (uint32_t) pgm_read_dword(&device.identification->magic_number);
+	return (uint32_t)pgm_read_dword(&device.identification->magic_number);
 }
 
 int caniot_process(void)
@@ -409,15 +406,14 @@ static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
 
 		for (i = 0x80; i > 0; i >>= 1) {
 			uint8_t mix = (crc ^ inbyte) & i;
-			crc = (crc >> 1) ^ (mix ? 0x8C : 0x00);
+			crc	    = (crc >> 1) ^ (mix ? 0x8C : 0x00);
 		}
 	}
 
 	return crc;
 }
 
-static int config_apply(struct caniot_device *dev,
-				struct caniot_config *cfg)
+static int config_apply(struct caniot_device *dev, struct caniot_config *cfg)
 {
 	set_zone(cfg->timezone);
 
@@ -437,17 +433,16 @@ static int config_apply(struct caniot_device *dev,
  */
 static bool config_dirty = true;
 
-int config_on_read(struct caniot_device *dev,
-		   struct caniot_config *cfg)
+int config_on_read(struct caniot_device *dev, struct caniot_config *cfg)
 {
 	if (config_dirty == true) {
 		uint8_t checksum = eeprom_read_byte(0x0000U);
 
-		eeprom_read_block(cfg, (const void *)0x0001U,
-				  sizeof(struct caniot_config));
+		eeprom_read_block(
+			cfg, (const void *)0x0001U, sizeof(struct caniot_config));
 
-		uint8_t calculated_checksum = checksum_crc8((const uint8_t *)cfg,
-							    sizeof(struct caniot_config));
+		uint8_t calculated_checksum =
+			checksum_crc8((const uint8_t *)cfg, sizeof(struct caniot_config));
 
 		if (checksum != calculated_checksum) {
 			return -EINVAL;
@@ -459,14 +454,13 @@ int config_on_read(struct caniot_device *dev,
 	return 0;
 }
 
-int config_on_write(struct caniot_device *dev,
-		    struct caniot_config *cfg)
+int config_on_write(struct caniot_device *dev, struct caniot_config *cfg)
 {
-	eeprom_update_block((const void *)cfg,
-			    (void *)0x0001U, sizeof(struct caniot_config));
+	eeprom_update_block(
+		(const void *)cfg, (void *)0x0001U, sizeof(struct caniot_config));
 
-	uint8_t calculated_checksum = checksum_crc8((const uint8_t *)cfg,
-						    sizeof(struct caniot_config));
+	uint8_t calculated_checksum =
+		checksum_crc8((const uint8_t *)cfg, sizeof(struct caniot_config));
 
 	eeprom_update_byte((uint8_t *)0x0000U, calculated_checksum);
 
@@ -475,8 +469,7 @@ int config_on_write(struct caniot_device *dev,
 	return config_apply(dev, cfg);
 }
 
-int config_restore_default(struct caniot_device *dev,
-			   struct caniot_config *cfg)
+int config_restore_default(struct caniot_device *dev, struct caniot_config *cfg)
 {
 	memcpy_P(cfg, &default_config, sizeof(struct caniot_config));
 
@@ -484,7 +477,7 @@ int config_restore_default(struct caniot_device *dev,
 }
 
 #if CONFIG_FORCE_RESTORE_DEFAULT_CONFIG
-#	warning "CONFIG_FORCE_RESTORE_DEFAULT_CONFIG" is enabled
+#warning "CONFIG_FORCE_RESTORE_DEFAULT_CONFIG" is enabled
 #endif
 
 void config_init(void)
@@ -495,12 +488,12 @@ void config_init(void)
 		/* sanity check on EEPROM */
 		if (config_on_read(&device, device.config) != 0) {
 			restore = true;
-		} 
+		}
 	}
 
 	/* if restore is true, we copy the default configuration to EEPROM and RAM */
 	if (restore || (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 1)) {
-		
+
 		LOG_DBG("Config reset ...");
 		memcpy_P(&config, &default_config, sizeof(struct caniot_config));
 
@@ -511,10 +504,10 @@ void config_init(void)
 }
 
 void caniot_init(void)
-{	
+{
 	/* we prepare the system according to the config */
 	set_zone(device.config->timezone);
-	
+
 	caniot_app_init(&device);
 
 	device.flags.initialized = 1;

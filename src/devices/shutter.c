@@ -1,12 +1,11 @@
 #if CONFIG_SHUTTERS_COUNT > 0u
 
-#include <avrtos/kernel.h>
-
-#include <avr/pgmspace.h>
-
 #include "shutter.h"
 
+#include <avrtos/kernel.h>
 #include <avrtos/logging.h>
+
+#include <avr/pgmspace.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #if !CONFIG_KERNEL_EVENTS
@@ -22,15 +21,15 @@
 #endif
 
 #define SHUTTER_OPENNING_DURATION_MS 10000u
-#define POWER_ON_STARTUP_DELAY_MS 100u
+#define POWER_ON_STARTUP_DELAY_MS    100u
 
 #define ENSURE_ADDITIONAL_DURATION_MS 1000u
 
 #define SHUTTER_MINIMAL_OPENNESS_DIFF_PERCENT 10u
-#define SHUTTER_MINIMAL_ALLOWED_DURATION_MS 100u
+#define SHUTTER_MINIMAL_ALLOWED_DURATION_MS   100u
 
-#if SHUTTER_OPENNING_DURATION_MS * SHUTTER_MINIMAL_OPENNESS_DIFF_PERCENT / 100 \
-	< SHUTTER_MINIMAL_ALLOWED_DURATION_MS
+#if SHUTTER_OPENNING_DURATION_MS * SHUTTER_MINIMAL_OPENNESS_DIFF_PERCENT / 100 <         \
+	SHUTTER_MINIMAL_ALLOWED_DURATION_MS
 #error "Minimal allowed duration is less than minimal allowed openness diff"
 #endif
 
@@ -40,8 +39,7 @@ enum {
 	SHUTTER_STATE_CLOSING,
 };
 
-struct shutter
-{
+struct shutter {
 	/* Event used to schedule the next state change
 	 *
 	 * Note: Keep event as first member of the structure
@@ -66,13 +64,13 @@ struct shutter
 	uint8_t state;
 };
 
-#define FLAG_POWERED 		(1u << 0u)
+#define FLAG_POWERED (1u << 0u)
 
-#define FLAG_SHUTTER(_s) 	(1u << ((_s) + 1u))
-#define FLAG_SHUTTER_1 		FLAG_SHUTTER(0u)
-#define FLAG_SHUTTER_2 		FLAG_SHUTTER(1u)
-#define FLAG_SHUTTER_3 		FLAG_SHUTTER(2u)
-#define FLAG_SHUTTER_4 		FLAG_SHUTTER(3u)
+#define FLAG_SHUTTER(_s) (1u << ((_s) + 1u))
+#define FLAG_SHUTTER_1	 FLAG_SHUTTER(0u)
+#define FLAG_SHUTTER_2	 FLAG_SHUTTER(1u)
+#define FLAG_SHUTTER_3	 FLAG_SHUTTER(2u)
+#define FLAG_SHUTTER_4	 FLAG_SHUTTER(3u)
 
 #define MASK_SHUTTERS (FLAG_SHUTTER_1 | FLAG_SHUTTER_2 | FLAG_SHUTTER_3 | FLAG_SHUTTER_4)
 
@@ -80,7 +78,7 @@ static uint8_t flags = 0u;
 
 static struct shutter shutters[CONFIG_SHUTTERS_COUNT];
 
-#define SHUTTER_INDEX(_sp) ((_sp) - shutters)
+#define SHUTTER_INDEX(_sp) ((_sp)-shutters)
 
 #define COMPLEMENT(_x) ((_x) ? 0u : 1u)
 
@@ -125,7 +123,12 @@ static void run_direction(uint8_t s, uint8_t dir)
 	}
 
 	LOG_DBG("Shutter %u: run %u/100 [ pos %u -> %x ] [ neg %u -> %x ]",
-		s, dir, pos_active, pos, neg_active, neg);
+		s,
+		dir,
+		pos_active,
+		pos,
+		neg_active,
+		neg);
 
 	set_active(pos, pos_active);
 	set_active(neg, neg_active);
@@ -133,7 +136,7 @@ static void run_direction(uint8_t s, uint8_t dir)
 
 static void shutter_event_handler(struct k_event *ev)
 {
-	struct shutter *shutter = CONTAINER_OF(ev, struct shutter, event);
+	struct shutter *shutter	    = CONTAINER_OF(ev, struct shutter, event);
 	const uint8_t shutter_index = SHUTTER_INDEX(shutter);
 
 	/* Power has necessarily been turned on at least
@@ -178,18 +181,20 @@ static void work_cb(struct k_work *work)
 }
 #endif /* CONFIG_WORKQUEUE_SHUTTERS_EXECUTION */
 
-
 /* __attribute__((noinline)) */ int shutters_system_init(void)
 {
-	bsp_descr_gpio_pin_init(shutters_io.power_oc, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+	bsp_descr_gpio_pin_init(
+		shutters_io.power_oc, GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
 
 	for (uint8_t i = 0u; i < CONFIG_SHUTTERS_COUNT; i++) {
 		bsp_descr_gpio_pin_init(shutters_io.shutters[i][SHUTTER_OC_POS],
-					GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+					GPIO_OUTPUT,
+					GPIO_OUTPUT_DRIVEN_LOW);
 		bsp_descr_gpio_pin_init(shutters_io.shutters[i][SHUTTER_OC_NEG],
-					GPIO_OUTPUT, GPIO_OUTPUT_DRIVEN_LOW);
+					GPIO_OUTPUT,
+					GPIO_OUTPUT_DRIVEN_LOW);
 
-		    /* Assume closed */
+		/* Assume closed */
 		shutters[i].openness = 0u;
 		k_event_init(&shutters[i].event, event_cb);
 
@@ -212,13 +217,12 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 
 	if (flags & FLAG_SHUTTER(s))
 		return -EBUSY;
-#endif 
+#endif
 
 	struct shutter *const shutter = &shutters[s];
 
 	uint8_t state;
-	uint16_t duration = SHUTTER_OPENNING_DURATION_MS +
-		ENSURE_ADDITIONAL_DURATION_MS;
+	uint16_t duration = SHUTTER_OPENNING_DURATION_MS + ENSURE_ADDITIONAL_DURATION_MS;
 
 	if (openness == 100u) {
 		/* Make sure the shutter is fully open */
@@ -263,8 +267,7 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 
 		shutter->state = SHUTTER_STATE_STOPPED;
 
-		k_event_schedule(&shutter->event,
-				 K_MSEC(duration));
+		k_event_schedule(&shutter->event, K_MSEC(duration));
 	} else {
 		/* If not powered, power on and schedule shutter action */
 		power_on();
@@ -273,11 +276,10 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 		 * duration POWER_ON_STARTUP_DELAY_MS.
 		 */
 
-		shutter->state = state;
+		shutter->state	  = state;
 		shutter->duration = duration;
 
-		k_event_schedule(&shutter->event,
-				 K_MSEC(POWER_ON_STARTUP_DELAY_MS));
+		k_event_schedule(&shutter->event, K_MSEC(POWER_ON_STARTUP_DELAY_MS));
 	}
 
 	return 0;
@@ -288,7 +290,7 @@ int shutter_get_openness(uint8_t s)
 #if CONFIG_CHECKS
 	if (s >= CONFIG_SHUTTERS_COUNT)
 		return -EINVAL;
-#endif 
+#endif
 
 	return shutters[s].openness;
 }

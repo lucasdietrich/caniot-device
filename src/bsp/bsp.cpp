@@ -1,31 +1,26 @@
-#include <stdio.h>
-
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
-
-#include <avrtos/kernel.h>
-#include <avrtos/drivers/gpio.h>
-#include <avrtos/drivers/exti.h>
-
-#include <caniot/datatype.h>
-
-#include <mcp_can.h>
-#include <Wire.h>
-
-#include "config.h"
-
 #include "bsp.h"
 #include "bsp/tiny/tiny.h"
-
-#include "devices/tcn75.h"
+#include "config.h"
 #include "devices/ow_ds_drv.h"
+#include "devices/tcn75.h"
 
+#include <stdio.h>
+
+#include <avrtos/drivers/exti.h>
+#include <avrtos/drivers/gpio.h>
+#include <avrtos/kernel.h>
 #include <avrtos/logging.h>
+
+#include <Wire.h>
+#include <avr/interrupt.h>
+#include <avr/io.h>
+#include <avr/pgmspace.h>
+#include <caniot/datatype.h>
+#include <mcp_can.h>
 #if defined(CONFIG_BOARD_LOG_LEVEL)
-#	define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
+#define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 #else
-#	define LOG_LEVEL LOG_LEVEL_NONE
+#define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
 #define ARDUINO_ENABLE_MILLIS
@@ -68,10 +63,10 @@ static inline void hw_ll_init(void)
 	TCCR2A |= _BV(WGM20);
 
 	TCCR3B |= _BV(CS31) | _BV(CS30); // Set timer 3 prescale factor to 64
-	TCCR3A |= _BV(WGM30);            // Put timer 3 in 8-bit phase correct pwm mode
+	TCCR3A |= _BV(WGM30);		 // Put timer 3 in 8-bit phase correct pwm mode
 
 	TCCR4B |= _BV(CS41) | _BV(CS40); // Set timer 4 prescale factor to 64
-	TCCR4A |= _BV(WGM40);            // Put timer 4 in 8-bit phase correct pwm mode
+	TCCR4A |= _BV(WGM40);		 // Put timer 4 in 8-bit phase correct pwm mode
 #endif
 
 	// set a2d prescaler so we are inside the desired 50-200 KHz range.
@@ -94,16 +89,15 @@ void bsp_early_init(void)
 void bsp_init(void)
 {
 	/* UART initialisation */
-	const struct usart_config usart_config = {
-		.baudrate = USART_BAUD_500000,
-		.receiver = CONFIG_USART_SHELL ? 1u : 0u,
-		.transmitter = 1u,
-		.mode = USART_MODE_ASYNCHRONOUS,
-		.parity = USART_PARITY_NONE,
-		.stopbits = USART_STOP_BITS_1,
-		.databits = USART_DATA_BITS_8,
-		.speed_mode = USART_SPEED_MODE_NORMAL
-	};
+	const struct usart_config usart_config = {.baudrate = USART_BAUD_500000,
+						  .receiver =
+							  CONFIG_USART_SHELL ? 1u : 0u,
+						  .transmitter = 1u,
+						  .mode	       = USART_MODE_ASYNCHRONOUS,
+						  .parity      = USART_PARITY_NONE,
+						  .stopbits    = USART_STOP_BITS_1,
+						  .databits    = USART_DATA_BITS_8,
+						  .speed_mode  = USART_SPEED_MODE_NORMAL};
 	ll_usart_init(BSP_USART, &usart_config);
 
 	/* i2c init */
@@ -171,25 +165,19 @@ void bsp_pin_init(struct pin *pin, uint8_t direction, uint8_t state)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
 		gpio_pin_set_direction(
-			(GPIO_Device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin),
-			direction);
+			(GPIO_Device *)pin->dev, BSP_GPIO_PIN_GET(pin->pin), direction);
 		gpio_pin_write_state(
-			(GPIO_Device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin),
-			state);
+			(GPIO_Device *)pin->dev, BSP_GPIO_PIN_GET(pin->pin), state);
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		__ASSERT_THREAD_CONTEXT();
 
-		bsp_extio_set_pin_direction(
-			(struct extio_device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin),
-			direction);
-		bsp_extio_write_pin_state(
-			(struct extio_device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin),
-			state);
+		bsp_extio_set_pin_direction((struct extio_device *)pin->dev,
+					    BSP_GPIO_PIN_GET(pin->pin),
+					    direction);
+		bsp_extio_write_pin_state((struct extio_device *)pin->dev,
+					  BSP_GPIO_PIN_GET(pin->pin),
+					  state);
 #endif
 	}
 }
@@ -198,17 +186,14 @@ void bsp_pin_output_write(struct pin *pin, uint8_t state)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
 		gpio_pin_write_state(
-			(GPIO_Device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin),
-			state);
+			(GPIO_Device *)pin->dev, BSP_GPIO_PIN_GET(pin->pin), state);
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		__ASSERT_THREAD_CONTEXT();
 
-		bsp_extio_write_pin_state(
-			(struct extio_device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin),
-			state);
+		bsp_extio_write_pin_state((struct extio_device *)pin->dev,
+					  BSP_GPIO_PIN_GET(pin->pin),
+					  state);
 #endif
 	}
 }
@@ -216,16 +201,13 @@ void bsp_pin_output_write(struct pin *pin, uint8_t state)
 void bsp_pin_toggle(struct pin *pin)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
-		gpio_pin_toggle(
-			(GPIO_Device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin));
+		gpio_pin_toggle((GPIO_Device *)pin->dev, BSP_GPIO_PIN_GET(pin->pin));
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		__ASSERT_THREAD_CONTEXT();
 
-		bsp_extio_toggle_pin(
-			(struct extio_device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin));
+		bsp_extio_toggle_pin((struct extio_device *)pin->dev,
+				     BSP_GPIO_PIN_GET(pin->pin));
 #endif
 	}
 }
@@ -233,16 +215,14 @@ void bsp_pin_toggle(struct pin *pin)
 uint8_t bsp_pin_input_read(struct pin *pin)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
-		return gpio_pin_read_state(
-			(GPIO_Device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin));
+		return gpio_pin_read_state((GPIO_Device *)pin->dev,
+					   BSP_GPIO_PIN_GET(pin->pin));
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		__ASSERT_THREAD_CONTEXT();
 
-		return bsp_extio_read_pin_state(
-			(struct extio_device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin));
+		return bsp_extio_read_pin_state((struct extio_device *)pin->dev,
+						BSP_GPIO_PIN_GET(pin->pin));
 #endif
 	}
 
@@ -253,17 +233,14 @@ void bsp_pin_set_direction(struct pin *pin, uint8_t direction)
 {
 	if (BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_GPIO) {
 		gpio_pin_set_direction(
-			(GPIO_Device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin),
-			direction);
+			(GPIO_Device *)pin->dev, BSP_GPIO_PIN_GET(pin->pin), direction);
 #if CONFIG_EXTIO_ENABLED
 	} else {
 		__ASSERT_THREAD_CONTEXT();
 
-		bsp_extio_set_pin_direction(
-			(struct extio_device *)pin->dev,
-			BSP_GPIO_PIN_GET(pin->pin),
-			direction);
+		bsp_extio_set_pin_direction((struct extio_device *)pin->dev,
+					    BSP_GPIO_PIN_GET(pin->pin),
+					    direction);
 #endif
 	}
 }
@@ -277,7 +254,8 @@ static int get_pin_from_descr(uint8_t descr, struct pin *pin)
 #if CONFIG_EXTIO_ENABLED
 		} else if (BSP_DESCR_DRIVER_GET(descr) == BSP_DESCR_DRIVER_EXTIO) {
 			pin->dev = EXTIO_DEVICE(BSP_DESCR_GPIO_PORT_GET_INDEX(descr));
-			pin->pin = BSP_DESCR_GPIO_PIN_GET(descr) | BSP_GPIO_PIN_TYPE_EXTIO;
+			pin->pin =
+				BSP_DESCR_GPIO_PIN_GET(descr) | BSP_GPIO_PIN_TYPE_EXTIO;
 #endif
 		}
 	} else {
@@ -285,7 +263,9 @@ static int get_pin_from_descr(uint8_t descr, struct pin *pin)
 	}
 
 	LOG_DBG("descr=0x%02x dev=%p pin=%u ext=%u",
-		descr, pin->dev, BSP_GPIO_PIN_GET(pin->pin),
+		descr,
+		pin->dev,
+		BSP_GPIO_PIN_GET(pin->pin),
 		(BSP_GPIO_PIN_TYPE_GET(pin->pin) == BSP_GPIO_PIN_TYPE_EXTIO) ? 1u : 0u);
 
 	return 0;
@@ -325,7 +305,7 @@ int bsp_descr_gpio_toggle(pin_descr_t descr)
 	struct pin pin;
 
 	ret = get_pin_from_descr(descr, &pin);
-	
+
 	if (ret == 0) {
 		bsp_pin_toggle(&pin);
 	}
@@ -366,8 +346,11 @@ void bsp_pin_pci_set_enabled(uint8_t descr, uint8_t state)
 	if (pci_group < PCI_GROUPS_COUNT) {
 		const uint8_t pci_line = BSP_GPIO_PCINT_DESCR_LINE(descr);
 
-		LOG_DBG("pci enablle descr=%x grp=%x state=%x line=%x", 
-			descr, pci_group, state, pci_line);
+		LOG_DBG("pci enablle descr=%x grp=%x state=%x line=%x",
+			descr,
+			pci_group,
+			state,
+			pci_line);
 
 		if (state) {
 			pci_pin_enable_group_line(pci_group, pci_line);

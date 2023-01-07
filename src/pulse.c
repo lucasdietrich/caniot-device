@@ -1,15 +1,14 @@
 #if CONFIG_GPIO_PULSE_SUPPORT
 
-#include <stdbool.h>
-
-#include <avrtos/mutex.h>
-#include <avrtos/dstruct/tqueue.h>
-
-#include <avr/io.h>
-
+#include "bsp/bsp.h"
 #include "pulse.h"
 
-#include "bsp/bsp.h"
+#include <stdbool.h>
+
+#include <avrtos/dstruct/tqueue.h>
+#include <avrtos/mutex.h>
+
+#include <avr/io.h>
 
 #define K_MODULE K_MODULE_APPLICATION
 
@@ -17,25 +16,24 @@
 #error CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT == 0 while PULSE support is enabled
 #endif
 
-K_MEM_SLAB_DEFINE(ctx_mems, sizeof(struct pulse_event),
+K_MEM_SLAB_DEFINE(ctx_mems,
+		  sizeof(struct pulse_event),
 		  CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT);
-
 
 static DEFINE_TQUEUE(ev_queue);
 
 #if CONFIG_GPIO_PULSE_THREAD_SAFE
-	static K_MUTEX_DEFINE(mutex);
-#	define PULSE_CONTEXT_LOCK() k_mutex_lock(&mutex, K_FOREVER)
-#	define PULSE_CONTEXT_UNLOCK() k_mutex_unlock(&mutex)
+static K_MUTEX_DEFINE(mutex);
+#define PULSE_CONTEXT_LOCK()   k_mutex_lock(&mutex, K_FOREVER)
+#define PULSE_CONTEXT_UNLOCK() k_mutex_unlock(&mutex)
 #else
-#	define PULSE_CONTEXT_LOCK()
-#	define PULSE_CONTEXT_UNLOCK()
+#define PULSE_CONTEXT_LOCK()
+#define PULSE_CONTEXT_UNLOCK()
 #endif
 
 #define EVENT_FROM_TIE(tie_p) CONTAINER_OF(tie_p, struct pulse_event, _tie)
 
 #define EVENT_TO_PIN(ev) (ev - events)
-
 
 static struct pulse_event *alloc_context(void)
 {
@@ -56,7 +54,6 @@ static void free_context(struct pulse_event *ctx)
 	}
 }
 
-
 static inline void output_set_state(pin_descr_t descr, bool state)
 {
 	bsp_descr_gpio_output_write(descr, state ? GPIO_HIGH : GPIO_LOW);
@@ -64,8 +61,8 @@ static inline void output_set_state(pin_descr_t descr, bool state)
 
 /**
  * @brief Assume event is not null
- * 
- * @param ev 
+ *
+ * @param ev
  */
 static void cancel_event(struct pulse_event *ev)
 {
@@ -82,10 +79,8 @@ void pulse_init(void)
 	/* Nothing ... */
 }
 
-struct pulse_event *pulse_trigger(pin_descr_t descr,
-				  bool state,
-				  uint32_t duration_ms,
-				  struct pulse_event *ev)
+struct pulse_event *
+pulse_trigger(pin_descr_t descr, bool state, uint32_t duration_ms, struct pulse_event *ev)
 {
 	if (duration_ms == 0) {
 		goto exit;
@@ -102,8 +97,8 @@ struct pulse_event *pulse_trigger(pin_descr_t descr,
 
 	if (ev != NULL) {
 		output_set_state(descr, state);
-		ev->scheduled = 1u;
-		ev->descr = descr;
+		ev->scheduled	= 1u;
+		ev->descr	= descr;
 		ev->reset_state = !state;
 		tqueue_schedule(&ev_queue, &ev->_tie, duration_ms);
 	}
@@ -139,7 +134,7 @@ bool pulse_is_active(struct pulse_event *ev)
 bool pulse_process(uint32_t time_passed_ms)
 {
 	struct titem *_tie = NULL;
-	bool least_one = false;
+	bool least_one	   = false;
 
 	PULSE_CONTEXT_LOCK();
 

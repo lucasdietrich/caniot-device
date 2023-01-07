@@ -1,10 +1,10 @@
 #ifndef _BOARD_HEATER_H_
 #define _BOARD_HEATER_H_
 
-#include <avrtos/kernel.h>
-#include <avrtos/drivers/gpio.h>
-
 #include "devices/gpio.h"
+
+#include <avrtos/drivers/gpio.h>
+#include <avrtos/kernel.h>
 
 #define HEATERS_COUNT_MAX 4u
 
@@ -23,14 +23,14 @@ typedef enum {
 	HEATER_MODE_CONFORT = 0u,
 
 	/**
-	 * @brief Comfort mode minus 1 °C. 
+	 * @brief Comfort mode minus 1 °C.
 	 * Pilot wire, complete 3 seconds high per period of 300 seconds.
 	 * No signal rest of period.
 	 */
 	HEATER_MODE_CONFORT_MIN_1, /* Confort mode minus 1 °C */
 
 	/**
-	 * @brief Comfort mode minus 2 °C. 
+	 * @brief Comfort mode minus 2 °C.
 	 * Pilot wire, complete 7 seconds high per period of 300 seconds.
 	 * No signal rest of period.
 	 */
@@ -62,25 +62,25 @@ extern const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM;
 
 /**
  * @brief Initialize all defined heaters
- * 
- * @return int 
+ *
+ * @return int
  */
 int heaters_init(void);
 
 /**
- * @brief Set heater mode 
- * 
- * @param hid 
- * @param mode 
- * @return int 
+ * @brief Set heater mode
+ *
+ * @param hid
+ * @param mode
+ * @return int
  */
 int heater_set_mode(uint8_t hid, heater_mode_t mode);
 
 /**
  * @brief Get heater mode
- * 
- * @param hid 
- * @return heater_mode_t 
+ *
+ * @param hid
+ * @return heater_mode_t
  */
 heater_mode_t heater_get_mode(uint8_t hid);
 
