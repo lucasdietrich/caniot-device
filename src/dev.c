@@ -16,7 +16,7 @@ K_SIGNAL_DEFINE(caniot_process_sig);
 
 const caniot_did_t did = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__);
 
-static const struct caniot_identification identification PROGMEM = {
+static const struct caniot_device_id identification PROGMEM = {
 	.did	      = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__),
 	.version      = __FIRMWARE_VERSION__,
 	.name	      = __DEVICE_NAME__,
@@ -237,7 +237,7 @@ extern const caniot_command_handler_t app_command_handler;
 
 int telemetry_handler(struct caniot_device *dev,
 		      caniot_endpoint_t ep,
-		      char *buf,
+		      unsigned char *buf,
 		      uint8_t *len)
 {
 	if (ep == CANIOT_ENDPOINT_BOARD_CONTROL) {
@@ -256,7 +256,7 @@ int telemetry_handler(struct caniot_device *dev,
 
 int command_handler(struct caniot_device *dev,
 		    caniot_endpoint_t ep,
-		    const char *buf,
+		    const unsigned char *buf,
 		    uint8_t len)
 {
 	int ret = -CANIOT_ENOTSUP;
@@ -290,13 +290,13 @@ int command_handler(struct caniot_device *dev,
 	return ret;
 }
 
-__attribute__((section(".noinit"))) static struct caniot_config config;
+__attribute__((section(".noinit"))) static struct caniot_device_config config;
 __STATIC_ASSERT(sizeof(config) <= 0xFF,
 		"config too big"); /* EEPROM size depends on MCU */
 
-extern struct caniot_config default_config;
+extern struct caniot_device_config default_config;
 
-const struct caniot_api api = CANIOT_API_STD_INIT(
+const struct caniot_device_api api = CANIOT_DEVICE_API_STD_INIT(
 	command_handler, telemetry_handler, config_on_read, config_on_write);
 
 struct caniot_device device = {
@@ -413,7 +413,7 @@ static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
 	return crc;
 }
 
-static int config_apply(struct caniot_device *dev, struct caniot_config *cfg)
+static int config_apply(struct caniot_device *dev, struct caniot_device_config *cfg)
 {
 	set_zone(cfg->timezone);
 
@@ -433,16 +433,16 @@ static int config_apply(struct caniot_device *dev, struct caniot_config *cfg)
  */
 static bool config_dirty = true;
 
-int config_on_read(struct caniot_device *dev, struct caniot_config *cfg)
+int config_on_read(struct caniot_device *dev, struct caniot_device_config *cfg)
 {
 	if (config_dirty == true) {
 		uint8_t checksum = eeprom_read_byte(0x0000U);
 
 		eeprom_read_block(
-			cfg, (const void *)0x0001U, sizeof(struct caniot_config));
+			cfg, (const void *)0x0001U, sizeof(struct caniot_device_config));
 
 		uint8_t calculated_checksum =
-			checksum_crc8((const uint8_t *)cfg, sizeof(struct caniot_config));
+			checksum_crc8((const uint8_t *)cfg, sizeof(struct caniot_device_config));
 
 		if (checksum != calculated_checksum) {
 			return -EINVAL;
@@ -454,13 +454,13 @@ int config_on_read(struct caniot_device *dev, struct caniot_config *cfg)
 	return 0;
 }
 
-int config_on_write(struct caniot_device *dev, struct caniot_config *cfg)
+int config_on_write(struct caniot_device *dev, struct caniot_device_config *cfg)
 {
 	eeprom_update_block(
-		(const void *)cfg, (void *)0x0001U, sizeof(struct caniot_config));
+		(const void *)cfg, (void *)0x0001U, sizeof(struct caniot_device_config));
 
 	uint8_t calculated_checksum =
-		checksum_crc8((const uint8_t *)cfg, sizeof(struct caniot_config));
+		checksum_crc8((const uint8_t *)cfg, sizeof(struct caniot_device_config));
 
 	eeprom_update_byte((uint8_t *)0x0000U, calculated_checksum);
 
@@ -469,9 +469,9 @@ int config_on_write(struct caniot_device *dev, struct caniot_config *cfg)
 	return config_apply(dev, cfg);
 }
 
-int config_restore_default(struct caniot_device *dev, struct caniot_config *cfg)
+int config_restore_default(struct caniot_device *dev, struct caniot_device_config *cfg)
 {
-	memcpy_P(cfg, &default_config, sizeof(struct caniot_config));
+	memcpy_P(cfg, &default_config, sizeof(struct caniot_device_config));
 
 	return config_on_write(&device, cfg);
 }
@@ -495,7 +495,7 @@ void config_init(void)
 	if (restore || (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 1)) {
 
 		LOG_DBG("Config reset ...");
-		memcpy_P(&config, &default_config, sizeof(struct caniot_config));
+		memcpy_P(&config, &default_config, sizeof(struct caniot_device_config));
 
 		config_on_write(&device, device.config);
 	} else {

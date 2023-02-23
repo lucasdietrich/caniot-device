@@ -35,7 +35,7 @@ static struct xps_context xps_ctx[] = {
 
 #endif
 
-int class0_blc_telemetry_handler(struct caniot_device *dev, char *buf, uint8_t *len)
+int class0_blc_telemetry_handler(struct caniot_device *dev, unsigned char *buf, uint8_t *len)
 {
 	struct caniot_blc0_telemetry *const data = AS_BLC0_TELEMETRY(buf);
 
@@ -70,7 +70,7 @@ int class0_blc_telemetry_handler(struct caniot_device *dev, char *buf, uint8_t *
 	return 0;
 }
 
-int class0_blc_command_handler(struct caniot_device *dev, const char *buf, uint8_t len)
+int class0_blc_command_handler(struct caniot_device *dev, const unsigned char *buf, uint8_t len)
 {
 	struct caniot_blc_command *const cmd   = AS_BLC_COMMAND(buf);
 	struct caniot_class0_config *const cfg = &dev->config->cls0_gpio;
@@ -86,7 +86,7 @@ int class0_blc_command_handler(struct caniot_device *dev, const char *buf, uint8
 	return dev_apply_blc_sys_command(dev, &cmd->sys);
 }
 
-int class0_config_apply(struct caniot_device *dev, struct caniot_config *config)
+int class0_config_apply(struct caniot_device *dev, struct caniot_device_config *config)
 {
 	/* TODO if !dev->flags.initialized, set port default value */
 	struct caniot_class0_config *const c0 = &config->cls0_gpio;

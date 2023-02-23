@@ -91,7 +91,7 @@ ISR(PCINT2_vect)
 }
 #endif
 
-NOINLINE void bsp_v1_init(void)
+void bsp_v1_init(void)
 {
 	/* outputs init */
 	bsp_descr_gpio_pin_init(BSP_OC1, GPIO_OUTPUT, GPIO_LOW);

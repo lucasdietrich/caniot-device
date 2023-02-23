@@ -47,11 +47,11 @@ int caniot_process(void);
 
 uint32_t get_telemetry_timeout(void);
 
-int config_on_read(struct caniot_device *dev, struct caniot_config *config);
+int config_on_read(struct caniot_device *dev, struct caniot_device_config *config);
 
-int config_on_write(struct caniot_device *dev, struct caniot_config *config);
+int config_on_write(struct caniot_device *dev, struct caniot_device_config *config);
 
-int config_restore_default(struct caniot_device *dev, struct caniot_config *cfg);
+int config_restore_default(struct caniot_device *dev, struct caniot_device_config *cfg);
 
 void config_init(void);
 
