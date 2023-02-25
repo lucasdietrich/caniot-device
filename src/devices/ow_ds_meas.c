@@ -128,17 +128,23 @@ static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
 		sensor = get_free_slot();
 
 		if (sensor != NULL) {
-			sensor->registered = 1U;
 			memcpy(&sensor->id, id, sizeof(ow_ds_id_t));
+
+			sensor->registered = 1U;
+
+			/* Invalidate sensor measurement only on first discovery */
+			sensor->valid	   = 0U; 
 		}
 	}
 
 	if (sensor != NULL) {
 		/* reset sensor state */
 		sensor->errors	    = 0U;
-		sensor->valid	    = 0U;
 		sensor->active	    = 1U;
 		sensor->in_progress = 0U;
+
+		/* Don't invalidate sensor measurement when it is discovered
+		 * again */
 	}
 
 	LOG_DBG("ds_discovered_cb(id=%p), sensor=%p", id, sensor);
