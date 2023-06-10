@@ -49,7 +49,9 @@ static struct xps_context xps_ctx[4u] = {
 
 #endif
 
-int class1_blc_telemetry_handler(struct caniot_device *dev, unsigned char *buf, uint8_t *len)
+int class1_blc_telemetry_handler(struct caniot_device *dev,
+				 unsigned char *buf,
+				 uint8_t *len)
 {
 	struct caniot_blc1_telemetry *const data = AS_BLC1_TELEMETRY(buf);
 
@@ -90,7 +92,9 @@ int class1_blc_telemetry_handler(struct caniot_device *dev, unsigned char *buf, 
 	return 0;
 }
 
-int class1_blc_command_handler(struct caniot_device *dev, const unsigned char *buf, uint8_t len)
+int class1_blc_command_handler(struct caniot_device *dev,
+			       const unsigned char *buf,
+			       uint8_t len)
 {
 	struct caniot_blc_command *const cmd   = AS_BLC_COMMAND(buf);
 	struct caniot_class1_config *const cfg = &dev->config->cls1_gpio;

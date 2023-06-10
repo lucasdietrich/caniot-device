@@ -1,10 +1,10 @@
 #include "ow_ds_drv.h"
 #include "ow_ds_meas.h"
 
+#include <string.h>
+
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
-
-#include <string.h>
 
 #include <bsp/bsp.h>
 #if defined(CONFIG_OW_LOG_LEVEL)
@@ -135,7 +135,7 @@ static bool ds_discovered_cb(ow_ds_id_t *id, void *user_data)
 			sensor->registered = 1U;
 
 			/* Invalidate sensor measurement only on first discovery */
-			sensor->valid	   = 0U; 
+			sensor->valid = 0U;
 		}
 	}
 

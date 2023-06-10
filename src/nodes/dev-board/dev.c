@@ -2,8 +2,8 @@
 
 #include <stdio.h>
 
-#include <avrtos/drivers/timer.h>
 #include <avrtos/avrtos.h>
+#include <avrtos/drivers/timer.h>
 
 #include <avr/pgmspace.h>
 #include <caniot/caniot.h>

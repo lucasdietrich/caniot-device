@@ -6,9 +6,9 @@
 
 #include <stdio.h>
 
+#include <avrtos/avrtos.h>
 #include <avrtos/drivers/exti.h>
 #include <avrtos/drivers/gpio.h>
-#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
 #include <Wire.h>

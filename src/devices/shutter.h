@@ -4,8 +4,8 @@
 #include "bsp/bsp.h"
 #include "devices/gpio.h"
 
-#include <avrtos/drivers/gpio.h>
 #include <avrtos/avrtos.h>
+#include <avrtos/drivers/gpio.h>
 
 #define SHUTTERS_COUNT_MAX 4u
 

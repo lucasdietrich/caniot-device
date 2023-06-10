@@ -5,8 +5,8 @@
 
 #include <stdbool.h>
 
-#include <avrtos/dstruct/tqueue.h>
 #include <avrtos/avrtos.h>
+#include <avrtos/dstruct/tqueue.h>
 
 #include <avr/io.h>
 

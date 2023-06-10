@@ -432,8 +432,8 @@ int config_on_read(struct caniot_device *dev, struct caniot_device_config *cfg)
 		eeprom_read_block(
 			cfg, (const void *)0x0001U, sizeof(struct caniot_device_config));
 
-		uint8_t calculated_checksum =
-			checksum_crc8((const uint8_t *)cfg, sizeof(struct caniot_device_config));
+		uint8_t calculated_checksum = checksum_crc8(
+			(const uint8_t *)cfg, sizeof(struct caniot_device_config));
 
 		if (checksum != calculated_checksum) {
 			return -EINVAL;

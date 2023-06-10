@@ -1,5 +1,5 @@
-#include <avrtos/drivers/exti.h>
 #include <avrtos/avrtos.h>
+#include <avrtos/drivers/exti.h>
 #include <avrtos/logging.h>
 
 #include <bsp/bsp.h>
