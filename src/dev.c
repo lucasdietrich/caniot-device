@@ -159,14 +159,6 @@ static void sys_work_handler(struct k_work *w)
 	struct sys_work *x = CONTAINER_OF(w, struct sys_work, _work);
 
 	switch (x->action) {
-	case SYS_SW_RESET: {
-		LOG_DBG("Reset (SW) in 1 SEC");
-		k_sleep(K_SECONDS(1));
-
-		k_sys_sw_reset();
-
-		CODE_UNREACHABLE;
-	}
 	case SYS_WDT_RESET: {
 		/* Enable watchdog if off */
 		if ((WDTCSR & BIT(WDE)) == 0u) {
@@ -217,8 +209,7 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
 		sys_work.action = SYS_WDT_RESET;
 		ret = k_system_workqueue_submit(&sys_work._work) ? 0 : -EINVAL;
 	} else if (sysc->software_reset == CANIOT_SS_CMD_SET) {
-		sys_work.action = SYS_SW_RESET;
-		ret = k_system_workqueue_submit(&sys_work._work) == true ? 0 : -EINVAL;
+		ret = -ENOTSUP;
 	} else if (sysc->watchdog == CANIOT_TS_CMD_ON) {
 		wdt_enable(WATCHDOG_TIMEOUT_WDTO);
 		ret = 0;

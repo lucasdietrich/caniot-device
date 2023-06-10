@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 #include <avrtos/dstruct/tqueue.h>
-#include <avrtos/mutex.h>
+#include <avrtos/avrtos.h>
 
 #include <avr/io.h>
 

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
 #include <avr/pgmspace.h>

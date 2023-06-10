@@ -2,7 +2,7 @@
 
 #include "shutter.h"
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
 #include <avr/pgmspace.h>

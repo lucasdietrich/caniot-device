@@ -13,11 +13,11 @@
  * @copyright Copyright (c) 2022
  */
 
-#include "supervision.h"
+#include "watchdog.h"
 
 #if CONFIG_WATCHDOG
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 
 #include <avr/wdt.h>
 

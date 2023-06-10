@@ -5,12 +5,12 @@
 #include "devices/temp.h"
 #include "pulse.h"
 #include "shell.h"
-#include "supervision.h"
+#include "watchdog.h"
 
 #include <time.h>
 
 #include <avrtos/debug.h>
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 #include <avrtos/misc/led.h>
 #include <avrtos/misc/serial.h>
@@ -136,7 +136,6 @@ int main(void)
 
 		do {
 			ret = caniot_process();
-
 			if (ret == 0) {
 				/* When CAN message "sent" (actually queued to TX queue),
 				 * immediately yield after having queued the CAN message
@@ -147,6 +146,8 @@ int main(void)
 			} else if (ret != -CANIOT_EAGAIN) {
 				// show error
 				caniot_show_error(ret);
+
+				k_sleep(K_MSEC(100u));
 			}
 
 #if CONFIG_WATCHDOG

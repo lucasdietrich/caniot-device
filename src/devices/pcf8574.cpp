@@ -1,7 +1,7 @@
 #include "config.h"
 #include "pcf8574.h"
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 
 #include <Wire.h>
 

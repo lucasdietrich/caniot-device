@@ -5,7 +5,7 @@
 #include "devices/gpio.h"
 
 #include <avrtos/drivers/gpio.h>
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 
 #define SHUTTERS_COUNT_MAX 4u
 

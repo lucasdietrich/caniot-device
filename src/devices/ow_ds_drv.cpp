@@ -1,7 +1,7 @@
 #include "../bsp/bsp.h"
 #include "ow_ds_drv.h"
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
 #include <OneWire.h>

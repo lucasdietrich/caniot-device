@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
 #include <caniot/classes/class0.h>

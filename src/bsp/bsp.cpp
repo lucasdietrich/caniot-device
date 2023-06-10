@@ -8,7 +8,7 @@
 
 #include <avrtos/drivers/exti.h>
 #include <avrtos/drivers/gpio.h>
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
 #include <Wire.h>
@@ -89,15 +89,16 @@ void bsp_early_init(void)
 void bsp_init(void)
 {
 	/* UART initialisation */
-	const struct usart_config usart_config = {.baudrate = USART_BAUD_500000,
-						  .receiver =
-							  CONFIG_USART_SHELL ? 1u : 0u,
-						  .transmitter = 1u,
-						  .mode	       = USART_MODE_ASYNCHRONOUS,
-						  .parity      = USART_PARITY_NONE,
-						  .stopbits    = USART_STOP_BITS_1,
-						  .databits    = USART_DATA_BITS_8,
-						  .speed_mode  = USART_SPEED_MODE_NORMAL};
+	const struct usart_config usart_config = {
+		.baudrate    = USART_BAUD_500000,
+		.receiver    = CONFIG_USART_SHELL ? 1u : 0u,
+		.transmitter = 1u,
+		.mode	     = USART_MODE_ASYNCHRONOUS,
+		.parity	     = USART_PARITY_NONE,
+		.stopbits    = USART_STOP_BITS_1,
+		.databits    = USART_DATA_BITS_8,
+		.speed_mode  = USART_SPEED_MODE_NORMAL,
+	};
 	ll_usart_init(BSP_USART, &usart_config);
 
 	/* i2c init */

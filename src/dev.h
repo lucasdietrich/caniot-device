@@ -9,7 +9,7 @@
 
 #include <time.h>
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>

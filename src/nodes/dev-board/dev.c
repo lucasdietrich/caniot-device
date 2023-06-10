@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include <avrtos/drivers/timer.h>
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 
 #include <avr/pgmspace.h>
 #include <caniot/caniot.h>

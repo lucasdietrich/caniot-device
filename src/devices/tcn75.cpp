@@ -1,6 +1,6 @@
 #include "tcn75.h"
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 
 #include <Wire.h>
 

@@ -1,8 +1,10 @@
 #include "ow_ds_drv.h"
 #include "ow_ds_meas.h"
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
+
+#include <string.h>
 
 #include <bsp/bsp.h>
 #if defined(CONFIG_OW_LOG_LEVEL)

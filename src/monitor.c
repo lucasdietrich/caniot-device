@@ -1,7 +1,7 @@
 #include <time.h>
 
 #include <avrtos/debug.h>
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 

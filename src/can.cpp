@@ -1,6 +1,6 @@
 #include "can.h"
 
-#include <avrtos/kernel.h>
+#include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
 #include <mcp2515_can.h>
@@ -124,8 +124,7 @@ static int can_send(can_message *msg)
 	return rc;
 }
 
-static uint8_t buf[CAN_TX_MSGQ_SIZE * sizeof(can_message)];
-K_MSGQ_DEFINE(txq, buf, sizeof(can_message), CAN_TX_MSGQ_SIZE);
+K_MSGQ_DEFINE(txq, sizeof(can_message), CAN_TX_MSGQ_SIZE);
 
 static void can_tx_entry(void *arg);
 

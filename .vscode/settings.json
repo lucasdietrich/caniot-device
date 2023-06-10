@@ -26,7 +26,7 @@
 		"caniot_errors.h": "c",
 		"debug.h": "c",
 		"serial.h": "c",
-		"supervision.h": "c",
+		"watchdog.h": "c",
 		"config.h": "c",
 		"tqueue.h": "c",
 		"led.h": "c",
