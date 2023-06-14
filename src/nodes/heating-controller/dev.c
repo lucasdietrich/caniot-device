@@ -66,7 +66,13 @@ void app_init(void)
 
 #if PHASE_CROSSING_COUNTER_ENABLED
 	pcc_init();
+
+	/* Set initial propable state to off */
+	power_current_status = 0u;
 #endif
+
+	/* Send initial state */
+	trigger_telemetry(CANIOT_ENDPOINT_APP);
 }
 
 void app_process(void)
