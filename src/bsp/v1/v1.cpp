@@ -61,7 +61,7 @@ ISR(PCINT0_vect)
 #if DEBUG_INT
 	serial_transmit('*');
 #endif
-	trigger_telemetry();
+	trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
 	/* TODO add k_yield_from_isr() */
 }
@@ -73,7 +73,7 @@ ISR(PCINT1_vect)
 #if DEBUG_INT
 	serial_transmit('!');
 #endif
-	trigger_telemetry();
+	trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
 	/* TODO add k_yield_from_isr() */
 }
@@ -85,7 +85,7 @@ ISR(PCINT2_vect)
 #if DEBUG_INT
 	serial_transmit('%');
 #endif
-	trigger_telemetry();
+	trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
 	/* TODO add k_yield_from_isr() */
 }

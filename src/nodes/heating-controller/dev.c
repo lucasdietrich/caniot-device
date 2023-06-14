@@ -1,7 +1,7 @@
 #include "bsp/bsp.h"
 #include "devices/heater.h"
 #include "devices/shutter.h"
-#include "phease_crossing_counter.h"
+#include "pcc.h"
 
 #include <stdio.h>
 
@@ -16,7 +16,7 @@
 #include <dev.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
-#define PHASE_CROSSING_COUNTER_ENABLED 0u
+#define PHASE_CROSSING_COUNTER_ENABLED 1u
 
 #define HEATER1_OC_POS_DESCR BSP_EIO7 /* 1H */
 #define HEATER1_OC_NEG_DESCR BSP_EIO6 /* 1L */
@@ -26,6 +26,10 @@
 #define HEATER3_OC_NEG_DESCR BSP_EIO2 /* 3L */
 #define HEATER4_OC_POS_DESCR BSP_EIO1 /* 4H */
 #define HEATER4_OC_NEG_DESCR BSP_EIO0 /* 4L */
+
+#if PHASE_CROSSING_COUNTER_ENABLED
+static bool power_current_status = 0u;
+#endif
 
 const uint8_t heaters_io[CONFIG_HEATERS_COUNT][2u] PROGMEM = {
 	[HEATER1] =
@@ -62,6 +66,21 @@ void app_init(void)
 
 #if PHASE_CROSSING_COUNTER_ENABLED
 	pcc_init();
+#endif
+}
+
+void app_process(void)
+{
+#if PHASE_CROSSING_COUNTER_ENABLED
+	bool new_status = pcc_get_power_status();
+
+	if (new_status != power_current_status) {
+		power_current_status = new_status;
+
+		trigger_telemetry(CANIOT_ENDPOINT_APP);
+	}
+
+	LOG_DBG("freq: %d status: %u", pcc_get_get_frequency(), new_status);
 #endif
 }
 
@@ -115,6 +134,10 @@ int app_telemetry_handler(struct caniot_device *dev,
 #endif
 #if CONFIG_HEATERS_COUNT >= 4u
 		res->heater4_cmd = heater_get_mode(HEATER4) + 1u;
+#endif
+
+#if PHASE_CROSSING_COUNTER_ENABLED
+		res->power_status = power_current_status;
 #endif
 		*len = 8u;
 	}

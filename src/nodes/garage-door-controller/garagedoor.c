@@ -67,5 +67,6 @@ const struct caniot_device_config default_config PROGMEM = {
 				[RL2_IDX] = RELAY_PULSE_DURATION_MS,
 			},
 		.outputs_default     = 0u,
-		.telemetry_on_change = 0x7C, /* RL1, RL2, IN2, IN3, IN4 */
+		.telemetry_on_change = BIT(RL1_IDX) | BIT(RL2_IDX) | BIT(IN2_IDX) |
+				       BIT(IN3_IDX) | BIT(IN4_IDX),
 	}};

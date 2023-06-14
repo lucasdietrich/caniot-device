@@ -13,7 +13,7 @@
 
 #if defined(CONFIG_CLASS1_ENABLED)
 
-#if defined(CONFIG_BOARD_TINY)
+#if defined(CONFIG_BOARD_TINY_REVA)
 static struct xps_context xps_ctx[19u] = {
 	[PC0_IDX] = XPS_CONTEXT_INIT(BSP_PC0, GPIO_LOW),
 	[PC1_IDX] = XPS_CONTEXT_INIT(BSP_PC1, GPIO_LOW),

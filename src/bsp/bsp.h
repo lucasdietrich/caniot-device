@@ -192,7 +192,7 @@ struct pin {
 
 #if defined(CONFIG_BOARD_V1)
 #include "v1/v1.h"
-#elif defined(CONFIG_BOARD_TINY)
+#elif defined(CONFIG_BOARD_TINY_REVA)
 #include "tiny/tiny.h"
 #else
 #error "Invalid board version"

@@ -80,8 +80,8 @@ int main(void)
 	/* Specific application initialization */
 	app_init();
 
-	/* send telemetry on startup */
-	trigger_telemetry();
+	/* send board level control telemetry on startup */
+	trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
 	/* LOG */
 	// k_thread_dump_all();
@@ -104,15 +104,12 @@ int main(void)
 		timeout_ms = MIN(timeout_ms, pulse_remaining());
 #endif
 
-		/* set unready after processing,
-		 * as some functions called may trigger the signal
-		 * in order to request telemetry
-		 */
-		if (telemetry_requested() == false) {
+		k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
+
+		/* Clear the signal before application functions triggers it */
+		if (!telemetry_requested()) {
 			K_SIGNAL_SET_UNREADY(&caniot_process_sig);
 		}
-
-		k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
 
 #if CONFIG_WATCHDOG
 		/* I'm alive ! */
@@ -122,7 +119,7 @@ int main(void)
 #if CONFIG_GPIO_PULSE_SUPPORT
 		uint32_t now_ms = k_uptime_get_ms32();
 		if (pulse_process(now_ms - pulse_process_time) == true) {
-			trigger_telemetry();
+			trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 		}
 		pulse_process_time = now_ms;
 #endif

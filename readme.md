@@ -20,6 +20,10 @@ This firmware does not implement any specific device logic, but allow
 a gateway to control several types of devices, such as garage door, shutters,
 heaters and more through the CANIOT protocol.
 
+## Required features (TODO)
+
+- I2C bus discovery
+
 ## Boards
 
 Following boards are supported:

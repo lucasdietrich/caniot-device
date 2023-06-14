@@ -297,8 +297,8 @@ struct caniot_device device = {
 	.driv		= &drivers,
 	.flags =
 		{
-			.request_telemetry = 0u,
-			.initialized	   = 0u,
+			.request_telemetry_ep = 0u,
+			.initialized	      = 0u,
 		},
 };
 
@@ -376,12 +376,19 @@ uint32_t get_telemetry_timeout(void)
 
 bool telemetry_requested(void)
 {
-	return device.flags.request_telemetry == 1;
+	return caniot_device_triggered_telemetry_any(&device);
 }
 
-void trigger_telemetry(void)
+void trigger_telemetry(caniot_endpoint_t ep)
 {
-	device.flags.request_telemetry = 1;
+	caniot_device_trigger_telemetry_ep(&device, ep);
+
+	trigger_process();
+}
+
+void trigger_periodic_telemetry(void)
+{
+	caniot_device_trigger_periodic_telemetry(&device);
 
 	trigger_process();
 }

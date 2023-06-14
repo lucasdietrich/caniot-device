@@ -34,9 +34,11 @@ void print_indentification(void);
 
 uint32_t get_magic_number(void);
 
-bool telemetry_requested(void);
+void trigger_telemetry(caniot_endpoint_t endpoint);
 
-void trigger_telemetry(void);
+void trigger_periodic_telemetry(void);
+
+bool telemetry_requested(void);
 
 static inline struct k_thread *trigger_process(void)
 {

@@ -123,7 +123,7 @@ void bsp_init(void)
 	/* Board specific initialisation */
 #if defined(CONFIG_BOARD_V1)
 	bsp_v1_init();
-#elif defined(CONFIG_BOARD_TINY)
+#elif defined(CONFIG_BOARD_TINY_REVA)
 	bsp_tiny_init(EXTIO_DEVICE(0u));
 #endif
 }

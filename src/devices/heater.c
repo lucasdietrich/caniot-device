@@ -49,7 +49,12 @@ struct heater {
 	struct k_work work;
 #endif
 
-	heater_mode_t mode;
+	heater_mode_t mode: 3u;
+	/* 1: active, 0: inactive.
+	 * Only used for HEATER_MODE_CONFORT_MIN_1 and HEATER_MODE_CONFORT_MIN_2 modes
+	 */
+	uint8_t active: 1u; 
+
 };
 
 /* Heaters state */
@@ -93,15 +98,13 @@ void heater_ev_cb(struct k_event *ev)
 	const pin_descr_t neg = pin_descr_get(heater_index, HEATER_OC_NEG);
 
 	/* Get state of negative phase as reference  */
-	const bool to_activate = COMPLEMENT(heater_oc_is_active(neg));
+	const bool to_activate = COMPLEMENT(heater->active);
 
 	LOG_DBG("Heater idx=%u [%p] mode=%u to_activate=%u",
 		heater_index,
 		heater,
 		heater->mode,
 		to_activate);
-
-	bool z_reschedule = true;
 
 	/* Get next period */
 	uint32_t next_timeout_ms = 0u;
@@ -115,22 +118,20 @@ void heater_ev_cb(struct k_event *ev)
 					      : HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS;
 		break;
 	default:
-		/* We changed mode so we don't apply any change and
-		 * don't reschedule the event */
-		z_reschedule = false;
-		break;
+		/* We should never reach this point,
+		 * so we intentionally return from the callback
+		 */
+		return;
 	}
 
 	/* Schedule next phase */
-	if (z_reschedule) {
-		/* Apply new state */
-		const uint8_t active = to_activate ? GPIO_HIGH : GPIO_LOW;
-		heater_set_active(pos, active);
-		heater_set_active(neg, active);
+	const uint8_t active = to_activate ? GPIO_HIGH : GPIO_LOW;
+	heater->active	     = to_activate; /* Update state */
+	heater_set_active(pos, active);
+	heater_set_active(neg, active);
 
-		/* Reschedule the event */
-		k_event_schedule(ev, K_MSEC(next_timeout_ms));
-	}
+	/* Reschedule the event */
+	k_event_schedule(ev, K_MSEC(next_timeout_ms));
 }
 
 static void event_cb(struct k_event *ev)
@@ -185,6 +186,13 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 
 	const pin_descr_t pos = pin_descr_get(hid, HEATER_OC_POS);
 	const pin_descr_t neg = pin_descr_get(hid, HEATER_OC_NEG);
+	const bool mode_changed = (hs[hid].mode != mode);
+
+	/* If mode exits CONFORT MIN 1 or 2, cancel any pending event */
+	if (mode_changed && (mode != HEATER_MODE_CONFORT_MIN_1) &&
+	    (mode != HEATER_MODE_CONFORT_MIN_2)) {
+		k_event_cancel(&hs[hid].event);
+	}
 
 	switch (mode) {
 	case HEATER_MODE_CONFORT:
@@ -195,6 +203,12 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 	case HEATER_MODE_CONFORT_MIN_2:
 		/* Set mode immediately before event handler gets called */
 		hs[hid].mode = mode;
+
+		/* Set current phase to off, so that event handler will
+		 * activate OCs on first call.
+		 */
+		if (mode_changed)
+			hs[hid].active = 0u;
 
 		/* If event is already scheduled, it won't be sceduled again,
 		 * heater state will be properly applied on next iteration.

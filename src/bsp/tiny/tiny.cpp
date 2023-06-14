@@ -1,4 +1,4 @@
-#if defined(CONFIG_BOARD_TINY)
+#if defined(CONFIG_BOARD_TINY_REVA)
 
 #include "devices/pcf8574.h"
 #include "tiny.h"
@@ -49,19 +49,9 @@ void bsp_tiny_init(struct extio_device *dev)
 #if CONFIG_PCF8574_ENABLED
 	pcf8574_init(dev->addr);
 
-	/* Only initialize external IO once PCF8574 is initialized */
-
-	/* Comment all this */
-	// -bsp_descr_gpio_pin_init(BSP_EIO0, GPIO_OUTPUT, state);
-	// -bsp_descr_gpio_pin_init(BSP_EIO1, GPIO_OUTPUT, state);
-	// -bsp_descr_gpio_pin_init(BSP_EIO2, GPIO_OUTPUT, state);
-	// -bsp_descr_gpio_pin_init(BSP_EIO3, GPIO_OUTPUT, state);
-	// -bsp_descr_gpio_pin_init(BSP_EIO4, GPIO_OUTPUT, state);
-	// -bsp_descr_gpio_pin_init(BSP_EIO5, GPIO_OUTPUT, state);
-	// -bsp_descr_gpio_pin_init(BSP_EIO6, GPIO_OUTPUT, state);
-	// -bsp_descr_gpio_pin_init(BSP_EIO7, GPIO_OUTPUT, state);
-
-	/* Use this instead */
+	/* Only initialize external IO once PCF8574 is initialized.
+	 * Set all pins as outputs and set them to low state.
+	 */
 	bsp_extio_write(dev, 0xFFu, 0x00u);
 #endif
 }
@@ -125,4 +115,4 @@ uint8_t bsp_extio_read_pin_state(struct extio_device *dev, uint8_t pin)
 
 #endif /* CONFIG_PCF8574_ENABLED */
 
-#endif /* CONFIG_BOARD_TINY */
+#endif /* CONFIG_BOARD_TINY_REVA */

@@ -76,7 +76,7 @@ const struct caniot_device_config default_config PROGMEM = {
 			.telemetry_on_change = 0u,
 			.outputs_default     = 0u,
 		}
-#elif defined(CONFIG_BOARD_TINY)
+#elif defined(CONFIG_BOARD_TINY_REVA)
 	.cls1_gpio =
 		{
 			.pulse_durations     = {100u,  200u,  300u,  400u,  500u,
