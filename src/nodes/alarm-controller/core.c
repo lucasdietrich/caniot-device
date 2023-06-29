@@ -66,6 +66,6 @@ const struct caniot_device_config default_config PROGMEM = {
 			},
 		.outputs_default     = 0u,
 		.telemetry_on_change = BIT(OC1_IDX) | BIT(OC2_IDX) | BIT(RL1_IDX) |
-				       BIT(IN1_IDX) |
-				       BIT(IN4_IDX), /* OC1, OC2, RL1, IN1, IN4 */
+				       BIT(IN1_IDX) | BIT(IN2_IDX) | BIT(IN3_IDX) |
+				       BIT(IN4_IDX), /* OC1, OC2, RL1, IN1 -> IN4 */
 	}};
