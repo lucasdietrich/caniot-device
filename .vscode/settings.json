@@ -1,5 +1,10 @@
 {
-    "files.associations": {
+	"editor.indentSize": "tabSize",
+	"editor.tabSize": 8,
+	"editor.rulers": [
+		80
+	], 
+	"files.associations": {
 		"*.asm": "avr",
 		"io.h": "c",
 		"init.h": "c",
@@ -64,5 +69,4 @@
 		"logging.h": "c",
 		"mutex.h": "c"
 	},
-	"editor.rulers": [80]
 }

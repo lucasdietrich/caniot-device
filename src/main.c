@@ -69,6 +69,8 @@ int main(void)
 	config_init();
 	caniot_init();
 
+	shell_init();
+
 #if CONFIG_WATCHDOG
 	/* register the thread a critical, i.e. watchdog-protected thread */
 	const uint8_t tid = critical_thread_register();
@@ -127,7 +129,7 @@ int main(void)
 		/* Application specific processing before CANIOT process*/
 		app_process();
 
-#if CONFIG_USART_SHELL
+#if CONFIG_SHELL && !CONFIG_SHELL_WORKQ_OFFLOADED
 		shell_process();
 #endif
 

@@ -53,6 +53,7 @@ void can_init(void)
 		k_sleep(K_MSEC(500));
 	}
 
+#if CONFIG_CAN_SOFT_FILTERING == 0
 	const unsigned long mask	     = caniot_device_get_mask();
 	const unsigned long filter_self	     = caniot_device_get_filter(did);
 	const unsigned long filter_broadcast = caniot_device_get_filter_broadcast(did);
@@ -66,6 +67,10 @@ void can_init(void)
 	can.init_Filt(3u, CAN_STDID, filter_broadcast);
 	can.init_Filt(4u, CAN_STDID, filter_broadcast);
 	can.init_Filt(5u, CAN_STDID, filter_broadcast);
+#else
+	can.init_Mask(0u, CAN_EXTID, 0x0ul);
+	can.init_Mask(1u, CAN_EXTID, 0x0ul);
+#endif
 
 	CAN_CONTEXT_UNLOCK();
 }
@@ -87,25 +92,46 @@ int can_recv(can_message *msg)
 	__ASSERT_NOTNULL(msg);
 
 	int8_t rc;
+	uint8_t isext, rtr;
 
 	CAN_CONTEXT_LOCK();
 
-	if (can.checkReceive() == CAN_MSGAVAIL) {
-		uint8_t isext, rtr;
-		rc = can.readMsgBufID(can.readRxTxStatus(),
-				      (unsigned long *)&msg->id,
-				      &isext,
-				      &rtr,
-				      &msg->len,
-				      msg->buf);
-		if (rc == 0) {
-			msg->isext = isext ? CAN_EXTID : CAN_STDID;
-			msg->rtr   = rtr ? 1 : 0;
-		}
-	} else {
+	if (can.checkReceive() != CAN_MSGAVAIL) {
 		rc = -EAGAIN;
+		goto exit;
 	}
 
+	rc = can.readMsgBufID(can.readRxTxStatus(),
+			      (unsigned long *)&msg->id,
+			      &isext,
+			      &rtr,
+			      &msg->len,
+			      msg->buf);
+	if (rc != 0) {
+		LOG_ERR("CAN readMsgBufID failed err: %d", rc);
+		goto exit;
+	}
+
+	msg->isext = isext ? CAN_EXTID : CAN_STDID;
+	msg->rtr   = rtr ? 1 : 0;
+
+	LOG_DBG_RAW("CAN RX ext: %u rtr: %u id: %04x%04x: ",
+		    isext,
+		    rtr,
+		    (uint16_t)(msg->id >> 16u),
+		    (uint16_t)(msg->id & 0xFFFFu));
+	LOG_HEXDUMP_DBG(msg->buf, msg->len);
+
+#if CONFIG_CAN_SOFT_FILTERING
+	if (!caniot_device_targeted(did, msg->isext, msg->rtr, msg->id)) {
+		LOG_WRN("CAN drop can msg");
+		rc = -EAGAIN;
+	}
+#endif
+
+	/* Valid message directed to us */
+
+exit:
 	CAN_CONTEXT_UNLOCK();
 
 	return rc;

@@ -49,12 +49,11 @@ struct heater {
 	struct k_work work;
 #endif
 
-	heater_mode_t mode: 3u;
+	heater_mode_t mode : 3u;
 	/* 1: active, 0: inactive.
 	 * Only used for HEATER_MODE_CONFORT_MIN_1 and HEATER_MODE_CONFORT_MIN_2 modes
 	 */
-	uint8_t active: 1u; 
-
+	uint8_t active : 1u;
 };
 
 /* Heaters state */
@@ -184,8 +183,8 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 	}
 #endif
 
-	const pin_descr_t pos = pin_descr_get(hid, HEATER_OC_POS);
-	const pin_descr_t neg = pin_descr_get(hid, HEATER_OC_NEG);
+	const pin_descr_t pos	= pin_descr_get(hid, HEATER_OC_POS);
+	const pin_descr_t neg	= pin_descr_get(hid, HEATER_OC_NEG);
 	const bool mode_changed = (hs[hid].mode != mode);
 
 	/* If mode exits CONFORT MIN 1 or 2, cancel any pending event */

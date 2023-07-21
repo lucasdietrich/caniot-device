@@ -36,12 +36,12 @@ void get_time(uint32_t *sec, uint16_t *ms)
 		return;
 	}
 
-	const uint32_t uptime_ms = k_uptime_get_ms32();
+	uint64_t time_ms = k_time_get_ms();
 
-	*sec = uptime_ms / 1000U;
+	*sec = time_ms / 1000u;
 
 	if (ms != NULL) {
-		*ms = uptime_ms % 1000U;
+		*ms = time_ms % 1000u;
 	}
 }
 
@@ -382,13 +382,6 @@ bool telemetry_requested(void)
 void trigger_telemetry(caniot_endpoint_t ep)
 {
 	caniot_device_trigger_telemetry_ep(&device, ep);
-
-	trigger_process();
-}
-
-void trigger_periodic_telemetry(void)
-{
-	caniot_device_trigger_periodic_telemetry(&device);
 
 	trigger_process();
 }

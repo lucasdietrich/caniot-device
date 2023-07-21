@@ -176,6 +176,7 @@ struct pin {
 #define BSP_USART_TX_DESCR BSP_GPIO_DESCR_PD1
 #define BSP_USART_DEVICE   USART0_DEVICE
 #define BSP_USART	   BSP_USART_DEVICE
+#define BSP_USART_RX_vect  USART0_RX_vect
 
 /* Can interrupt */
 #define BSP_CAN_INT_DESCR      BSP_INT0_DESCR
