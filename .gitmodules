@@ -4,11 +4,11 @@
 	branch = master
 [submodule "lib/caniot-lib"]
 	path = lib/caniot-lib
-	url = git@github.com:lucasdietrich/caniot-lib.git
+	url = https://github.com/lucasdietrich/caniot-lib.git
 	branch = avr-can-tool-integration
 [submodule "lib/Seeed_Arduino_CAN"]
 	path = lib/Seeed_Arduino_CAN
 	url = https://github.com/Seeed-Studio/Seeed_Arduino_CAN
 [submodule "lib/OneWire"]
 	path = lib/OneWire
-	url = git@github.com:PaulStoffregen/OneWire.git
+	url = https://github.com/PaulStoffregen/OneWire.git

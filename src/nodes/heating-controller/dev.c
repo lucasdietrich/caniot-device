@@ -14,7 +14,7 @@
 #include <caniot/datatype.h>
 #include <caniot/device.h>
 #include <dev.h>
-#define LOG_LEVEL LOG_LEVEL_DBG
+#define LOG_LEVEL LOG_LEVEL_INF
 
 #define PHASE_CROSSING_COUNTER_ENABLED 1u
 

@@ -53,7 +53,7 @@
 		(BSP_DESCR_GPIO_PORT_GET_INDEX(BSP_RL1) == GPIOD_INDEX) ||               \
 		(BSP_DESCR_GPIO_PORT_GET_INDEX(BSP_RL2) == GPIOD_INDEX)
 
-extern "C" void trigger_telemetry(void);
+extern "C" void trigger_telemetry(caniot_endpoint_t ep);
 
 #if PCINT0_ISR_ENABLED
 ISR(PCINT0_vect)
