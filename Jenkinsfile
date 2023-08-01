@@ -6,6 +6,7 @@ pipeline {
     stages {
         stage('Versions') {
             steps {
+                sh 'echo $PATH'
                 // Print versions of tools
                 sh 'python3 --version'
                 sh 'pio --version'
