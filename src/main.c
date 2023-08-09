@@ -69,7 +69,9 @@ int main(void)
 	config_init();
 	caniot_init();
 
+#if CONFIG_SHELL
 	shell_init();
+#endif
 
 #if CONFIG_WATCHDOG
 	/* register the thread a critical, i.e. watchdog-protected thread */

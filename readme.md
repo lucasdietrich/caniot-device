@@ -181,6 +181,20 @@ version = c8
 | 13:14  | relays support      | 0: no, 1,2,3: max count       |
 | 15:16  | optocoupler support | 0: no, 1,2,3: max count       |
 
+## Devops
+
+Build docker image:
+
+    docker build -t devops/fedora-pio-toolchain -f scripts/Dockerfile .
+
+Run docker image:
+
+    docker run --entrypoint /bin/bash -it devops/fedora-pio-toolchain
+
+Run pio within the docker image:
+
+    docker run -it devops/fedora-pio-toolchain 
+
 ## Ressources (to cleanup)
 
 - https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
