@@ -11,6 +11,8 @@
 #include <avrtos/debug.h>
 #include <avrtos/drivers/usart.h>
 #include <avrtos/logging.h>
+
+#include <caniot/caniot.h>
 #define LOG_LEVEL LOG_LEVEL_INF
 
 #define SHELL_USART	    BSP_USART
@@ -48,6 +50,36 @@ void shell_init(void)
 {
 	ll_usart_enable_rx_isr(BSP_USART);
 }
+
+#if CONFIG_TEST_STRESS
+static void stress_thread_task(void *arg)
+{
+	/* Stop itself and wait for the stress test to be enabled */
+	k_stop();
+
+	LOG_INF("stress test starting ...");
+
+	for (;;) {
+		k_active_loop_wait(K_SECONDS(1));
+		LOG_INF("stress test running ...");
+	}
+}
+
+K_THREAD_DEFINE(stress_test_thread, stress_thread_task, 128, K_PREEMPTIVE, NULL, 's');
+
+void stress_test_toggle(void)
+{
+	static bool enabled = false;
+
+	enabled = !enabled;
+
+	if (enabled) {
+		k_thread_start(&stress_test_thread);
+	} else {
+		k_thread_stop(&stress_test_thread);
+	}
+}
+#endif
 
 void shell_process(void)
 {
@@ -90,6 +122,12 @@ void shell_process(void)
 		case 'k':
 			k_thread_dump_all();
 			break;
+#if CONFIG_TEST_STRESS
+		case 'l':
+		case 'L':
+			stress_test_toggle();
+			break;
+#endif
 		default:
 			break;
 		}

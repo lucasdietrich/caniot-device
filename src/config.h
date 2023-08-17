@@ -69,6 +69,10 @@
 #define CONFIG_SHELL_WORKQ_OFFLOADED 1u
 #endif
 
+#if !defined(CONFIG_TEST_STRESS)
+#define CONFIG_TEST_STRESS 0u
+#endif
+
 #if !defined(CONFIG_PCF8574)
 #define CONFIG_PCF8574 0u
 #endif

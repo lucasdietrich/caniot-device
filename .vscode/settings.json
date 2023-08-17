@@ -6,6 +6,9 @@
 	], 
 	"files.associations": {
 		"*.asm": "avr",
+		"*.bb": "shellscript",
+		"*.bbclass": "shellscript",
+		"*.inc": "shellscript",
 		"io.h": "c",
 		"init.h": "c",
 		"device.h": "c",
@@ -67,6 +70,10 @@
 		"exti.h": "c",
 		"timer.h": "c",
 		"logging.h": "c",
-		"mutex.h": "c"
+		"mutex.h": "c",
+		"settings.h": "c",
+		"shell.h": "c",
+		"caniot_private.h": "c",
+		"errors.h": "c"
 	},
 }

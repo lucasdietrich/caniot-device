@@ -66,7 +66,6 @@ int main(void)
 #endif
 	can_init();
 
-	config_init();
 	caniot_init();
 
 #if CONFIG_SHELL

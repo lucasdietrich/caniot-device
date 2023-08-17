@@ -7,11 +7,8 @@
 #include "devices/temp.h"
 #include "pulse.h"
 
-#include <time.h>
-
 #include <avrtos/avrtos.h>
 
-#include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
 #include <caniot/caniot.h>
@@ -47,13 +44,11 @@ int caniot_process(void);
 
 uint32_t get_telemetry_timeout(void);
 
-int config_on_read(struct caniot_device *dev, struct caniot_device_config *config);
+int settings_read(struct caniot_device *dev, struct caniot_device_config *config);
 
-int config_on_write(struct caniot_device *dev, struct caniot_device_config *config);
+int settings_write(struct caniot_device *dev, struct caniot_device_config *config);
 
-int config_restore_default(struct caniot_device *dev, struct caniot_device_config *cfg);
-
-void config_init(void);
+int settings_restore_default(struct caniot_device *dev, struct caniot_device_config *cfg);
 
 void caniot_init(void);
 

@@ -17,10 +17,12 @@ ISR(TIMER1_COMPA_vect)
 
 void app_init(void)
 {
-	struct timer_config cfg = {.mode      = TIMER_MODE_CTC,
-				   .prescaler = TIMER_PRESCALER_1024,
-				   .counter = TIMER_CALC_COUNTER_VALUE(1000000LU, 1024LU),
-				   .timsk   = BIT(OCIEnA)};
+	struct timer_config cfg = {
+		.mode	   = TIMER_MODE_CTC,
+		.prescaler = TIMER_PRESCALER_1024,
+		.counter   = TIMER_CALC_COUNTER_VALUE(1000000LU, 1024LU),
+		.timsk	   = BIT(OCIEnA),
+	};
 	ll_timer16_init(TIMER1_DEVICE, 1U, &cfg);
 }
 
@@ -60,9 +62,12 @@ const struct caniot_device_config default_config PROGMEM = {
 			.delay_min = CANIOT_TELEMETRY_DELAY_MIN_DEFAULT_MS,
 			.delay_max = CANIOT_TELEMETRY_DELAY_MAX_DEFAULT_MS,
 		},
-	.flags	  = {.error_response	  = 1u,
-		     .telemetry_delay_rdm = 1u,
-		     .telemetry_endpoint  = CANIOT_ENDPOINT_BOARD_CONTROL},
+	.flags =
+		{
+			.error_response	     = 1u,
+			.telemetry_delay_rdm = 1u,
+			.telemetry_endpoint  = CANIOT_ENDPOINT_BOARD_CONTROL,
+		},
 	.timezone = CANIOT_TIMEZONE_DEFAULT,
 	.location =
 		{
