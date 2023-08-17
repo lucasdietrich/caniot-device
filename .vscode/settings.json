@@ -74,6 +74,7 @@
 		"settings.h": "c",
 		"shell.h": "c",
 		"caniot_private.h": "c",
-		"errors.h": "c"
+		"errors.h": "c",
+		"sys.h": "c"
 	},
 }

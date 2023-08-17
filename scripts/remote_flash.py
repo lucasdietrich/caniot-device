@@ -5,22 +5,24 @@ HOSTNAME = "192.168.10.154"
 USER = "pi"
 PASSWORD = "pip23"
 
-project_name = "AlarmController" # RELEASE-AlarmController
+project_name = "AlarmController" # AlarmController, ProdAlarmController
+hex_name = f"{project_name}.hex"
+elf_name = f"{project_name}.elf"
 
 files = {
 	"hex":
 	{
-		"local": f"./.pio/build/{project_name}/firmware.hex",
-		"remote": f"binaries/{project_name}/firmware.hex"
+		"local": f"./.pio/build/{project_name}/{hex_name}",
+		"remote": f"binaries/{project_name}/{hex_name}"
 	},
 	"elf":
 	{
-		"local": f"./.pio/build/{project_name}/firmware.elf",
-		"remote": f"binaries/{project_name}/firmware.elf"
+		"local": f"./.pio/build/{project_name}/{elf_name}",
+		"remote": f"binaries/{project_name}/{elf_name}"
 	},
 }
 
-board = "ATMEGA328"
+board = "ATMEGA328P"
 port = "/dev/ttyACM0"
 
 # connection

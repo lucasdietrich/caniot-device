@@ -41,10 +41,10 @@ void get_time(uint32_t *sec, uint16_t *ms)
 
 	uint64_t time_ms = k_time_get_ms();
 
-	*sec = time_ms / 1000u;
+	*sec = time_ms / MSEC_PER_SEC;
 
 	if (ms != NULL) {
-		*ms = time_ms % 1000u;
+		*ms = time_ms % MSEC_PER_SEC;
 	}
 }
 
