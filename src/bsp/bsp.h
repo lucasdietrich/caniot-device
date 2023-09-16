@@ -12,6 +12,7 @@
 #include <avrtos/drivers/usart.h>
 
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 
 /*____________________________________________________________________________*/
 
@@ -216,6 +217,11 @@ extern "C" {
 __attribute__((naked, used, section(".init5"))) void bsp_early_init(void);
 
 /**
+ * @brief Pins supported by the board.
+ */
+extern const pin_descr_t bsp_pins[] PROGMEM;
+
+/**
  * @brief Initialization of the reset of the hardware, in main when RTOS is running.
  */
 void bsp_init(void);
@@ -341,6 +347,12 @@ uint8_t bsp_descr_gpio_input_read(pin_descr_t descr);
  */
 void bsp_descr_gpio_set_direction(pin_descr_t descr, uint8_t direction);
 
+/**
+ * @brief Enable or disable PCI for a pin descriptor.
+ *
+ * @param descr
+ * @param state
+ */
 void bsp_pin_pci_set_enabled(uint8_t descr, uint8_t state);
 
 #ifdef __cplusplus

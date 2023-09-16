@@ -1,4 +1,5 @@
 #include "bsp/bsp.h"
+#include "class/class.h"
 #include "devices/shutter.h"
 
 #include <stdio.h>
@@ -12,6 +13,7 @@
 #include <caniot/datatype.h>
 #include <caniot/device.h>
 #include <dev.h>
+
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #define SHUTTER_POWER_DESCR BSP_PB0

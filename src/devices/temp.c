@@ -83,3 +83,15 @@ int16_t temp_read(temp_sens_t sensor)
 
 	return temp;
 }
+
+uint16_t get_t10_temperature(temp_sens_t sens)
+{
+	uint16_t temp10 = CANIOT_DT_T10_INVALID;
+
+	const int16_t temp16 = temp_read(sens);
+	if (temp16 != CANIOT_DT_T16_INVALID) {
+		temp10 = caniot_dt_T16_to_T10(temp16);
+	}
+
+	return temp10;
+}

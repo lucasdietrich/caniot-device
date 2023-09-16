@@ -1,4 +1,4 @@
-# CAN-IoT device (v2)
+ # CAN-IoT device (v2)
 
 **Disclaimer: This is a still work in progress personal project. I'm having fun
 reinventing the wheel.**
@@ -23,35 +23,27 @@ heaters and more through the CANIOT protocol.
 ## Required features (TODO)
 
 - I2C bus discovery
+- Jitter detection
 
 ## Boards
 
 Following boards are supported:
 
-| Board                                                    | MCU           | Controllable pins | Devices/Drivers support           | CANIOT Class |
-| -------------------------------------------------------- | ------------- | ----------------- | --------------------------------- | ------------ |
-| V1                                                       | ATmega328P(B) | 8                 | TCN75<br>DS18S20                  | CLASS0       |
-| Tiny rev A - [schematic](./res/tiny_rev_A_schematic.pdf) | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
-| Tiny rev B                                               | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
+- V1 ([documentation](./docs/bsp-v1.md)): First prototype (used for garage door controller and outdoor alarm controller)
+- Tiny ([documentation](./docs/bsp-tiny.md)): Second prototype (used for heating controller and shutters controller)
 
+| Board                                                  | MCU           | Controllable pins | Devices/Drivers support           | CANIOT Class |
+| ------------------------------------------------------ | ------------- | ----------------- | --------------------------------- | ------------ |
+| V1                                                     | ATmega328P(B) | 8                 | TCN75<br>DS18S20                  | CLASS0       |
+| Tiny rev A [schematic](./res/tiny_rev_A_schematic.pdf) | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
+| Tiny rev B                                             | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
 
-## Tiny
+## Applications:
 
-Most important part of the work related to schematic, PCB drawing and board 
-assembly was made by my father.
-
-The schematic is freely available here: [tiny_rev_A_schematic.pdf](./res/tiny_rev_A_schematic.pdf).
-If you are interested in the board, feel free to contact me. EasyEDA was used as CAD tool.
-
-![](./pics/tiny_rev_A_sch_arduino.png)
-![](./pics/tiny_rev_A_sch_power_can.png)
-
-![](./pics/tiny_rev_A_board_top_illus.png)
-![](./pics/tiny_rev_A_board_bot_illus.png)
-
-## V1
-
-- Documentation TODO
+- [Garage Door Controller](./docs/app-garage.md)
+- [Outdoor Alarm Controller](./docs/app-outdoor-alarm.md)
+- [Heating Controller](./docs/app-heaters.md)
+- [Shutters Controller](./docs/app-shutters.md)
 
 ## All features
 
@@ -72,6 +64,7 @@ If you are interested in the board, feel free to contact me. EasyEDA was used as
   - GPIO Pulse support
   - Heaters
   - Shutters
+  - Grid power presence detection
 
 ## Project structure
 
@@ -119,11 +112,11 @@ Exit screen with shortcuts : `Ctrl + A` and `Ctrl + \` meaning (AltGr + 8), then
 ## Devices
 
 - Garage Door Controller
-- Alarm Controller
+- Outdoor Alarm Controller
 - Heating Controller	
 - Shutters Controller
 
-## Expected result with Alarm Controller (outdated) 
+## Expected result with Outdoor Alarm Controller (outdated) 
 
 Logs
 ```

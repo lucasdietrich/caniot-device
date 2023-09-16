@@ -1,4 +1,5 @@
 #include "bsp/bsp.h"
+#include "class/class.h"
 
 #include <stdio.h>
 
@@ -6,7 +7,6 @@
 
 #include <avr/pgmspace.h>
 #include <caniot/caniot.h>
-#include <caniot/classes/class0.h>
 #include <caniot/datatype.h>
 #include <caniot/device.h>
 #include <dev.h>
@@ -57,15 +57,18 @@ const struct caniot_device_config default_config PROGMEM = {
 			.region	 = CANIOT_LOCATION_REGION_DEFAULT,
 			.country = CANIOT_LOCATION_COUNTRY_DEFAULT,
 		},
-	.cls0_gpio = {
-		.pulse_durations =
-			{
-				[OUTDOOR_LIGHT_1] = 30000u,
-				[OUTDOOR_LIGHT_2] = 30000u,
-				[SIREN]		  = 20000u,
-			},
-		.outputs_default     = 0u,
-		.telemetry_on_change = BIT(OC1_IDX) | BIT(OC2_IDX) | BIT(RL1_IDX) |
-				       BIT(IN1_IDX) | BIT(IN2_IDX) | BIT(IN3_IDX) |
-				       BIT(IN4_IDX), /* OC1, OC2, RL1, IN1 -> IN4 */
-	}};
+	.cls0_gpio =
+		{
+			.pulse_durations =
+				{
+					[OUTDOOR_LIGHT_1] = 30000u,
+					[OUTDOOR_LIGHT_2] = 30000u,
+					[SIREN]		  = 20000u,
+				},
+			.outputs_default = 0u,
+			.telemetry_on_change =
+				BIT(OC1_IDX) | BIT(OC2_IDX) | BIT(RL1_IDX) |
+				BIT(IN1_IDX) | BIT(IN2_IDX) | BIT(IN3_IDX) |
+				BIT(IN4_IDX), /* OC1, OC2, RL1, IN1 -> IN4 */
+		},
+};

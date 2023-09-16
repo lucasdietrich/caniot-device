@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef _CUSTOMPCB_PULSE_H_
-#define _CUSTOMPCB_PULSE_H_
+#ifndef _GPIO_PULSE_H_
+#define _GPIO_PULSE_H_
 
 #include "bsp/bsp.h"
 
@@ -84,4 +84,4 @@ bool pulse_process(uint32_t time_passed_ms);
  */
 uint32_t pulse_remaining(void);
 
-#endif /* _CUSTOMPCB_PULSE_H_ */
+#endif /* _GPIO_PULSE_H_ */

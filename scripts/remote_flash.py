@@ -5,7 +5,7 @@ HOSTNAME = "192.168.10.154"
 USER = "pi"
 PASSWORD = "pip23"
 
-project_name = "AlarmController" # AlarmController, ProdAlarmController
+project_name = "ProdOutdoorAlarmController" # OutdoorAlarmController, ProdOutdoorAlarmController
 hex_name = f"{project_name}.hex"
 elf_name = f"{project_name}.elf"
 

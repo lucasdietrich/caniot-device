@@ -1,4 +1,5 @@
 #include "bsp/bsp.h"
+#include "class/class.h"
 
 #include <stdio.h>
 
@@ -6,7 +7,6 @@
 
 #include <avr/pgmspace.h>
 #include <caniot/caniot.h>
-#include <caniot/classes/class0.h>
 #include <caniot/datatype.h>
 #include <caniot/device.h>
 #include <dev.h>

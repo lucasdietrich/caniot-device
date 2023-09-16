@@ -209,14 +209,9 @@ static void work_cb(struct k_work *work)
 int shutter_set_openness(uint8_t s, uint8_t openness)
 {
 #if CONFIG_CHECKS
-	if (s >= CONFIG_SHUTTERS_COUNT)
-		return -EINVAL;
-
-	if (openness > 100u)
-		return -EINVAL;
-
-	if (flags & FLAG_SHUTTER(s))
-		return -EBUSY;
+	if (s >= CONFIG_SHUTTERS_COUNT) return -EINVAL;
+	if (openness > 100u) return -EINVAL;
+	if (flags & FLAG_SHUTTER(s)) return -EBUSY;
 #endif
 
 	struct shutter *const shutter = &shutters[s];
@@ -235,8 +230,7 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 		int8_t rel = openness - shutter->openness;
 
 		/* If no change, do nothing */
-		if (rel == 0)
-			return 0;
+		if (rel == 0) return 0;
 
 		if (rel > 0) {
 			state = SHUTTER_STATE_OPENNING;
@@ -248,8 +242,7 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 		}
 
 		/* Prevent too short durations */
-		if (rel < SHUTTER_MINIMAL_OPENNESS_DIFF_PERCENT)
-			return -ENOTSUP;
+		if (rel < SHUTTER_MINIMAL_OPENNESS_DIFF_PERCENT) return -ENOTSUP;
 
 		duration = (SHUTTER_OPENNING_DURATION_MS / 100) * rel;
 	}
@@ -288,8 +281,7 @@ int shutter_set_openness(uint8_t s, uint8_t openness)
 int shutter_get_openness(uint8_t s)
 {
 #if CONFIG_CHECKS
-	if (s >= CONFIG_SHUTTERS_COUNT)
-		return -EINVAL;
+	if (s >= CONFIG_SHUTTERS_COUNT) return -EINVAL;
 #endif
 
 	return shutters[s].openness;

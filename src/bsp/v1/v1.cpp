@@ -83,13 +83,24 @@ ISR(PCINT1_vect)
 ISR(PCINT2_vect)
 {
 #if DEBUG_INT
-	serial_transmit('%');
+	serial_transmit('=');
 #endif
 	trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
 	/* TODO add k_yield_from_isr() */
 }
 #endif
+
+const pin_descr_t bsp_pins[] PROGMEM = {
+	BSP_OC1,
+	BSP_OC2,
+	BSP_RL1,
+	BSP_RL2,
+	BSP_IN1,
+	BSP_IN2,
+	BSP_IN3,
+	BSP_IN4,
+};
 
 void bsp_v1_init(void)
 {

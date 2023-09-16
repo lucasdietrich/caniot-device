@@ -48,7 +48,7 @@
 		"ow_ds_drv.h": "c",
 		"ow_ds_meas.h": "c",
 		"temp.h": "c",
-		"pulse.h": "c",
+		"gpio_pulse.h": "c",
 		"sleep.h": "c",
 		"heater.h": "c",
 		"gpio.h": "c",
@@ -75,6 +75,8 @@
 		"shell.h": "c",
 		"caniot_private.h": "c",
 		"errors.h": "c",
-		"sys.h": "c"
+		"sys.h": "c",
+		"gpio_xps.h": "c",
+		"classes.h": "c"
 	},
 }

@@ -60,7 +60,7 @@ static void stress_thread_task(void *arg)
 	LOG_INF("stress test starting ...");
 
 	for (;;) {
-		k_active_loop_wait(K_SECONDS(1));
+		k_wait(K_SECONDS(1), K_WAIT_MODE_ACTIVE);
 		LOG_INF("stress test running ...");
 	}
 }
@@ -123,8 +123,8 @@ void shell_process(void)
 			k_thread_dump_all();
 			break;
 #if CONFIG_TEST_STRESS
-		case 'l':
 		case 'L':
+		case 'l':
 			stress_test_toggle();
 			break;
 #endif

@@ -8,29 +8,59 @@
 #if CONFIG_PCF8574_ENABLED
 
 #include <avrtos/logging.h>
+
+#if defined(CONFIG_PCF8574_LOG_LEVEL)
+#define LOG_LEVEL CONFIG_PCF8574_LOG_LEVEL
+#else
 #define LOG_LEVEL LOG_LEVEL_NONE
+#endif
 
-void pcf8574_init(uint8_t i2c_addr)
+void pcf8574_init(struct pcf8574_state *pcf, uint8_t i2c_addr)
 {
+	pcf->i2c_address = i2c_addr;
+#if CONFIG_PCF8574_BUFFERED_READ
+	pcf->read_buffer_valid = 0u;
+#endif
+#if CONFIG_PCF8574_BUFFERED_WRITE
+	pcf->write_buffer = 0u;
+#endif
 }
 
-void pcf8574_set(uint8_t i2c_addr, uint8_t value)
+void pcf8574_set(struct pcf8574_state *pcf, uint8_t value)
 {
-	Wire.beginTransmission(i2c_addr);
-	size_t w   = Wire.write(value);
-	uint8_t et = Wire.endTransmission();
+#if CONFIG_PCF8574_BUFFERED_WRITE
+	if (pcf->write_buffer == value) return;
+#endif
 
-	LOG_DBG("PCF8574 val=%u w=%u et=%u", value, w, et);
+	Wire.beginTransmission(pcf->i2c_address);
+	size_t w = Wire.write(value);
+	Wire.endTransmission();
+
+	LOG_DBG("PCF8574 I2C w x%02x ok: %u", value, w);
+
+#if CONFIG_PCF8574_BUFFERED_WRITE
+	if (w != 0) pcf->write_buffer = value;
+#endif
 }
 
-uint8_t pcf8574_get(uint8_t i2c_addr)
+uint8_t pcf8574_get(struct pcf8574_state *pcf)
 {
-	uint8_t value = 0;
-	Wire.requestFrom((int)i2c_addr, 1u, true);
+#if CONFIG_PCF8574_BUFFERED_READ
+	if (pcf->read_buffer_valid) return pcf->read_buffer;
+#endif
+
+	uint8_t value = 0u;
+	Wire.requestFrom((int)pcf->i2c_address, 1u, true);
 	if (Wire.available() == 1) {
 		value = Wire.read();
-		LOG_DBG("PCF8574 val=%u", value);
+		LOG_DBG("PCF8574 I2C r x%02x ok", value);
 	}
+
+#if CONFIG_PCF8574_BUFFERED_READ
+	pcf->read_buffer       = value;
+	pcf->read_buffer_valid = 1u;
+#endif
+
 	return value;
 }
 

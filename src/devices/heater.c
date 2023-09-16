@@ -25,16 +25,16 @@
 #error "Heaters controller needs CONFIG_SYSTEM_WORKQUEUE_ENABLE to be set"
 #endif
 
-#define HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS (3 * MSEC_PER_SEC)
-#define HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS (7 * MSEC_PER_SEC)
-#define HEATER_CONFORT_MIN_PERIOD_MS		(300 * MSEC_PER_SEC)
-// #define HEATER_CONFORT_MIN_PERIOD_MS			(20*MSEC_PER_SEC) // For testing
+#define HEATER_COMFORT_MIN_1_ACTIVE_DURATION_MS (3 * MSEC_PER_SEC)
+#define HEATER_COMFORT_MIN_2_ACTIVE_DURATION_MS (7 * MSEC_PER_SEC)
+#define HEATER_COMFORT_MIN_PERIOD_MS		(300 * MSEC_PER_SEC)
+// #define HEATER_COMFORT_MIN_PERIOD_MS			(20*MSEC_PER_SEC) // For testing
 // only
 
-#define HEATER_CONFORT_MIN_1_INACTIVE_DURATION_MS                                        \
-	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS)
-#define HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS                                        \
-	(HEATER_CONFORT_MIN_PERIOD_MS - HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS)
+#define HEATER_COMFORT_MIN_1_INACTIVE_DURATION_MS                                        \
+	(HEATER_COMFORT_MIN_PERIOD_MS - HEATER_COMFORT_MIN_1_ACTIVE_DURATION_MS)
+#define HEATER_COMFORT_MIN_2_INACTIVE_DURATION_MS                                        \
+	(HEATER_COMFORT_MIN_PERIOD_MS - HEATER_COMFORT_MIN_2_ACTIVE_DURATION_MS)
 
 struct heater {
 	/* Event used to schedule the next state change
@@ -51,7 +51,7 @@ struct heater {
 
 	heater_mode_t mode : 3u;
 	/* 1: active, 0: inactive.
-	 * Only used for HEATER_MODE_CONFORT_MIN_1 and HEATER_MODE_CONFORT_MIN_2 modes
+	 * Only used for HEATER_MODE_COMFORT_MIN_1 and HEATER_MODE_COMFORT_MIN_2 modes
 	 */
 	uint8_t active : 1u;
 };
@@ -108,13 +108,13 @@ void heater_ev_cb(struct k_event *ev)
 	/* Get next period */
 	uint32_t next_timeout_ms = 0u;
 	switch (heater->mode) {
-	case HEATER_MODE_CONFORT_MIN_1:
-		next_timeout_ms = to_activate ? HEATER_CONFORT_MIN_1_ACTIVE_DURATION_MS
-					      : HEATER_CONFORT_MIN_1_INACTIVE_DURATION_MS;
+	case HEATER_MODE_COMFORT_MIN_1:
+		next_timeout_ms = to_activate ? HEATER_COMFORT_MIN_1_ACTIVE_DURATION_MS
+					      : HEATER_COMFORT_MIN_1_INACTIVE_DURATION_MS;
 		break;
-	case HEATER_MODE_CONFORT_MIN_2:
-		next_timeout_ms = to_activate ? HEATER_CONFORT_MIN_2_ACTIVE_DURATION_MS
-					      : HEATER_CONFORT_MIN_2_INACTIVE_DURATION_MS;
+	case HEATER_MODE_COMFORT_MIN_2:
+		next_timeout_ms = to_activate ? HEATER_COMFORT_MIN_2_ACTIVE_DURATION_MS
+					      : HEATER_COMFORT_MIN_2_INACTIVE_DURATION_MS;
 		break;
 	default:
 		/* We should never reach this point,
@@ -187,27 +187,26 @@ int heater_set_mode(uint8_t hid, heater_mode_t mode)
 	const pin_descr_t neg	= pin_descr_get(hid, HEATER_OC_NEG);
 	const bool mode_changed = (hs[hid].mode != mode);
 
-	/* If mode exits CONFORT MIN 1 or 2, cancel any pending event */
-	if (mode_changed && (mode != HEATER_MODE_CONFORT_MIN_1) &&
-	    (mode != HEATER_MODE_CONFORT_MIN_2)) {
+	/* If mode exits COMFORT MIN 1 or 2, cancel any pending event */
+	if (mode_changed && (mode != HEATER_MODE_COMFORT_MIN_1) &&
+	    (mode != HEATER_MODE_COMFORT_MIN_2)) {
 		k_event_cancel(&hs[hid].event);
 	}
 
 	switch (mode) {
-	case HEATER_MODE_CONFORT:
+	case HEATER_MODE_COMFORT:
 		heater_deactivate_oc(pos);
 		heater_deactivate_oc(neg);
 		break;
-	case HEATER_MODE_CONFORT_MIN_1:
-	case HEATER_MODE_CONFORT_MIN_2:
+	case HEATER_MODE_COMFORT_MIN_1:
+	case HEATER_MODE_COMFORT_MIN_2:
 		/* Set mode immediately before event handler gets called */
 		hs[hid].mode = mode;
 
 		/* Set current phase to off, so that event handler will
 		 * activate OCs on first call.
 		 */
-		if (mode_changed)
-			hs[hid].active = 0u;
+		if (mode_changed) hs[hid].active = 0u;
 
 		/* If event is already scheduled, it won't be sceduled again,
 		 * heater state will be properly applied on next iteration.

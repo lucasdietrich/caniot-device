@@ -14,4 +14,6 @@ void temp_start(void);
 
 int16_t temp_read(temp_sens_t sensor);
 
+uint16_t get_t10_temperature(temp_sens_t sens);
+
 #endif /* _TEMP_MGMT_H_ */

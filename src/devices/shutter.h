@@ -2,7 +2,6 @@
 #define _BOARD_SHUTTER_H_
 
 #include "bsp/bsp.h"
-#include "devices/gpio.h"
 
 #include <avrtos/avrtos.h>
 #include <avrtos/drivers/gpio.h>

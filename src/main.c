@@ -2,8 +2,8 @@
 #include "can.h"
 #include "config.h"
 #include "dev.h"
+#include "devices/gpio_pulse.h"
 #include "devices/temp.h"
-#include "pulse.h"
 #include "shell.h"
 #include "watchdog.h"
 
@@ -19,13 +19,9 @@
 #include <avr/sleep.h>
 #include <avr/wdt.h>
 #include <caniot/device.h>
-#if defined(CONFIG_MAIN_LOG_LEVEL)
-#define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
-#else
-#define LOG_LEVEL LOG_LEVEL_NONE
-#endif
 
-#define K_MODULE K_MODULE_APPLICATION
+#define LOG_LEVEL CONFIG_MAIN_LOG_LEVEL
+#define K_MODULE  K_MODULE_APPLICATION
 
 __attribute__((weak)) void app_init(void)
 {

@@ -12,11 +12,7 @@
 #include <caniot/caniot.h>
 #include <caniot/device.h>
 
-#if defined(CONFIG_DEV_LOG_LEVEL)
 #define LOG_LEVEL CONFIG_DEV_LOG_LEVEL
-#else
-#define LOG_LEVEL LOG_LEVEL_NONE
-#endif
 
 #define SETTINGS_BLOCK_SIZE sizeof(struct caniot_device_config)
 

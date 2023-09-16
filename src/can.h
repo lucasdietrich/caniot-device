@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+#define CONFIG_CAN_THREAD_STACK_SIZE 110u
+
 typedef struct {
 	union {
 		uint32_t std : 11;

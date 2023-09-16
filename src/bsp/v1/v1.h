@@ -22,6 +22,10 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Initialize V1 board BSP
+ *
+ */
 void bsp_v1_init(void);
 
 #ifdef __cplusplus

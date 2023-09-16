@@ -1,8 +1,6 @@
 #ifndef _BOARD_HEATER_H_
 #define _BOARD_HEATER_H_
 
-#include "devices/gpio.h"
-
 #include <avrtos/avrtos.h>
 #include <avrtos/drivers/gpio.h>
 
@@ -20,21 +18,21 @@ typedef enum {
 	/**
 	 * @brief Comfort mode: Pilot wire, no signal.
 	 */
-	HEATER_MODE_CONFORT = 0u,
+	HEATER_MODE_COMFORT = 0u,
 
 	/**
 	 * @brief Comfort mode minus 1 °C.
 	 * Pilot wire, complete 3 seconds high per period of 300 seconds.
 	 * No signal rest of period.
 	 */
-	HEATER_MODE_CONFORT_MIN_1, /* Confort mode minus 1 °C */
+	HEATER_MODE_COMFORT_MIN_1, /* Confort mode minus 1 °C */
 
 	/**
 	 * @brief Comfort mode minus 2 °C.
 	 * Pilot wire, complete 7 seconds high per period of 300 seconds.
 	 * No signal rest of period.
 	 */
-	HEATER_MODE_CONFORT_MIN_2, /* Confort mode minus 2 °C */
+	HEATER_MODE_COMFORT_MIN_2, /* Confort mode minus 2 °C */
 
 	/**
 	 * @brief  Energy saving mode.

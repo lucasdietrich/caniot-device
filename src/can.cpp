@@ -1,17 +1,13 @@
 #include "can.h"
+#include "dev.h"
 
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
 #include <mcp2515_can.h>
 #include <mcp2515_can_dfs.h>
-#if defined(CONFIG_CAN_LOG_LEVEL)
-#define LOG_LEVEL CONFIG_CAN_LOG_LEVEL
-#else
-#define LOG_LEVEL LOG_LEVEL_NONE
-#endif
 
-#include "dev.h"
+#define LOG_LEVEL CONFIG_CAN_LOG_LEVEL
 
 #define K_MODULE_CAN 0x21
 #define K_MODULE     K_MODULE_CAN

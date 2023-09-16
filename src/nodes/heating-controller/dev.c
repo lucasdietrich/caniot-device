@@ -1,4 +1,5 @@
 #include "bsp/bsp.h"
+#include "class/class.h"
 #include "devices/heater.h"
 #include "devices/shutter.h"
 #include "pcc.h"
@@ -14,6 +15,7 @@
 #include <caniot/datatype.h>
 #include <caniot/device.h>
 #include <dev.h>
+
 #define LOG_LEVEL LOG_LEVEL_INF
 
 #define PHASE_CROSSING_COUNTER_ENABLED 1u

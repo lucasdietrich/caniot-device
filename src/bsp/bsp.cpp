@@ -1,5 +1,6 @@
 #include "bsp.h"
 #include "bsp/tiny/tiny.h"
+#include "bsp/v1/v1.h"
 #include "config.h"
 #include "devices/ow_ds_drv.h"
 #include "devices/tcn75.h"
@@ -17,6 +18,7 @@
 #include <avr/pgmspace.h>
 #include <caniot/datatype.h>
 #include <mcp_can.h>
+
 #if defined(CONFIG_BOARD_LOG_LEVEL)
 #define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 #else
@@ -108,7 +110,7 @@ void bsp_init(void)
 	tcn75_init();
 #endif
 
-	/* configure CAN interrupt on falling on INT0 */
+	/* configure CAN interrupt on falling */
 	bsp_descr_gpio_pin_init(BSP_CAN_INT_DESCR, GPIO_INPUT, GPIO_INPUT_PULLUP);
 
 	exti_clear_flag(BSP_CAN_INT);

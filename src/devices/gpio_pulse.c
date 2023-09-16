@@ -1,7 +1,7 @@
 #if CONFIG_GPIO_PULSE_SUPPORT
 
 #include "bsp/bsp.h"
-#include "pulse.h"
+#include "devices/gpio_pulse.h"
 
 #include <stdbool.h>
 

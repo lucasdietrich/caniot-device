@@ -1,14 +1,14 @@
 #include "class.h"
 #include "dev.h"
+#include "devices/gpio_pulse.h"
+#include "devices/gpio_xps.h"
 #include "devices/temp.h"
-#include "pulse.h"
 
 #include <stdint.h>
 
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
-#include <caniot/classes/class0.h>
 #define LOG_LEVEL LOG_LEVEL_DBG
 
 #if defined(CONFIG_CLASS0_ENABLED)
@@ -26,68 +26,61 @@ static struct xps_context xps_ctx[4u] = {
 	[RL1_IDX] = XPS_CONTEXT_INIT(BSP_RL1, GPIO_LOW),
 	[RL2_IDX] = XPS_CONTEXT_INIT(BSP_RL2, GPIO_LOW),
 };
-
-#elif defined(CONFIG_BOARD_V2)
-
-static struct xps_context xps_ctx[] = {
-
-};
-
 #endif
 
 int class0_blc_telemetry_handler(struct caniot_device *dev,
 				 unsigned char *buf,
 				 uint8_t *len)
 {
-	struct caniot_blc0_telemetry *const data = AS_BLC0_TELEMETRY(buf);
+	struct caniot_blc0_telemetry data = {0};
 
-	data->dio |= bsp_descr_gpio_input_read(BSP_OC1) << OC1_IDX;
-	data->dio |= bsp_descr_gpio_input_read(BSP_OC2) << OC2_IDX;
-	data->dio |= bsp_descr_gpio_input_read(BSP_RL1) << RL1_IDX;
-	data->dio |= bsp_descr_gpio_input_read(BSP_RL2) << RL2_IDX;
-	data->dio |= bsp_descr_gpio_input_read(BSP_IN1) << IN1_IDX;
-	data->dio |= bsp_descr_gpio_input_read(BSP_IN2) << IN2_IDX;
-	data->dio |= bsp_descr_gpio_input_read(BSP_IN3) << IN3_IDX;
-	data->dio |= bsp_descr_gpio_input_read(BSP_IN4) << IN4_IDX;
+	data.dio |= bsp_descr_gpio_input_read(BSP_OC1) << OC1_IDX;
+	data.dio |= bsp_descr_gpio_input_read(BSP_OC2) << OC2_IDX;
+	data.dio |= bsp_descr_gpio_input_read(BSP_RL1) << RL1_IDX;
+	data.dio |= bsp_descr_gpio_input_read(BSP_RL2) << RL2_IDX;
+	data.dio |= bsp_descr_gpio_input_read(BSP_IN1) << IN1_IDX;
+	data.dio |= bsp_descr_gpio_input_read(BSP_IN2) << IN2_IDX;
+	data.dio |= bsp_descr_gpio_input_read(BSP_IN3) << IN3_IDX;
+	data.dio |= bsp_descr_gpio_input_read(BSP_IN4) << IN4_IDX;
 
 #if CONFIG_GPIO_PULSE_SUPPORT
-	data->pdio |= pulse_is_active(xps_ctx[OC1_IDX].pev);
-	data->pdio |= pulse_is_active(xps_ctx[OC2_IDX].pev);
-	data->pdio |= pulse_is_active(xps_ctx[RL1_IDX].pev);
-	data->pdio |= pulse_is_active(xps_ctx[RL2_IDX].pev);
+	data.pdio |= pulse_is_active(xps_ctx[OC1_IDX].pev);
+	data.pdio |= pulse_is_active(xps_ctx[OC2_IDX].pev);
+	data.pdio |= pulse_is_active(xps_ctx[RL1_IDX].pev);
+	data.pdio |= pulse_is_active(xps_ctx[RL2_IDX].pev);
 #endif
 
 #if CONFIG_CANIOT_FAKE_TEMPERATURE
-	data->ext_temperature = caniot_fake_get_temp(dev);
-	data->int_temperature = caniot_fake_get_temp(dev);
+	data.ext_temperature = caniot_fake_get_temp(dev);
+	data.int_temperature = caniot_fake_get_temp(dev);
 #else
-	data->int_temperature  = get_t10_temperature(TEMP_SENS_INT);
-	data->ext_temperature  = get_t10_temperature(TEMP_SENS_EXT_1);
-	data->ext_temperature2 = get_t10_temperature(TEMP_SENS_EXT_2);
-	data->ext_temperature3 = get_t10_temperature(TEMP_SENS_EXT_3);
+	data.int_temperature  = get_t10_temperature(TEMP_SENS_INT);
+	data.ext_temperature  = get_t10_temperature(TEMP_SENS_EXT_1);
+	data.ext_temperature2 = get_t10_temperature(TEMP_SENS_EXT_2);
+	data.ext_temperature3 = get_t10_temperature(TEMP_SENS_EXT_3);
 #endif
 
-	*len = 8U;
-
-	return 0;
+	return caniot_blc0_telemetry_ser(&data, buf, len);
 }
 
 int class0_blc_command_handler(struct caniot_device *dev,
 			       const unsigned char *buf,
 			       uint8_t len)
 {
-	struct caniot_blc_command *const cmd   = AS_BLC_COMMAND(buf);
+	struct caniot_blc_sys_command sys_cmd  = {0};
+	struct caniot_blc0_command cmd	       = {0};
 	struct caniot_class0_config *const cfg = &dev->config->cls0_gpio;
 
-	command_xps(&xps_ctx[OC1_IDX], cmd->blc0.coc1, cfg->pulse_durations[OC1_IDX]);
+	/* Interpret */
+	caniot_blc0_command_get(&cmd, buf, len);
+	if (len == 8u) caniot_blc_sys_command_from_byte(&sys_cmd, buf[7u]);
 
-	command_xps(&xps_ctx[OC2_IDX], cmd->blc0.coc2, cfg->pulse_durations[OC2_IDX]);
+	command_xps(&xps_ctx[OC1_IDX], cmd.coc1, cfg->pulse_durations[OC1_IDX]);
+	command_xps(&xps_ctx[OC2_IDX], cmd.coc2, cfg->pulse_durations[OC2_IDX]);
+	command_xps(&xps_ctx[RL1_IDX], cmd.crl1, cfg->pulse_durations[RL1_IDX]);
+	command_xps(&xps_ctx[RL2_IDX], cmd.crl2, cfg->pulse_durations[RL2_IDX]);
 
-	command_xps(&xps_ctx[RL1_IDX], cmd->blc0.crl1, cfg->pulse_durations[RL1_IDX]);
-
-	command_xps(&xps_ctx[RL2_IDX], cmd->blc0.crl2, cfg->pulse_durations[RL2_IDX]);
-
-	return dev_apply_blc_sys_command(dev, &cmd->sys);
+	return dev_apply_blc_sys_command(dev, &sys_cmd);
 }
 
 int class0_config_apply(struct caniot_device *dev, struct caniot_device_config *config)
