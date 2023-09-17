@@ -24,6 +24,8 @@ heaters and more through the CANIOT protocol.
 
 - I2C bus discovery
 - Jitter detection
+- Reboot counter
+- Implement CANIOT "telemetry on change" for Class 1 Tiny BSP
 
 ## Boards
 

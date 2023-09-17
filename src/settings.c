@@ -12,10 +12,14 @@
 #include <caniot/caniot.h>
 #include <caniot/device.h>
 
-#define LOG_LEVEL CONFIG_DEV_LOG_LEVEL
+#define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 
 #define SETTINGS_BLOCK_SIZE sizeof(struct caniot_device_config)
 
+/* Tell whether the initial configuration needs to be applied or not */
+static bool init_config_to_apply = true;
+
+/* Default configuration */
 extern struct caniot_device_config default_config;
 
 __attribute__((section(".noinit"))) struct caniot_device_config settings_rambuf;
@@ -40,15 +44,16 @@ static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
 	return crc;
 }
 
-static int settings_apply(struct caniot_device *dev, struct caniot_device_config *cfg)
+static int
+settings_apply(struct caniot_device *dev, struct caniot_device_config *cfg)
 {
 	set_zone(cfg->timezone);
 
 	switch (__DEVICE_CLS__) {
 	case CANIOT_DEVICE_CLASS0:
-		return class0_config_apply(dev, cfg);
+		return class0_config_apply(dev, cfg, init_config_to_apply);
 	case CANIOT_DEVICE_CLASS1:
-		return class1_config_apply(dev, cfg);
+		return class1_config_apply(dev, cfg, init_config_to_apply);
 	default:
 		return -CANIOT_ENOTSUP;
 	}
@@ -94,24 +99,24 @@ int settings_write(struct caniot_device *dev, struct caniot_device_config *cfg)
 	return settings_apply(dev, cfg);
 }
 
-int settings_restore_default(struct caniot_device *dev, struct caniot_device_config *cfg)
+int settings_restore_default(struct caniot_device *dev)
 {
-	memcpy_P(cfg, &default_config, SETTINGS_BLOCK_SIZE);
+	memcpy_P(&settings_rambuf, &default_config, SETTINGS_BLOCK_SIZE);
 
-	return settings_write(dev, cfg);
+	return settings_write(dev, &settings_rambuf);
 }
 
 #if CONFIG_FORCE_RESTORE_DEFAULT_CONFIG
 #warning "CONFIG_FORCE_RESTORE_DEFAULT_CONFIG" is enabled
 #endif
 
-void settings_init(struct caniot_device *dev)
+void settings_load(struct caniot_device *dev)
 {
 	bool restore = false;
 
 	if (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 0) {
 		/* sanity check on EEPROM */
-		if (settings_read(dev, dev->config) != 0) {
+		if (settings_read(dev, &settings_rambuf) != 0) {
 			restore = true;
 		}
 	}
@@ -124,8 +129,11 @@ void settings_init(struct caniot_device *dev)
 			 &default_config,
 			 sizeof(struct caniot_device_config));
 
-		settings_write(dev, dev->config);
+		settings_write(dev, &settings_rambuf);
 	} else {
-		settings_apply(dev, dev->config);
+		settings_apply(dev, &settings_rambuf);
 	}
+
+	/* the initial configuration has been applied */
+	init_config_to_apply = false;
 }

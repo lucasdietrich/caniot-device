@@ -19,11 +19,7 @@
 #include <caniot/datatype.h>
 #include <mcp_can.h>
 
-#if defined(CONFIG_BOARD_LOG_LEVEL)
 #define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
-#else
-#define LOG_LEVEL LOG_LEVEL_NONE
-#endif
 
 #define ARDUINO_ENABLE_MILLIS
 
@@ -349,7 +345,7 @@ void bsp_pin_pci_set_enabled(uint8_t descr, uint8_t state)
 	if (pci_group < PCI_GROUPS_COUNT) {
 		const uint8_t pci_line = BSP_GPIO_PCINT_DESCR_LINE(descr);
 
-		LOG_DBG("pci enablle descr=%x grp=%x state=%x line=%x",
+		LOG_DBG("pci enable descr=%x grp=%x state=%x line=%x",
 			descr,
 			pci_group,
 			state,

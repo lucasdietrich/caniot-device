@@ -90,6 +90,9 @@ struct pin {
 #define BSP_DESCR_DRIVER_GET(_descr) ((_descr)&BSP_DESCR_DRIVER_MASK)
 #define BSP_DESCR_STATUS_GET(_descr) ((_descr)&BSP_DESCR_STATUS_MASK)
 
+/* Port E is only available with ATmega328PB and not ATmega328P */
+#define BSP_PORTE_SUPPORT defined(PORTE)
+
 /*____________________________________________________________________________*/
 
 /* BSP Digital IOs */
@@ -144,10 +147,15 @@ struct pin {
 #define BSP_GPIO_DESCR_PD7                                                               \
 	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN7 | BSP_DESCR_ACTIVE)
 
+#if BSP_PORTE_SUPPORT
 #define BSP_GPIO_DESCR_PE0                                                               \
 	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTE | PIN0 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PE1                                                               \
 	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTE | PIN1 | BSP_DESCR_ACTIVE)
+#else
+#define BSP_GPIO_DESCR_PE0 BSP_DESCR_RESERVED
+#define BSP_GPIO_DESCR_PE1 BSP_DESCR_RESERVED
+#endif
 
 /* Extended IOs (PCF8574) */
 #if defined(CONFIG_BOARD_V1)

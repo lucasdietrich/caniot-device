@@ -17,11 +17,8 @@
 #include <avr/pgmspace.h>
 #include <caniot/datatype.h>
 #include <mcp_can.h>
-#if defined(CONFIG_BOARD_LOG_LEVEL)
+
 #define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
-#else
-#define LOG_LEVEL LOG_LEVEL_NONE
-#endif
 
 #define PCINT0_ISR_ENABLED                                                               \
 	(BSP_DESCR_GPIO_PORT_GET_INDEX(BSP_IN1) == GPIOB_INDEX) ||                       \

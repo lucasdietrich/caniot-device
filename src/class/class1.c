@@ -1,4 +1,5 @@
 #include "class.h"
+#include "config.h"
 #include "dev.h"
 #include "devices/gpio_pulse.h"
 #include "devices/gpio_xps.h"
@@ -9,7 +10,7 @@
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
-#define LOG_LEVEL LOG_LEVEL_DBG
+#define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 
 #if defined(CONFIG_CLASS1_ENABLED)
 
@@ -75,8 +76,11 @@ int class1_blc_telemetry_handler(struct caniot_device *dev,
 	data.eio |= bsp_descr_gpio_input_read(BSP_EIO7) << (EIO7_IDX & 0x7u);
 
 	data.pb0 = bsp_descr_gpio_input_read(BSP_PB0);
+
+#if BSP_PORTE_SUPPORT
 	data.pe0 = bsp_descr_gpio_input_read(BSP_PE0);
 	data.pe1 = bsp_descr_gpio_input_read(BSP_PE1);
+#endif
 
 #if CONFIG_CANIOT_FAKE_TEMPERATURE
 	data.ext_temperature = caniot_fake_get_temp(dev);
@@ -95,18 +99,20 @@ int class1_blc_command_handler(struct caniot_device *dev,
 			       const unsigned char *buf,
 			       uint8_t len)
 {
+	caniot_complex_digital_cmd_t xps;
 	struct caniot_blc_sys_command sys_cmd  = {0};
 	struct caniot_class1_config *const cfg = &dev->config->cls1_gpio;
 	uint32_t directions		       = cfg->directions;
+	uint32_t self_managed		       = cfg->self_managed;
 
 	for (uint8_t i = 0u; i < CONFIG_IO_COUNT; i++) {
-		const caniot_complex_digital_cmd_t xps =
-			caniot_blc1_cmd_parse_xps(buf, len, i);
-
-		if (directions & 1u) {
+		/* Only apply state on output pins which are not self managed */
+		if (!(self_managed & 1u) && (directions & 1u)) {
+			caniot_blc1_cmd_parse_xps(&xps, buf, len, i);
 			command_xps(&xps_ctx[i], xps, cfg->pulse_durations[i]);
 		}
 
+		self_managed >>= 1u;
 		directions >>= 1u;
 	}
 
@@ -115,21 +121,24 @@ int class1_blc_command_handler(struct caniot_device *dev,
 	return dev_apply_blc_sys_command(dev, &sys_cmd);
 }
 
-int class1_config_apply(struct caniot_device *dev, struct caniot_device_config *config)
+int class1_config_apply(struct caniot_device *dev,
+			struct caniot_device_config *config,
+			bool init)
 {
-	/* Initialize IO if not initialized */
-	if (!dev->flags.initialized) {
-		for (uint8_t i = 0u; i < CONFIG_IO_COUNT; i++) {
+	for (uint8_t i = 0u; i < CONFIG_IO_COUNT; i++) {
+		if (config->cls1_gpio.self_managed & BIT(i)) continue;
+
+		const uint8_t output_default =
+			(config->cls1_gpio.outputs_default >> i) & 1u;
+
+		/* Set default on initialization */
+		if (init)
 			bsp_descr_gpio_pin_init(xps_ctx[i].descr,
 						(config->cls1_gpio.directions >> i) & 1u,
-						(config->cls1_gpio.outputs_default >> i) &
-							1u);
-		}
-	}
+						output_default);
 
-	/* Apply default state */
-	for (uint8_t i = 0u; i < CONFIG_IO_COUNT; i++) {
-		xps_ctx[i].reset_state = (config->cls1_gpio.outputs_default >> i) & 1u;
+		/* Apply default state for XPS */
+		xps_ctx[i].reset_state = output_default;
 	}
 
 	return 0;

@@ -32,6 +32,7 @@ void print_indentification(void);
 uint32_t get_magic_number(void);
 
 void trigger_telemetry(caniot_endpoint_t endpoint);
+void trigger_telemetrys(uint8_t endpoints_bitmask);
 
 bool telemetry_requested(void);
 

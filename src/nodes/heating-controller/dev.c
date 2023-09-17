@@ -173,6 +173,9 @@ const struct caniot_device_config default_config PROGMEM = {
 		},
 	.cls1_gpio =
 		{
+			.self_managed = BIT(PC1_IDX) | BIT(EIO0_IDX) | BIT(EIO1_IDX) |
+					BIT(EIO2_IDX) | BIT(EIO3_IDX) | BIT(EIO4_IDX) |
+					BIT(EIO5_IDX) | BIT(EIO6_IDX) | BIT(EIO7_IDX), /* PCC + heaters control */
 			.telemetry_on_change = 0x0FF00u, /* Extio only */
 			.directions	     = 0x0FF00u, /* Extio as output */
 			.outputs_default = 0x0AA00u, /* Positive phase (Heaters off) */

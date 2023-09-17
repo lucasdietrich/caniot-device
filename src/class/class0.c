@@ -1,4 +1,5 @@
 #include "class.h"
+#include "config.h"
 #include "dev.h"
 #include "devices/gpio_pulse.h"
 #include "devices/gpio_xps.h"
@@ -9,7 +10,7 @@
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
 
-#define LOG_LEVEL LOG_LEVEL_DBG
+#define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 
 #if defined(CONFIG_CLASS0_ENABLED)
 
@@ -75,6 +76,12 @@ int class0_blc_command_handler(struct caniot_device *dev,
 	caniot_blc0_command_get(&cmd, buf, len);
 	if (len == 8u) caniot_blc_sys_command_from_byte(&sys_cmd, buf[7u]);
 
+	LOG_DBG("coc1=%x coc2=%x crl1=%x crl2=%x",
+		cmd.coc1,
+		cmd.coc2,
+		cmd.crl1,
+		cmd.crl2);
+
 	command_xps(&xps_ctx[OC1_IDX], cmd.coc1, cfg->pulse_durations[OC1_IDX]);
 	command_xps(&xps_ctx[OC2_IDX], cmd.coc2, cfg->pulse_durations[OC2_IDX]);
 	command_xps(&xps_ctx[RL1_IDX], cmd.crl1, cfg->pulse_durations[RL1_IDX]);
@@ -83,13 +90,15 @@ int class0_blc_command_handler(struct caniot_device *dev,
 	return dev_apply_blc_sys_command(dev, &sys_cmd);
 }
 
-int class0_config_apply(struct caniot_device *dev, struct caniot_device_config *config)
+int class0_config_apply(struct caniot_device *dev,
+			struct caniot_device_config *config,
+			bool init)
 {
 	/* TODO if !dev->flags.initialized, set port default value */
 	struct caniot_class0_config *const c0 = &config->cls0_gpio;
 
-	/* Initialize IO if not initialized */
-	if (!dev->flags.initialized) {
+	/* If its initialized, set the defaults */
+	if (init) {
 		for (uint8_t i = 0u; i < ARRAY_SIZE(xps_ctx); i++) {
 			bsp_descr_gpio_pin_init(xps_ctx[i].descr,
 						GPIO_OUTPUT,

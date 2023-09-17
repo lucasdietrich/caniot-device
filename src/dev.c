@@ -9,7 +9,7 @@
 
 #include <caniot/fake.h>
 
-#define LOG_LEVEL CONFIG_DEV_LOG_LEVEL
+#define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 #define K_MODULE  K_MODULE_APPLICATION
 
 K_SIGNAL_DEFINE(caniot_process_sig);
@@ -205,7 +205,7 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
 		wdt_disable();
 		ret = 0;
 	} else if (sysc->config_reset == CANIOT_SS_CMD_SET) {
-		ret = settings_restore_default(dev, dev->config);
+		ret = settings_restore_default(dev);
 	}
 
 	return ret;
@@ -281,8 +281,8 @@ struct caniot_device device = {
 	.driv		= &drivers,
 	.flags =
 		{
-			.request_telemetry_ep = 0u,
-			.initialized	      = 0u,
+			.request_telemetry_ep  = 0u,
+			.initialized	       = 0u,
 		},
 };
 
@@ -318,12 +318,20 @@ void trigger_telemetry(caniot_endpoint_t ep)
 	trigger_process();
 }
 
+void trigger_telemetrys(uint8_t endpoints_bitmask)
+{
+	for (uint8_t ep = CANIOT_ENDPOINT_APP; ep <= CANIOT_ENDPOINT_BOARD_CONTROL;
+	     ep++) {
+		if (endpoints_bitmask & BIT(ep)) {
+			caniot_device_trigger_telemetry_ep(&device, ep);
+		}
+	}
+
+	trigger_process();
+}
+
 void caniot_init(void)
 {
-	/* we prepare the system according to the config */
-	set_zone(device.config->timezone);
-
+	settings_load(&device);
 	caniot_app_init(&device);
-
-	settings_init(&device);
 }

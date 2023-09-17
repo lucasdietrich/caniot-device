@@ -34,7 +34,8 @@ __attribute__((weak)) void app_process(void)
  * Max interval between two app_process() calls (ms)
  * Note: Should be choiced carefully, because of the watchdog timer.
  */
-const uint32_t max_process_interval = MIN(1000, WATCHDOG_TIMEOUT_MS / 2);
+const uint32_t max_process_interval =
+	MIN(CONFIG_APP_MAX_PROCESS_INTERVAL_MS, WATCHDOG_TIMEOUT_MS / 2);
 
 K_KERNEL_LINK_INIT();
 

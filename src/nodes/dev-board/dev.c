@@ -84,10 +84,17 @@ const struct caniot_device_config default_config PROGMEM = {
 #elif defined(CONFIG_BOARD_TINY_REVA)
 	.cls1_gpio =
 		{
-			.pulse_durations     = {100u,  200u,  300u,  400u,  500u,
-						600u,  700u,  800u,  900u,  1000u,
-						1100u, 1200u, 1300u, 1400u, 1500u,
-						1600u, 1700u, 1800u, 1900u, 2000u},
+			.self_managed = 0x00000000lu,
+			.pulse_durations =
+				{
+					[0] = 0x0u,	[1] = 0x100u,	[2] = 0x200u,
+					[3] = 0x300u,	[4] = 0x400u,	[5] = 0x500u,
+					[6] = 0x600u,	[7] = 0x700u,	[8] = 0x800u,
+					[9] = 0x900u,	[10] = 0x1000u, [11] = 0x1100u,
+					[12] = 0x1200u, [13] = 0x1300u, [14] = 0x1400u,
+					[15] = 0x1500u, [16] = 0x1600u, [17] = 0x1700u,
+					[18] = 0x1800u,
+				},
 			.outputs_default     = 0x0007fffflu, /* state high */
 			.directions	     = 0x0007fffflu, /* outputs*/
 			.telemetry_on_change = 0x0,	     /* No Change */

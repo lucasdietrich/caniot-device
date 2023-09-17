@@ -57,30 +57,31 @@ ISR(BSP_PCF_INT_vect)
 
 void bsp_tiny_init(struct extio_device *dev)
 {
-	/* TODO change to GPIO_LOW */
-	const uint8_t state = GPIO_HIGH;
+	/* Configure all pins as inputs with no pullup */
+	bsp_descr_gpio_pin_init(BSP_PC0, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_PC1, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_PC2, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_PC3, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
 
-	bsp_descr_gpio_pin_init(BSP_PC0, GPIO_OUTPUT, state);
-	bsp_descr_gpio_pin_init(BSP_PC1, GPIO_OUTPUT, state);
-	bsp_descr_gpio_pin_init(BSP_PC2, GPIO_OUTPUT, state);
-	bsp_descr_gpio_pin_init(BSP_PC3, GPIO_OUTPUT, state);
+	bsp_descr_gpio_pin_init(BSP_PD4, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_PD5, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_PD6, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_PD7, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
 
-	bsp_descr_gpio_pin_init(BSP_PD4, GPIO_OUTPUT, state);
-	bsp_descr_gpio_pin_init(BSP_PD5, GPIO_OUTPUT, state);
-	bsp_descr_gpio_pin_init(BSP_PD6, GPIO_OUTPUT, state);
-	bsp_descr_gpio_pin_init(BSP_PD7, GPIO_OUTPUT, state);
+	bsp_descr_gpio_pin_init(BSP_PB0, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
 
-	bsp_descr_gpio_pin_init(BSP_PB0, GPIO_OUTPUT, state);
-	bsp_descr_gpio_pin_init(BSP_PE0, GPIO_OUTPUT, state);
-	bsp_descr_gpio_pin_init(BSP_PE1, GPIO_OUTPUT, state);
+#if BSP_PORTE_SUPPORT
+	bsp_descr_gpio_pin_init(BSP_PE0, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
+	bsp_descr_gpio_pin_init(BSP_PE1, GPIO_INPUT, GPIO_INPUT_NO_PULLUP);
+#endif
 
 #if CONFIG_PCF8574_ENABLED
 	pcf8574_init(dev->device.p_pcf, dev->addr);
 
 	/* Only initialize external IO once PCF8574 is initialized.
-	 * Set all pins as outputs and set them to low state.
+	 * Set all pins as inputs without pullup.
 	 */
-	bsp_extio_write(dev, 0xFFu, 0x00u);
+	bsp_extio_write(dev, 0x00, 0x00);
 
 #if CONFIG_PCF8574_INT_ENABLED
 	/* configure PCF interrupt on falling  (active low) */

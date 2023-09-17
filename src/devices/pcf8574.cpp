@@ -9,11 +9,7 @@
 
 #include <avrtos/logging.h>
 
-#if defined(CONFIG_PCF8574_LOG_LEVEL)
 #define LOG_LEVEL CONFIG_PCF8574_LOG_LEVEL
-#else
-#define LOG_LEVEL LOG_LEVEL_NONE
-#endif
 
 void pcf8574_init(struct pcf8574_state *pcf, uint8_t i2c_addr)
 {

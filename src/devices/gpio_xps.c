@@ -1,3 +1,4 @@
+#include "config.h"
 #include "gpio_pulse.h"
 #include "gpio_xps.h"
 
@@ -5,7 +6,7 @@
 
 #include <avrtos.h>
 
-#define LOG_LEVEL CONFIG_DEV_LOG_LEVEL
+#define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 
 int command_xps(struct xps_context *xpsc,
 		caniot_complex_digital_cmd_t cmd,
@@ -13,7 +14,7 @@ int command_xps(struct xps_context *xpsc,
 {
 	__ASSERT_TRUE(xpsc != NULL);
 
-	LOG_DBG("%x: %u", xpsc->descr, cmd);
+	LOG_DBG("0x%x: %u", xpsc->descr, cmd);
 
 	if (BSP_DESCR_STATUS_GET(xpsc->descr) != BSP_DESCR_ACTIVE) {
 		return -ENOTSUP;
