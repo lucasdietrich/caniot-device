@@ -78,6 +78,7 @@
 		"sys.h": "c",
 		"gpio_xps.h": "c",
 		"classes.h": "c",
-		"mcp3008.h": "c"
+		"mcp3008.h": "c",
+		"filters.h": "c"
 	},
 }
