@@ -15,42 +15,42 @@
 #define HEATER_OC_NEG 1u
 
 typedef enum {
-	/**
-	 * @brief Comfort mode: Pilot wire, no signal.
-	 */
-	HEATER_MODE_COMFORT = 0u,
+    /**
+     * @brief Comfort mode: Pilot wire, no signal.
+     */
+    HEATER_MODE_COMFORT = 0u,
 
-	/**
-	 * @brief Comfort mode minus 1 °C.
-	 * Pilot wire, complete 3 seconds high per period of 300 seconds.
-	 * No signal rest of period.
-	 */
-	HEATER_MODE_COMFORT_MIN_1, /* Confort mode minus 1 °C */
+    /**
+     * @brief Comfort mode minus 1 °C.
+     * Pilot wire, complete 3 seconds high per period of 300 seconds.
+     * No signal rest of period.
+     */
+    HEATER_MODE_COMFORT_MIN_1, /* Confort mode minus 1 °C */
 
-	/**
-	 * @brief Comfort mode minus 2 °C.
-	 * Pilot wire, complete 7 seconds high per period of 300 seconds.
-	 * No signal rest of period.
-	 */
-	HEATER_MODE_COMFORT_MIN_2, /* Confort mode minus 2 °C */
+    /**
+     * @brief Comfort mode minus 2 °C.
+     * Pilot wire, complete 7 seconds high per period of 300 seconds.
+     * No signal rest of period.
+     */
+    HEATER_MODE_COMFORT_MIN_2, /* Confort mode minus 2 °C */
 
-	/**
-	 * @brief  Energy saving mode.
-	 * Pilot wire, complete signal.
-	 */
-	HEATER_MODE_ENERGY_SAVING, /* Energy saving mode */
+    /**
+     * @brief  Energy saving mode.
+     * Pilot wire, complete signal.
+     */
+    HEATER_MODE_ENERGY_SAVING, /* Energy saving mode */
 
-	/**
-	 * @brief  Frost free mode
-	 * Pilot wire, negative phase.
-	 */
-	HEATER_MODE_FROST_FREE, /* Frost free mode */
+    /**
+     * @brief  Frost free mode
+     * Pilot wire, negative phase.
+     */
+    HEATER_MODE_FROST_FREE, /* Frost free mode */
 
-	/**
-	 * @brief  Off
-	 * Pilot wire, positive phase.
-	 */
-	HEATER_MODE_OFF
+    /**
+     * @brief  Off
+     * Pilot wire, positive phase.
+     */
+    HEATER_MODE_OFF
 } heater_mode_t;
 
 /**

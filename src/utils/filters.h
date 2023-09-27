@@ -4,14 +4,14 @@
 #include <stdint.h>
 
 struct lpf {
-	float tau;
-	float y;
+    float tau;
+    float y;
 };
 
 struct hpf {
-	float tau;
-	float y;
-	float x;
+    float tau;
+    float y;
+    float x;
 };
 
 void lpf_init(struct lpf *lpf, float tau);

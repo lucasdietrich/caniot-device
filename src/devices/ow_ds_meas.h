@@ -20,41 +20,41 @@ extern "C" {
 #endif
 
 typedef struct {
-	/**
-	 * @brief Sensor address and type
-	 */
-	ow_ds_id_t id;
+    /**
+     * @brief Sensor address and type
+     */
+    ow_ds_id_t id;
 
-	/**
-	 * @brief Temperature in 1e-2 °C
-	 */
-	int16_t temp;
+    /**
+     * @brief Temperature in 1e-2 °C
+     */
+    int16_t temp;
 
-	/**
-	 * @brief Indicates if sensor id is active
-	 */
-	uint8_t registered : 1;
+    /**
+     * @brief Indicates if sensor id is active
+     */
+    uint8_t registered : 1;
 
-	/**
-	 * @brief Indicates if sensor id has been discovered
-	 *   Only active/discovered sensor can be measured
-	 */
-	uint8_t active : 1;
+    /**
+     * @brief Indicates if sensor id has been discovered
+     *   Only active/discovered sensor can be measured
+     */
+    uint8_t active : 1;
 
-	/**
-	 * @brief Indicates if temperature is valid
-	 */
-	uint8_t valid : 1;
+    /**
+     * @brief Indicates if temperature is valid
+     */
+    uint8_t valid : 1;
 
-	/**
-	 * @brief Indicates how many errors occured for this sensor
-	 */
-	uint8_t errors : 4;
+    /**
+     * @brief Indicates how many errors occured for this sensor
+     */
+    uint8_t errors : 4;
 
-	/**
-	 * @brief Indicates if a measurement is in progress for the current sensor
-	 */
-	uint8_t in_progress : 1;
+    /**
+     * @brief Indicates if a measurement is in progress for the current sensor
+     */
+    uint8_t in_progress : 1;
 } ow_ds_sensor_t;
 
 /**

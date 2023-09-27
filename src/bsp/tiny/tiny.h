@@ -36,19 +36,19 @@ extern "C" {
 
 /* PCF interrupt */
 #define BSP_PCF_INT_DESCR BSP_INT1_DESCR
-#define BSP_PCF_INT	  INT1
+#define BSP_PCF_INT       INT1
 #define BSP_PCF_INT_vect  INT1_vect
 
 struct pcf8574_state;
 
 struct extio_device {
-	uint8_t addr;
-	uint8_t state;
+    uint8_t addr;
+    uint8_t state;
 
-	union {
-		/* Currently only PCF8574 is supported */
-		struct pcf8574_state *p_pcf;
-	} device;
+    union {
+        /* Currently only PCF8574 is supported */
+        struct pcf8574_state *p_pcf;
+    } device;
 };
 
 extern struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT];
@@ -63,8 +63,8 @@ extern struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT];
 void bsp_tiny_init(struct extio_device *dev);
 
 void bsp_extio_set_pin_direction(struct extio_device *dev,
-				 uint8_t pin,
-				 uint8_t direction);
+                                 uint8_t pin,
+                                 uint8_t direction);
 
 void bsp_extio_write(struct extio_device *dev, uint8_t mask, uint8_t value);
 

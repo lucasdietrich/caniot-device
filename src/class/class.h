@@ -47,27 +47,27 @@
 #endif
 
 int class0_blc_command_handler(struct caniot_device *dev,
-			       const unsigned char *buf,
-			       uint8_t len);
+                               const unsigned char *buf,
+                               uint8_t len);
 
 int class0_blc_telemetry_handler(struct caniot_device *dev,
-				 unsigned char *buf,
-				 uint8_t *len);
+                                 unsigned char *buf,
+                                 uint8_t *len);
 
 int class0_config_apply(struct caniot_device *dev,
-			struct caniot_device_config *config,
-			bool init);
+                        struct caniot_device_config *config,
+                        bool init);
 
 int class1_blc_command_handler(struct caniot_device *dev,
-			       const unsigned char *buf,
-			       uint8_t len);
+                               const unsigned char *buf,
+                               uint8_t len);
 
 int class1_blc_telemetry_handler(struct caniot_device *dev,
-				 unsigned char *buf,
-				 uint8_t *len);
+                                 unsigned char *buf,
+                                 uint8_t *len);
 
 int class1_config_apply(struct caniot_device *dev,
-			struct caniot_device_config *config,
-			bool init);
+                        struct caniot_device_config *config,
+                        bool init);
 
 #endif /* _DEV_CANIOT_CLASS_H_ */

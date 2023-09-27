@@ -23,23 +23,23 @@
 #define CONFIG_PCF8574_A2 (0u)
 
 #define PCF8574_ADDR                                                                     \
-	(PCF8574X_ADDR_BASE | (CONFIG_PCF8574_A2 << 2) | (CONFIG_PCF8574_A1 << 1) |      \
-	 (CONFIG_PCF8574_A0))
+    (PCF8574X_ADDR_BASE | (CONFIG_PCF8574_A2 << 2) | (CONFIG_PCF8574_A1 << 1) |          \
+     (CONFIG_PCF8574_A0))
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct pcf8574_state {
-	uint8_t i2c_address : 7u;
+    uint8_t i2c_address : 7u;
 
 #if CONFIG_PCF8574_BUFFERED_READ
-	volatile uint8_t read_buffer_valid : 1u;
-	uint8_t read_buffer;
+    volatile uint8_t read_buffer_valid : 1u;
+    uint8_t read_buffer;
 #endif
 
 #if CONFIG_PCF8574_BUFFERED_WRITE
-	uint8_t write_buffer;
+    uint8_t write_buffer;
 #endif
 };
 
@@ -71,7 +71,7 @@ uint8_t pcf8574_get(struct pcf8574_state *pcf);
 static inline void pcf8574_invalidate_buffer(struct pcf8574_state *pcf)
 {
 #if CONFIG_PCF8574_BUFFERED_READ
-	pcf->read_buffer_valid = 0u;
+    pcf->read_buffer_valid = 0u;
 #endif
 }
 

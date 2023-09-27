@@ -36,24 +36,24 @@ extern "C" {
 #endif
 
 typedef struct {
-	uint8_t addr[8];
-	uint8_t type;
+    uint8_t addr[8];
+    uint8_t type;
 } ow_ds_id_t;
 
 enum {
-	OW_DS_DRV_SUCCESS = 0,
-	OW_DS_DRV_INVALID_PARAMS,
-	OW_DS_DRV_CRC_ERROR,
-	OW_DS_DRV_UNKOWN_DEVICE,
-	OW_DS_DRV_NO_DEVICES,
-	OW_DS_DRV_NULL_DATA,
-	OW_DS_DRV_TIMEOUT,
-	OW_DS_DRV_PERIODIC_MEAS_STARTED,
-	OW_DS_DRV_PERIODIC_MEAS_NOT_STARTED,
-	OW_DS_DRV_SENS_INACTIVE,
-	OW_DS_DRV_SENS_MEAS_FAILED,
-	OW_DS_DRV_SENS_OS_ERROR,
-	OW_DS_DRV_UNKNOWN_ERROR,
+    OW_DS_DRV_SUCCESS = 0,
+    OW_DS_DRV_INVALID_PARAMS,
+    OW_DS_DRV_CRC_ERROR,
+    OW_DS_DRV_UNKOWN_DEVICE,
+    OW_DS_DRV_NO_DEVICES,
+    OW_DS_DRV_NULL_DATA,
+    OW_DS_DRV_TIMEOUT,
+    OW_DS_DRV_PERIODIC_MEAS_STARTED,
+    OW_DS_DRV_PERIODIC_MEAS_NOT_STARTED,
+    OW_DS_DRV_SENS_INACTIVE,
+    OW_DS_DRV_SENS_MEAS_FAILED,
+    OW_DS_DRV_SENS_OS_ERROR,
+    OW_DS_DRV_UNKNOWN_ERROR,
 };
 
 /**
@@ -72,8 +72,8 @@ void ow_ds_drv_init(uint8_t pin);
  * @return int8_t
  */
 int8_t ow_ds_drv_discover_iter(uint8_t max_devices,
-			       bool (*discovered_cb)(ow_ds_id_t *, void *),
-			       void *user_data);
+                               bool (*discovered_cb)(ow_ds_id_t *, void *),
+                               void *user_data);
 
 /**
  * @brief Discover DS devices on the one wire "bus", and store the addresses in the array

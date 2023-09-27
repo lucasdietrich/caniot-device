@@ -17,8 +17,8 @@
 #define SHUTTER_OC_NEG 1u
 
 struct shutters_system_oc {
-	pin_descr_t power_oc;
-	pin_descr_t shutters[CONFIG_SHUTTERS_COUNT][2u];
+    pin_descr_t power_oc;
+    pin_descr_t shutters[CONFIG_SHUTTERS_COUNT][2u];
 };
 
 /**
@@ -27,10 +27,11 @@ struct shutters_system_oc {
 extern const struct shutters_system_oc shutters_io PROGMEM;
 
 #define SHUTTER_INIT(_pos_dev, _pos_pin, _neg_dev, _neg_pin)                             \
-	{                                                                                \
-		[SHUTTER_OC_POS] = PIN_INIT_SOC(_pos_dev, _pos_pin),                     \
-		[SHUTTER_OC_NEG] = PIN_INIT_SOC(_neg_dev, _neg_pin)                      \
-	}
+    {                                                                                    \
+        [SHUTTER_OC_POS] = PIN_INIT_SOC(_pos_dev, _pos_pin), [SHUTTER_OC_NEG] =          \
+                                                                 PIN_INIT_SOC(_neg_dev,  \
+                                                                              _neg_pin)  \
+    }
 
 /**
  * @brief Initialize the shutters system.

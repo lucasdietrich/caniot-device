@@ -38,7 +38,7 @@ bool telemetry_requested(void);
 
 static inline struct k_thread *trigger_process(void)
 {
-	return k_signal_raise(&caniot_process_sig, 0);
+    return k_signal_raise(&caniot_process_sig, 0);
 }
 
 int caniot_process(void);
@@ -48,7 +48,7 @@ uint32_t get_telemetry_timeout(void);
 void caniot_init(void);
 
 int dev_apply_blc_sys_command(struct caniot_device *dev,
-			      struct caniot_blc_sys_command *sysc);
+                              struct caniot_blc_sys_command *sysc);
 
 #ifdef __cplusplus
 }

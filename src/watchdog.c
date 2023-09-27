@@ -41,7 +41,7 @@ static K_ATOMIC_DEFINE(threads_count, 0x00U);
  */
 uint8_t critical_thread_register(void)
 {
-	return atomic_inc(&threads_count) - 1;
+    return atomic_inc(&threads_count) - 1;
 }
 
 /**
@@ -51,12 +51,12 @@ uint8_t critical_thread_register(void)
  */
 void alive(uint8_t thread_id)
 {
-	/* say "I'm alive" */
-	atomic_clear_bit(&alive_threads, BIT(thread_id));
+    /* say "I'm alive" */
+    atomic_clear_bit(&alive_threads, BIT(thread_id));
 
-	/* reset the watchdog as soon as all threads notified their are alive*/
-	if (atomic_cas(&alive_threads, 0x00, ALIVE_THREAD_GET_MASK(threads_count))) {
-		wdt_reset();
-	}
+    /* reset the watchdog as soon as all threads notified their are alive*/
+    if (atomic_cas(&alive_threads, 0x00, ALIVE_THREAD_GET_MASK(threads_count))) {
+        wdt_reset();
+    }
 }
 #endif

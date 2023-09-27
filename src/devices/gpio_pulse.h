@@ -21,19 +21,19 @@
 #define CONFIG_GPIO_PULSE_THREAD_SAFE 1u
 
 struct pulse_event {
-	struct titem _tie;
+    struct titem _tie;
 
-	/* State of the pin when not active */
-	uint8_t reset_state : 1;
+    /* State of the pin when not active */
+    uint8_t reset_state : 1;
 
-	/* Tells wether the pulse is active or not */
-	uint8_t scheduled : 1;
+    /* Tells wether the pulse is active or not */
+    uint8_t scheduled : 1;
 
-	/* Tells wether the pulse context has been allocated internally */
-	uint8_t _iallocated;
+    /* Tells wether the pulse context has been allocated internally */
+    uint8_t _iallocated;
 
-	/* GPIO descriptor */
-	pin_descr_t descr;
+    /* GPIO descriptor */
+    pin_descr_t descr;
 };
 
 /**
@@ -50,9 +50,9 @@ void pulse_init(void);
  * @param pe Pointer to a pulse_event struct. If NULL, a new one will be allocated
  */
 struct pulse_event *pulse_trigger(pin_descr_t descr,
-				  bool state,
-				  uint32_t duration_ms,
-				  struct pulse_event *ev);
+                                  bool state,
+                                  uint32_t duration_ms,
+                                  struct pulse_event *ev);
 
 /**
  * @brief Cancel a pulse being process and set pin state to state value

@@ -20,30 +20,30 @@
  * @brief Represent a pin on the board associated with its driver.
  */
 struct pin {
-	/* Driver address if GPIO;,
-	 * I2C address if PCF8574 */
-	void *dev;
+    /* Driver address if GPIO;,
+     * I2C address if PCF8574 */
+    void *dev;
 
-	/* first 3 bits contain de actual pin,
-	 * the 4th bit tells whether the driver is the default GPIO or
-	 * the GPIO driver */
-	uint8_t pin;
+    /* first 3 bits contain de actual pin,
+     * the 4th bit tells whether the driver is the default GPIO or
+     * the GPIO driver */
+    uint8_t pin;
 };
 
 #define PIN_INIT(_dev, _pin, _soc)                                                       \
-	{                                                                                \
-		.dev = _dev, .pin = (_pin) | ((_soc) << 3u)                              \
-	}
+    {                                                                                    \
+        .dev = _dev, .pin = (_pin) | ((_soc) << 3u)                                      \
+    }
 
 #define PIN_INIT_SOC(_dev, _pin) PIN_INIT(_dev, _pin, 1u)
 #define PIN_INIT_EXT(_dev, _pin) PIN_INIT(_dev, _pin, 0u)
 
 #define BSP_GPIO_PIN_GET(_pin) ((_pin)&0x07u)
 
-#define BSP_GPIO_PIN_TYPE_MASK	    (1u << 3u)
+#define BSP_GPIO_PIN_TYPE_MASK      (1u << 3u)
 #define BSP_GPIO_PIN_TYPE_GET(_pin) ((_pin)&BSP_GPIO_PIN_TYPE_MASK)
-#define BSP_GPIO_PIN_TYPE_GPIO	    (0u << 3u)
-#define BSP_GPIO_PIN_TYPE_EXTIO	    (1u << 3u)
+#define BSP_GPIO_PIN_TYPE_GPIO      (0u << 3u)
+#define BSP_GPIO_PIN_TYPE_EXTIO     (1u << 3u)
 
 /*____________________________________________________________________________*/
 
@@ -59,14 +59,14 @@ struct pin {
 
 #define BSP_GPIO_PORT_BIT  (3u)
 #define BSP_GPIO_PORT_MASK (0x7u << 3u)
-#define BSP_GPIO_PORTA	   (0u << 3u)
-#define BSP_GPIO_PORTB	   (1u << 3u)
-#define BSP_GPIO_PORTC	   (2u << 3u)
-#define BSP_GPIO_PORTD	   (3u << 3u)
-#define BSP_GPIO_PORTE	   (4u << 3u)
-#define BSP_GPIO_PORTF	   (5u << 3u)
-#define BSP_GPIO_PORTG	   (6u << 3u)
-#define BSP_GPIO_PORTH	   (7u << 3u)
+#define BSP_GPIO_PORTA     (0u << 3u)
+#define BSP_GPIO_PORTB     (1u << 3u)
+#define BSP_GPIO_PORTC     (2u << 3u)
+#define BSP_GPIO_PORTD     (3u << 3u)
+#define BSP_GPIO_PORTE     (4u << 3u)
+#define BSP_GPIO_PORTF     (5u << 3u)
+#define BSP_GPIO_PORTG     (6u << 3u)
+#define BSP_GPIO_PORTH     (7u << 3u)
 
 #define BSP_GPIO_EXTI0 (0u << 3u)
 #define BSP_GPIO_EXTI1 (1u << 3u)
@@ -83,9 +83,9 @@ struct pin {
 
 #define BSP_DESCR_GPIO_PIN_GET(_descr) ((uint8_t)((_descr)&BSP_GPIO_PIN_MASK))
 #define BSP_DESCR_GPIO_PORT_GET_INDEX(_descr)                                            \
-	(((_descr)&BSP_GPIO_PORT_MASK) >> BSP_GPIO_PORT_BIT)
+    (((_descr)&BSP_GPIO_PORT_MASK) >> BSP_GPIO_PORT_BIT)
 #define BSP_DESCR_PORT_DEVICE_GET(_descr)                                                \
-	GPIO_DEVICE(BSP_DESCR_GPIO_PORT_GET_INDEX(_descr))
+    GPIO_DEVICE(BSP_DESCR_GPIO_PORT_GET_INDEX(_descr))
 #define BSP_DESCR_DEVICE_GET(_descr) BSP_DESCR_PORT_DEVICE_GET(_descr)
 #define BSP_DESCR_DRIVER_GET(_descr) ((_descr)&BSP_DESCR_DRIVER_MASK)
 #define BSP_DESCR_STATUS_GET(_descr) ((_descr)&BSP_DESCR_STATUS_MASK)
@@ -97,61 +97,61 @@ struct pin {
 
 /* BSP Digital IOs */
 #define BSP_GPIO_DESCR_PB0                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN0 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN0 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PB1                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN1 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN1 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PB2                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN2 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN2 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PB3                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN3 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN3 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PB4                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN4 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN4 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PB5                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN5 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN5 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PB6                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN6 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN6 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PB7                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN7 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTB | PIN7 | BSP_DESCR_ACTIVE)
 
 #define BSP_GPIO_DESCR_PC0                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN0 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN0 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PC1                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN1 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN1 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PC2                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN2 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN2 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PC3                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN3 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN3 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PC4                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN4 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN4 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PC5                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN5 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN5 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PC6                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN6 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN6 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PC7                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN7 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTC | PIN7 | BSP_DESCR_ACTIVE)
 
 #define BSP_GPIO_DESCR_PD0                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN0 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN0 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PD1                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN1 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN1 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PD2                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN2 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN2 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PD3                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN3 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN3 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PD4                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN4 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN4 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PD5                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN5 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN5 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PD6                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN6 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN6 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PD7                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN7 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTD | PIN7 | BSP_DESCR_ACTIVE)
 
 #if BSP_PORTE_SUPPORT
 #define BSP_GPIO_DESCR_PE0                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTE | PIN0 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTE | PIN0 | BSP_DESCR_ACTIVE)
 #define BSP_GPIO_DESCR_PE1                                                               \
-	(BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTE | PIN1 | BSP_DESCR_ACTIVE)
+    (BSP_DESCR_DRIVER_GPIO | BSP_GPIO_PORTE | PIN1 | BSP_DESCR_ACTIVE)
 #else
 #define BSP_GPIO_DESCR_PE0 BSP_DESCR_RESERVED
 #define BSP_GPIO_DESCR_PE1 BSP_DESCR_RESERVED
@@ -184,12 +184,12 @@ struct pin {
 #define BSP_USART_RX_DESCR BSP_GPIO_DESCR_PD0
 #define BSP_USART_TX_DESCR BSP_GPIO_DESCR_PD1
 #define BSP_USART_DEVICE   USART0_DEVICE
-#define BSP_USART	   BSP_USART_DEVICE
+#define BSP_USART          BSP_USART_DEVICE
 #define BSP_USART_RX_vect  USART0_RX_vect
 
 /* Can interrupt */
 #define BSP_CAN_INT_DESCR      BSP_INT0_DESCR
-#define BSP_CAN_INT	       INT0
+#define BSP_CAN_INT            INT0
 #define BSP_CAN_INT_vect       INT0_vect
 #define BSP_CAN_SS_ARDUINO_PIN 10
 
