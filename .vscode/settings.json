@@ -79,6 +79,7 @@
 		"gpio_xps.h": "c",
 		"classes.h": "c",
 		"mcp3008.h": "c",
-		"filters.h": "c"
+		"filters.h": "c",
+		"errno.h": "c"
 	},
 }

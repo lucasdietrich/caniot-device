@@ -67,6 +67,7 @@ const struct caniot_device_config default_config PROGMEM = {
 			.error_response	     = 1u,
 			.telemetry_delay_rdm = 1u,
 			.telemetry_endpoint  = CANIOT_ENDPOINT_BOARD_CONTROL,
+			.telemetry_periodic_enabled  = 1u,
 		},
 	.timezone = CANIOT_TIMEZONE_DEFAULT,
 	.location =

@@ -15,6 +15,17 @@
 
 #define LOG_LEVEL LOG_LEVEL_DBG
 
+// TODO add lock mecanism (atomic/semaphore) to make sure we sent valid/recent ADC data
+// over telemetry
+/** Tell whether the ADC should read new ADC values or not */
+// static atomic_t adc_flags = K_ATOMIC_INIT(1u);
+
+struct adc_channel {
+	uint16_t value;
+};
+
+static uint16_t channels[8u];
+
 static void adc_task(void *arg);
 Z_THREAD_DEFINE(adc, adc_task, 256u, K_COOPERATIVE, NULL, 'A', 0);
 
@@ -31,40 +42,10 @@ void adc_task(void *arg)
 {
 	(void)arg;
 
-	uint16_t adc_values[8u];
-	float percent[8u];
-
 	for (;;) {
-		mcp3008_read_all(adc_values);
+		mcp3008_read_all(channels);
 
-		/*
-		for (uint8_t i = 0u; i < 8u; i++) {
-
-			const float voltage =
-				(adc_values[i] * VREF) / (1 << MCP3008_ADC_RESOLUTION);
-
-			LOG_INF("ADC %u  value: %u,\tvoltage: %.3f V (%.2f "
-				"%%)",
-				i,
-				adc_values[i],
-				voltage,
-				(100.0f * adc_values[i] / MCP3008_ADC_MAX_VALUE));
-		}
-		*/
-
-		for (uint8_t i = 0u; i < 8u; i++)
-			percent[i] = 100.0f * adc_values[i] / MCP3008_ADC_MAX_VALUE;
-
-		LOG_DBG("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f",
-			percent[0],
-			percent[1],
-			percent[2],
-			percent[3],
-			percent[4],
-			percent[5],
-			percent[6],
-			percent[7]);
-
+		trigger_telemetrys(BIT(CANIOT_ENDPOINT_1) | BIT(CANIOT_ENDPOINT_2));
 		k_sleep(K_SECONDS(1u));
 	}
 }
@@ -74,7 +55,24 @@ int app_telemetry_handler(struct caniot_device *dev,
 			  const char *buf,
 			  uint8_t *len)
 {
-	return -CANIOT_ENIMPL;
+	uint16_t *p_chans;
+	switch (ep) {
+	case CANIOT_ENDPOINT_1:
+		p_chans = &channels[0u];
+		break;
+	case CANIOT_ENDPOINT_2:
+		p_chans = &channels[4u];
+		break;
+	default:
+		return -CANIOT_ENIMPL;
+	}
+
+	*len = 8u;
+	for (uint8_t i = 0; i < 4u; i++) {
+		sys_write_le16(&buf[i << 1u], p_chans[i]);
+	}
+
+	return 0;
 }
 
 int app_command_handler(struct caniot_device *dev,
@@ -97,6 +95,7 @@ const struct caniot_device_config default_config PROGMEM = {
 			.error_response	     = 1u,
 			.telemetry_delay_rdm = 1u,
 			.telemetry_endpoint  = CANIOT_ENDPOINT_BOARD_CONTROL,
+			.telemetry_periodic_enabled  = 1u,
 		},
 	.timezone = CANIOT_TIMEZONE_DEFAULT,
 	.location =
