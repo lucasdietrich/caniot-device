@@ -29,6 +29,7 @@ heaters and more through the CANIOT protocol.
 - Test firmware to impersonate another device/class
 - Serial protocol over CAN to send text messages
 - 1W: read temperature sensors serial number dynamically
+- Attribute for OS monitoring
 
 ## Boards
 

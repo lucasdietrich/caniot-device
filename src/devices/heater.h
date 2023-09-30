@@ -4,6 +4,8 @@
 #include <avrtos/avrtos.h>
 #include <avrtos/drivers/gpio.h>
 
+#include "config.h"
+
 #define HEATERS_COUNT_MAX 4u
 
 #define HEATER1 0u

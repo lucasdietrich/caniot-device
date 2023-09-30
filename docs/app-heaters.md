@@ -21,7 +21,7 @@ Based on BSP Tiny rev A board.
 
 ## BSP Bindings
 
-## Controllable pins
+### Controllable pins
 
 | Pin Index | Name | Description       | Binding                  |
 | --------- | ---- | ----------------- | ------------------------ |

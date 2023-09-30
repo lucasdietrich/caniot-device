@@ -5,9 +5,9 @@
 
 #include <Wire.h>
 
-#if CONFIG_PCF8574_ENABLED
-
 #include <avrtos/logging.h>
+
+#if CONFIG_PCF8574_ENABLED
 
 #define LOG_LEVEL CONFIG_PCF8574_LOG_LEVEL
 

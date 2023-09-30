@@ -4,6 +4,7 @@
 		80
 	], 
 	"files.associations": {
+		"*.jinja": "python",
 		"*.asm": "avr",
 		"*.bb": "shellscript",
 		"*.bbclass": "shellscript",
@@ -79,6 +80,7 @@
 		"classes.h": "c",
 		"mcp3008.h": "c",
 		"filters.h": "c",
-		"errno.h": "c"
+		"errno.h": "c",
+		"spi.h": "c"
 	},
 }

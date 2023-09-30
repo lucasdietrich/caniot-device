@@ -5,9 +5,11 @@
 #include <avrtos/drivers/spi.h>
 #include <avrtos/logging.h>
 
+#if CONFIG_MCP3008_ENABLED
+
 #define LOG_LEVEL CONFIG_MCP3008_LOG_LEVEL
 
-// MCP3008 CS in PB0
+// MCP3008 CS is PB0 by default
 #define MCP3008_CS_DEVICE GPIOB_DEVICE
 #define MCP3008_CS_PIN    PINn0
 
@@ -64,3 +66,5 @@ int mcp3008_read_all(uint16_t *values)
 
     return 0;
 }
+
+#endif

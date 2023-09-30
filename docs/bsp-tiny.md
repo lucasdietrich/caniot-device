@@ -22,7 +22,7 @@ assembly was made by my father.
 
 ![pics/bsp-cls1-blc.png](pics/bsp-cls1-blc.png)
 
-## Controllable pins
+### Controllable pins
 
 | Pin Index | Name | Description                |
 | --------- | ---- | -------------------------- |

@@ -7,6 +7,8 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
+#include "config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

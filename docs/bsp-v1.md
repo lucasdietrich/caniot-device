@@ -21,7 +21,7 @@
 
 ![pics/bsp-cls0-blc.png](pics/bsp-cls0-blc.png)
 
-## Controllable pins
+### Controllable pins
 
 | Pin Index | Name | Description         |
 | --------- | ---- | ------------------- |
