@@ -28,6 +28,7 @@ heaters and more through the CANIOT protocol.
 - Implement CANIOT "telemetry on change" for Class 1 Tiny BSP
 - Test firmware to impersonate another device/class
 - Serial protocol over CAN to send text messages
+- 1W: read temperature sensors serial number dynamically
 
 ## Boards
 

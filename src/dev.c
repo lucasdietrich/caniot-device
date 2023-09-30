@@ -1,5 +1,6 @@
 #include "class/class.h"
 #include "dev.h"
+#include "build_info.h"
 #include "devices/gpio_xps.h"
 #include "settings.h"
 
@@ -21,6 +22,9 @@ static const struct caniot_device_id identification PROGMEM = {
     .version      = __FIRMWARE_VERSION__,
     .name         = __DEVICE_NAME__,
     .magic_number = __MAGIC_NUMBER__,
+    .build_date   = __BUILD_DATE__,
+    .build_commit = __BUILD_COMMIT__,
+    .features     = {0u, 0u, 0u, 0u},
 };
 
 void entropy(uint8_t *buf, size_t len)
