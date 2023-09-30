@@ -59,7 +59,6 @@ infos['framework'] = "".join(env.GetProjectOption("framework"))
 
 infos['defines_str'] = "\n    ".join(sorted(f"{k}={v}" for k, v in defines.items()))
 
-print(infos)
 env.Replace(PROGNAME=f"{infos['env_name']}")
 
 content = """ENV
