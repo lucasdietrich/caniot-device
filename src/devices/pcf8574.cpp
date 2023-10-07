@@ -24,18 +24,22 @@ void pcf8574_init(struct pcf8574_state *pcf, uint8_t i2c_addr)
 
 void pcf8574_set(struct pcf8574_state *pcf, uint8_t value)
 {
+    size_t w;
+
 #if CONFIG_PCF8574_BUFFERED_WRITE
     if (pcf->write_buffer == value) return;
 #endif
 
     Wire.beginTransmission(pcf->i2c_address);
-    size_t w = Wire.write(value);
+    w = Wire.write(value);
     Wire.endTransmission();
 
     LOG_DBG("PCF8574 I2C w x%02x ok: %u", value, w);
 
 #if CONFIG_PCF8574_BUFFERED_WRITE
     if (w != 0) pcf->write_buffer = value;
+#else
+    (void) w;
 #endif
 }
 
