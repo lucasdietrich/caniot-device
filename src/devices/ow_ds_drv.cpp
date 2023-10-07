@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on this sample from Collin Kidder:
+ *   https://github.com/collin80/DS2480B/blob/master/examples/DS18x20_Temperature/DS18x20_Temperature.ino
+ *
+ * Other references:
+ *   https://www.pjrc.com/teensy/td_libs_OneWire.html
+ *   https://github.com/zephyrproject-rtos/zephyr/blob/69468dc52b8e1f4de06e1854d369f3af02107ecc/drivers/sensor/ds18b20/ds18b20.c
+ */
+
 #include "../bsp/bsp.h"
 #include "ow_ds_drv.h"
 

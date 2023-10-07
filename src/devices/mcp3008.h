@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef _MCP3008_H_
 #define _MCP3008_H_
 

@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "build_info.h"
 #include "class/class.h"
 #include "dev.h"
-#include "build_info.h"
 #include "devices/gpio_xps.h"
 #include "settings.h"
 

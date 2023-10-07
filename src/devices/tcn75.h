@@ -1,13 +1,19 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef _TCN75_H
 #define _TCN75_H
+
+#include "config.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
 #include <avr/interrupt.h>
 #include <avr/io.h>
-
-#include "config.h"
 
 #ifdef __cplusplus
 extern "C" {

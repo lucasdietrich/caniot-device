@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #if CONFIG_SHUTTERS_COUNT > 0u
 
 #include "shutter.h"

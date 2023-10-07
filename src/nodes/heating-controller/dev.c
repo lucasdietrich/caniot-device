@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "bsp/bsp.h"
 #include "class/class.h"
 #include "devices/heater.h"
@@ -177,7 +183,8 @@ const struct caniot_device_config default_config PROGMEM = {
                             BIT(EIO6_IDX) | BIT(EIO7_IDX), /* PCC + heaters control */
             .telemetry_on_change = 0x0FF00u,               /* Extio only */
             .directions          = 0x0FF00u,               /* Extio as output */
-            .outputs_default     = 0x00000u, /* Default output states for EIOn are ignored as self managed */
+            .outputs_default =
+                0x00000u, /* Default output states for EIOn are ignored as self managed */
             .pulse_durations =
                 {
                     [0] = 0x0u,  [1] = 0x0u,  [2] = 0x0u,  [3] = 0x0u,  [4] = 0x0u,

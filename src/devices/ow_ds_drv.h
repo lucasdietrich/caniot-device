@@ -1,16 +1,11 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /**
- * @file ow_ds_drv.h
- * @author Dietrich Lucas (ld.adecy@gmail.com)
  * @brief OneWire driver for DS18B20 temperature sensor
- * @version 0.1
- * @date 2021-12-29
- *
- * @copyright Copyright (c) 2021
- *
- * - https://www.pjrc.com/teensy/td_libs_OneWire.html
- * -
- * https://github.com/zephyrproject-rtos/zephyr/blob/69468dc52b8e1f4de06e1854d369f3af02107ecc/drivers/sensor/ds18b20/ds18b20.c
- *
  */
 
 // ROM = 28 bc 49 9c 32 20 1 83

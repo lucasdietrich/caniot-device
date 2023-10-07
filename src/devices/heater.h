@@ -1,10 +1,16 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef _BOARD_HEATER_H_
 #define _BOARD_HEATER_H_
 
+#include "config.h"
+
 #include <avrtos/avrtos.h>
 #include <avrtos/drivers/gpio.h>
-
-#include "config.h"
 
 #define HEATERS_COUNT_MAX 4u
 

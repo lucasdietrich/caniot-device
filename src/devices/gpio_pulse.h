@@ -1,13 +1,12 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /**
- * @file pulse.h
- * @author Dietrich Lucas (ld.adecy@gmail.com)
  * @brief Pulse API for generating simple pulses on output pins.
  * 	- Thread-safe. if CONFIG_GPIO_PULSE_THREAD_SAFE is set to 1
- * @version 0.1
- * @date 2022-05-09
- *
- * @copyright Copyright (c) 2022
- *
  */
 
 #ifndef _GPIO_PULSE_H_

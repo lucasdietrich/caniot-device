@@ -1,11 +1,16 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "config.h"
 #include "pcf8574.h"
 
 #include <avrtos/avrtos.h>
+#include <avrtos/logging.h>
 
 #include <Wire.h>
-
-#include <avrtos/logging.h>
 
 #if CONFIG_PCF8574_ENABLED
 
@@ -39,7 +44,7 @@ void pcf8574_set(struct pcf8574_state *pcf, uint8_t value)
 #if CONFIG_PCF8574_BUFFERED_WRITE
     if (w != 0) pcf->write_buffer = value;
 #else
-    (void) w;
+    (void)w;
 #endif
 }
 

@@ -1,10 +1,16 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #if CONFIG_SHELL
 
 #include "bsp/bsp.h"
 #include "config.h"
 #include "dev.h"
-#include "shell.h"
 #include "devices/heater.h"
+#include "shell.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -131,7 +137,7 @@ void shell_process(void)
             for (uint8_t i = 0u; i < CONFIG_HEATERS_COUNT; i++) {
                 heater_set_mode(i, mode);
             }
-            
+
             switch (mode) {
             case HEATER_MODE_OFF:
                 mode = HEATER_MODE_COMFORT;

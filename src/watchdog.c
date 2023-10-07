@@ -1,16 +1,15 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /**
- * @file supervision.c Add support for a shared watchdog between all threads.
+ * @brief watchdog.c Add support for a shared watchdog between all threads.
  * - Watchdog is reseted only if all critical threads responded in time.
  *
  * - At least one thread should be register in order to use this feature.
  * - Support 8 threads maximum.
- *
- * @author Dietrich Lucas (ld.adecy@gmail.com)
- * @brief
- * @version 0.1
- * @date 2022-02-03
- *
- * @copyright Copyright (c) 2022
  */
 
 #include "watchdog.h"

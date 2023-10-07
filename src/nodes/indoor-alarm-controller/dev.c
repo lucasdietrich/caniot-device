@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "bsp/bsp.h"
 #include "class/class.h"
 #include "devices/mcp3008.h"
@@ -107,7 +113,8 @@ const struct caniot_device_config default_config PROGMEM = {
         {
             .self_managed = BIT(PB0_IDX) | BIT(EIO0_IDX) | BIT(EIO1_IDX) | BIT(EIO2_IDX) |
                             BIT(EIO3_IDX) | BIT(EIO4_IDX) | BIT(EIO5_IDX) |
-                            BIT(EIO6_IDX) | BIT(EIO7_IDX), /* PB0 used for SPI CS, PCF not connected */
+                            BIT(EIO6_IDX) |
+                            BIT(EIO7_IDX), /* PB0 used for SPI CS, PCF not connected */
             .telemetry_on_change = 0x0000u,
             .directions          = 0x0000u,
             .outputs_default     = 0x0000u,
