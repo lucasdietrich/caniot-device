@@ -71,7 +71,7 @@ int16_t temp_read(temp_sens_t sensor)
 #endif
     } else if (CONFIG_OW_DS_ENABLED) {
 #if CONFIG_OW_DS_ENABLED
-        /* as threads a cooperative, we don't need
+        /* as threads are cooperative, we don't need
          * a mutex to protect temperature values
          */
         const uint8_t index = sensor - TEMP_SENS_EXT_1;

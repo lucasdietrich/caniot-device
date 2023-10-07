@@ -4,6 +4,7 @@
 #include "config.h"
 #include "dev.h"
 #include "shell.h"
+#include "devices/heater.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -122,6 +123,34 @@ void shell_process(void)
         case 'k':
             k_thread_dump_all();
             break;
+#if CONFIG_HEATERS_COUNT
+        case 'H':
+        case 'h': {
+            static heater_mode_t mode = HEATER_MODE_OFF;
+
+            for (uint8_t i = 0u; i < CONFIG_HEATERS_COUNT; i++) {
+                heater_set_mode(i, mode);
+            }
+            
+            switch (mode) {
+            case HEATER_MODE_OFF:
+                mode = HEATER_MODE_COMFORT;
+                break;
+            case HEATER_MODE_COMFORT:
+                mode = HEATER_MODE_ENERGY_SAVING;
+                break;
+            case HEATER_MODE_ENERGY_SAVING:
+                mode = HEATER_MODE_FROST_FREE;
+                break;
+            case HEATER_MODE_FROST_FREE:
+                mode = HEATER_MODE_OFF;
+                break;
+            default:
+                break;
+            }
+            break;
+        }
+#endif
 #if CONFIG_TEST_STRESS
         case 'L':
         case 'l':

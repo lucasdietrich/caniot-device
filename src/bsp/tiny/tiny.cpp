@@ -19,10 +19,10 @@
 #include <caniot/datatype.h>
 #include <mcp_can.h>
 
-#if defined(CONFIG_BOARD_LOG_LEVEL)
 #define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
-#else
-#define LOG_LEVEL LOG_LEVEL_NONE
+
+#if CONFIG_PCF8574_BUFFERED_READ && !CONFIG_PCF8574_INT_ENABLED
+#error "Buffered read requires interrupt support"
 #endif
 
 const pin_descr_t bsp_pins[] PROGMEM = {
@@ -31,6 +31,7 @@ const pin_descr_t bsp_pins[] PROGMEM = {
     BSP_EIO6, BSP_EIO7, BSP_PB0,  BSP_PE0,  BSP_PE1,
 };
 
+#if CONFIG_PCF8574_ENABLED
 static struct pcf8574_state pcf_state;
 
 struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT] = {{
@@ -39,7 +40,7 @@ struct extio_device extio_devices[CONFIG_EXTIO_DEVICES_COUNT] = {{
     .device = {.p_pcf = &pcf_state},
 }};
 
-#if CONFIG_PCF8574_ENABLED && CONFIG_PCF8574_INT_ENABLED
+#if CONFIG_PCF8574_INT_ENABLED
 ISR(BSP_PCF_INT_vect)
 {
 #if DEBUG_INT
@@ -53,6 +54,7 @@ ISR(BSP_PCF_INT_vect)
     /* Immediately yield to schedule main thread */
     k_yield_from_isr_cond(ready);
 }
+#endif
 #endif
 
 void bsp_tiny_init(struct extio_device *dev)
@@ -95,7 +97,6 @@ void bsp_tiny_init(struct extio_device *dev)
 }
 
 #if CONFIG_PCF8574_ENABLED
-
 void bsp_extio_set_pin_direction(struct extio_device *dev, uint8_t pin, uint8_t direction)
 {
     if (direction == GPIO_INPUT) {

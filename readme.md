@@ -30,6 +30,8 @@ heaters and more through the CANIOT protocol.
 - Serial protocol over CAN to send text messages
 - 1W: read temperature sensors serial number dynamically
 - Attribute for OS monitoring
+  - tasks count, max stack usage, irq count, thread switch count, idle time percentage ...
+
 
 ## Boards
 

@@ -81,6 +81,7 @@
 		"mcp3008.h": "c",
 		"filters.h": "c",
 		"errno.h": "c",
-		"spi.h": "c"
+		"spi.h": "c",
+		"avrtos_arduinoide_conf.h": "c"
 	},
 }

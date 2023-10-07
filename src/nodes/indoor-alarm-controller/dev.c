@@ -105,7 +105,9 @@ const struct caniot_device_config default_config PROGMEM = {
         },
     .cls1_gpio =
         {
-            .self_managed        = BIT(PB0_IDX),
+            .self_managed = BIT(PB0_IDX) | BIT(EIO0_IDX) | BIT(EIO1_IDX) | BIT(EIO2_IDX) |
+                            BIT(EIO3_IDX) | BIT(EIO4_IDX) | BIT(EIO5_IDX) |
+                            BIT(EIO6_IDX) | BIT(EIO7_IDX), /* PB0 used for SPI CS, PCF not connected */
             .telemetry_on_change = 0x0000u,
             .directions          = 0x0000u,
             .outputs_default     = 0x0000u,
