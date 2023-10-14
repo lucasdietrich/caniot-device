@@ -7,10 +7,8 @@
 #include "build_info.h"
 #include "class/class.h"
 #include "dev.h"
-#include "devices/gpio_xps.h"
-#include "settings.h"
-
 #include "platform.h"
+#include "settings.h"
 
 #include <time.h>
 
@@ -24,6 +22,13 @@
 K_SIGNAL_DEFINE(caniot_process_sig);
 
 const caniot_did_t did = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__);
+
+__attribute__((section(".noinit"))) struct caniot_device_config settings_rambuf;
+__STATIC_ASSERT(sizeof(settings_rambuf) <= 0xFF,
+                "config too big"); /* EEPROM size depends on MCU */
+
+/* Default configuration */
+extern struct caniot_device_config default_config;
 
 static const struct caniot_device_id identification PROGMEM = {
     .did          = CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__),
@@ -62,7 +67,7 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
     }
 
     if (sysc->config_reset == CANIOT_SS_CMD_SET) {
-        ret = settings_restore_default(dev);
+        ret = settings_restore_default(dev, &default_config);
     }
 
     if (sysc->watchdog_reset == CANIOT_SS_CMD_SET || sysc->reset == CANIOT_SS_CMD_SET) {
@@ -133,10 +138,6 @@ int command_handler(struct caniot_device *dev,
 const struct caniot_device_api api = CANIOT_DEVICE_API_STD_INIT(
     command_handler, telemetry_handler, settings_read, settings_write);
 
-__attribute__((section(".noinit"))) struct caniot_device_config settings_rambuf;
-__STATIC_ASSERT(sizeof(settings_rambuf) <= 0xFF,
-                "config too big"); /* EEPROM size depends on MCU */
-
 struct caniot_device device = {
     .identification = &identification,
     .config         = &settings_rambuf,
@@ -189,6 +190,6 @@ void trigger_telemetrys(uint8_t endpoints_bitmask)
 
 void caniot_init(void)
 {
-    settings_init(&device);
+    settings_init(&device, &default_config);
     caniot_app_init(&device);
 }

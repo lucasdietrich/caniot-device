@@ -38,9 +38,9 @@ void can_init(void);
 
 /**
  * @brief Receive a CAN message
- * 
+ *
  * @param msg Buffer to store the message
- * @return int 
+ * @return int
  *  * 0 if no message is available
  *  * -EAGAIN if no message is available
  *  * -EIO if device error occured

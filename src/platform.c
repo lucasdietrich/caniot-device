@@ -1,12 +1,12 @@
+#include "can.h"
 #include "config.h"
 #include "platform.h"
-#include "can.h"
 #include "watchdog.h"
 
 #include <avrtos/avrtos.h>
-#include <caniot/caniot.h>
-
 #include <avrtos/logging.h>
+
+#include <caniot/caniot.h>
 #define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 
 void platform_entropy(uint8_t *buf, size_t len)

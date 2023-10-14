@@ -25,9 +25,6 @@
 /* Tell whether the initial configuration needs to be applied or not */
 static bool init_config_to_apply = true;
 
-/* Default configuration */
-extern struct caniot_device_config default_config;
-
 // compute CRC8
 static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
 {
@@ -68,6 +65,8 @@ static bool settings_dirty = true;
 
 int settings_read(struct caniot_device *dev, struct caniot_device_config *cfg)
 {
+    (void)dev;
+
     if (settings_dirty == true) {
         const uint8_t actual_checksum = eeprom_read_byte(0x0000U);
 
@@ -100,9 +99,10 @@ int settings_write(struct caniot_device *dev, struct caniot_device_config *cfg)
     return settings_apply(dev, cfg);
 }
 
-int settings_restore_default(struct caniot_device *dev)
+int settings_restore_default(struct caniot_device *dev,
+                             const struct caniot_device_config *farp_default_config)
 {
-    memcpy_P(dev->config, &default_config, SETTINGS_BLOCK_SIZE);
+    memcpy_P(dev->config, farp_default_config, SETTINGS_BLOCK_SIZE);
 
     return settings_write(dev, dev->config);
 }
@@ -111,7 +111,8 @@ int settings_restore_default(struct caniot_device *dev)
 #warning "CONFIG_FORCE_RESTORE_DEFAULT_CONFIG" is enabled
 #endif
 
-void settings_init(struct caniot_device *dev)
+void settings_init(struct caniot_device *dev,
+                   const struct caniot_device_config *farp_default_config)
 {
     bool restore = false;
 
@@ -126,9 +127,7 @@ void settings_init(struct caniot_device *dev)
     if (restore || (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 1)) {
 
         LOG_DBG("Config reset ...");
-        memcpy_P(dev->config, &default_config, sizeof(struct caniot_device_config));
-
-        settings_write(dev, dev->config);
+        settings_restore_default(dev, farp_default_config);
     } else {
         settings_apply(dev, dev->config);
     }
