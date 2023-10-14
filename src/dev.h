@@ -26,16 +26,11 @@
 extern "C" {
 #endif
 
-#define WATCHDOG_TIMEOUT_MS   8000
-#define WATCHDOG_TIMEOUT_WDTO WDTO_8S
-
 extern const caniot_did_t did;
 
 extern struct k_signal caniot_process_sig;
 
 void print_indentification(void);
-
-uint32_t get_magic_number(void);
 
 void trigger_telemetry(caniot_endpoint_t endpoint);
 void trigger_telemetrys(uint8_t endpoints_bitmask);

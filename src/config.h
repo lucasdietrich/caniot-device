@@ -149,6 +149,14 @@
 #define CONFIG_CAN_CONTEXT_LOCK 0u
 #endif
 
+#if !defined(CONFIG_CAN_DELAYABLE_TX)
+#define CONFIG_CAN_DELAYABLE_TX 1u
+#endif
+
+#if !defined(CONFIG_CAN_DELAYABLE_TX_BUFFER)
+#define CONFIG_CAN_DELAYABLE_TX_BUFFER 1u
+#endif
+
 #if !defined(CONFIG_CHECKS)
 #define CONFIG_CHECKS 1u
 #endif

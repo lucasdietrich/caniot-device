@@ -98,19 +98,18 @@ int can_recv(can_message *msg)
 
     CAN_CONTEXT_LOCK();
 
-    if (can.checkReceive() != CAN_MSGAVAIL) {
-        rc = -EAGAIN;
-        goto exit;
-    }
-
     rc = can.readMsgBufID(can.readRxTxStatus(),
                           (unsigned long *)&msg->id,
                           &isext,
                           &rtr,
                           &msg->len,
                           msg->buf);
-    if (rc != 0) {
+    if (rc == CAN_NOMSG) {
+        rc = -EAGAIN;
+        goto exit;
+    } else if (rc != 0) {
         LOG_ERR("CAN readMsgBufID failed err: %d", rc);
+        rc = -EIO;
         goto exit;
     }
 

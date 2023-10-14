@@ -31,8 +31,20 @@ typedef struct {
 
 } __attribute__((packed)) can_message;
 
+/**
+ * @brief Initialize CAN bus
+ */
 void can_init(void);
 
+/**
+ * @brief Receive a CAN message
+ * 
+ * @param msg Buffer to store the message
+ * @return int 
+ *  * 0 if no message is available
+ *  * -EAGAIN if no message is available
+ *  * -EIO if device error occured
+ */
 int can_recv(can_message *msg);
 
 int can_txq_message(can_message *msg);
