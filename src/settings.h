@@ -7,7 +7,7 @@
 #ifndef _CANIOT_SETTINGS_H_
 #define _CANIOT_SETTINGS_H_
 
-void settings_load(struct caniot_device *dev);
+void settings_init(struct caniot_device *dev);
 
 int settings_read(struct caniot_device *dev, struct caniot_device_config *config);
 

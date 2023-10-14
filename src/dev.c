@@ -281,7 +281,9 @@ int command_handler(struct caniot_device *dev,
 const struct caniot_device_api api = CANIOT_DEVICE_API_STD_INIT(
     command_handler, telemetry_handler, settings_read, settings_write);
 
-extern struct caniot_device_config settings_rambuf;
+__attribute__((section(".noinit"))) struct caniot_device_config settings_rambuf;
+__STATIC_ASSERT(sizeof(settings_rambuf) <= 0xFF,
+                "config too big"); /* EEPROM size depends on MCU */
 
 struct caniot_device device = {
     .identification = &identification,
@@ -340,6 +342,6 @@ void trigger_telemetrys(uint8_t endpoints_bitmask)
 
 void caniot_init(void)
 {
-    settings_load(&device);
+    settings_init(&device);
     caniot_app_init(&device);
 }
