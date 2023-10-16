@@ -74,7 +74,7 @@ bool pulse_is_active(struct pulse_event *ev);
  * @param time_passed_ms
  * @return true if at least one pulse was processed
  */
-bool pulse_process(uint32_t time_passed_ms);
+bool pulse_process(uint32_t now_ms);
 
 /**
  * @brief Get time until next event

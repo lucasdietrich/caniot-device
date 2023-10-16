@@ -7,49 +7,99 @@
 #ifndef _CANIOT_DEV_DEV_H_
 #define _CANIOT_DEV_DEV_H_
 
-#include "bsp/bsp.h"
-#include "can.h"
-#include "config.h"
-#include "devices/gpio_pulse.h"
-#include "devices/temp.h"
-
 #include <avrtos/avrtos.h>
 
-#include <avr/pgmspace.h>
-#include <avr/wdt.h>
 #include <caniot/caniot.h>
 #include <caniot/datatype.h>
 #include <caniot/device.h>
-#include <util/delay.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern const caniot_did_t did;
+#define DEVICE_DID CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__)
 
-extern struct k_signal caniot_process_sig;
+/**
+ * @brief Print the device CANIOT identification.
+ */
+void dev_print_indentification(void);
 
-void print_indentification(void);
+/**
+ * @brief Process the CANIOT device.
+ *
+ * @return int
+ */
+int dev_process(void);
 
-void trigger_telemetry(caniot_endpoint_t endpoint);
-void trigger_telemetrys(uint8_t endpoints_bitmask);
+/**
+ * @brief Initialize the CANIOT device.
+ */
+void dev_init(void);
 
-bool telemetry_requested(void);
+/**
+ * @brief Restore the default settings for the device.
+ *
+ * @return int
+ */
+int dev_restore_default(void);
 
-static inline struct k_thread *trigger_process(void)
-{
-    return k_signal_raise(&caniot_process_sig, 0);
-}
+/**
+ * @brief Get the time to wait for the next process.
+ *
+ * @return uint32_t
+ */
+uint32_t dev_get_process_timeout(void);
 
-int caniot_process(void);
+/**
+ * @brief Return whether telemetry is requested
+ *
+ * @return true
+ * @return false
+ */
+bool dev_telemetry_is_requested(void);
 
-uint32_t get_telemetry_timeout(void);
+/**
+ * @brief Trigger the telemetry for the given endpoint.
+ *
+ * @param endpoint
+ * @return true
+ * @return false
+ */
+void dev_trigger_telemetry(caniot_endpoint_t endpoint);
 
-void caniot_init(void);
+/**
+ * @brief Trigger the telemetry for the given endpoints bitmask.
+ *
+ * @param endpoints_bitmask
+ */
+void dev_trigger_telemetrys(uint8_t endpoints_bitmask);
 
+/**
+ * @brief Apply a board level control system command to the device.
+ *
+ * @param dev
+ * @param sysc
+ * @return int
+ */
 int dev_apply_blc_sys_command(struct caniot_device *dev,
                               struct caniot_blc_sys_command *sysc);
+
+/**
+ * @brief Signal used to trigger the device process.
+ */
+extern struct k_signal dev_process_sig;
+
+/**
+ * @brief Trigger the device process.
+ *
+ * This function must be inlined as it is often called from an ISR.
+ *
+ * @return struct k_thread*
+ */
+static inline struct k_thread *dev_trigger_process(void)
+{
+    return k_signal_raise(&dev_process_sig, 0);
+}
 
 #ifdef __cplusplus
 }

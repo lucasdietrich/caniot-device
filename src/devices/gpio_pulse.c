@@ -22,6 +22,8 @@
 #error CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT == 0 while PULSE support is enabled
 #endif
 
+static uint32_t pulse_last_process = 0u;
+
 K_MEM_SLAB_DEFINE(ctx_mems,
                   sizeof(struct pulse_event),
                   CONFIG_GPIO_PULSE_SIMULTANEOUS_COUNT);
@@ -82,7 +84,7 @@ static void cancel_event(struct pulse_event *ev)
 
 void pulse_init(void)
 {
-    /* Nothing ... */
+    pulse_last_process = k_uptime_get();
 }
 
 struct pulse_event *
@@ -137,12 +139,16 @@ bool pulse_is_active(struct pulse_event *ev)
     return false;
 }
 
-bool pulse_process(uint32_t time_passed_ms)
+bool pulse_process(uint32_t now_ms)
 {
     struct titem *_tie = NULL;
     bool least_one     = false;
 
     PULSE_CONTEXT_LOCK();
+
+    /* Time passed since last process */
+    uint32_t time_passed_ms = now_ms - pulse_last_process;
+    pulse_last_process      = now_ms;
 
     tqueue_shift(&ev_queue, time_passed_ms);
 

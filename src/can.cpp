@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "bsp/bsp.h"
 #include "can.h"
 #include "dev.h"
 
@@ -57,8 +58,8 @@ void can_init(void)
 
 #if CONFIG_CAN_SOFT_FILTERING == 0
     const unsigned long mask             = caniot_device_get_mask();
-    const unsigned long filter_self      = caniot_device_get_filter(did);
-    const unsigned long filter_broadcast = caniot_device_get_filter_broadcast(did);
+    const unsigned long filter_self      = caniot_device_get_filter(DEVICE_DID);
+    const unsigned long filter_broadcast = caniot_device_get_filter_broadcast(DEVICE_DID);
 
     can.init_Mask(0u, CAN_STDID, mask);
     can.init_Filt(0u, CAN_STDID, filter_self);
@@ -83,7 +84,7 @@ ISR(BSP_CAN_INT_vect)
     serial_transmit('%');
 #endif
 
-    struct k_thread *ready = trigger_process();
+    struct k_thread *ready = dev_trigger_process();
 
     /* Immediately yield to schedule main thread */
     k_yield_from_isr_cond(ready);

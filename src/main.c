@@ -69,7 +69,7 @@ int main(void)
 #endif
     can_init();
 
-    caniot_init();
+    dev_init();
 
 #if CONFIG_SHELL
     shell_init();
@@ -87,15 +87,11 @@ int main(void)
     app_init();
 
     /* send board level control telemetry on startup */
-    trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
+    dev_trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
     /* LOG */
     // k_thread_dump_all();
-    print_indentification();
-
-#if CONFIG_GPIO_PULSE_SUPPORT
-    uint32_t pulse_process_time = k_uptime_get_ms32();
-#endif
+    dev_print_indentification();
 
     int ret;
     for (;;) {
@@ -104,17 +100,17 @@ int main(void)
          * - Caniot telemetry
          * - Pulse event
          */
-        uint32_t timeout_ms = MIN(max_process_interval, get_telemetry_timeout());
+        uint32_t timeout_ms = MIN(max_process_interval, dev_get_process_timeout());
 
 #if CONFIG_GPIO_PULSE_SUPPORT
         timeout_ms = MIN(timeout_ms, pulse_remaining());
 #endif
 
-        k_poll_signal(&caniot_process_sig, K_MSEC(timeout_ms));
+        k_poll_signal(&dev_process_sig, K_MSEC(timeout_ms));
 
         /* Clear the signal before application functions triggers it */
-        if (!telemetry_requested()) {
-            K_SIGNAL_SET_UNREADY(&caniot_process_sig);
+        if (!dev_telemetry_is_requested()) {
+            K_SIGNAL_SET_UNREADY(&dev_process_sig);
         }
 
 #if CONFIG_WATCHDOG
@@ -123,11 +119,10 @@ int main(void)
 #endif /* CONFIG_WATCHDOG */
 
 #if CONFIG_GPIO_PULSE_SUPPORT
-        uint32_t now_ms = k_uptime_get_ms32();
-        if (pulse_process(now_ms - pulse_process_time) == true) {
-            trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
+        const uint32_t now = k_uptime_get_ms32();
+        if (pulse_process(now) == true) {
+            dev_trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
         }
-        pulse_process_time = now_ms;
 #endif
 
         /* Application specific processing before CANIOT process*/
@@ -138,7 +133,7 @@ int main(void)
 #endif
 
         do {
-            ret = caniot_process();
+            ret = dev_process();
             if (ret == 0) {
                 /* When CAN message "sent" (actually queued to TX queue),
                  * immediately yield after having queued the CAN message

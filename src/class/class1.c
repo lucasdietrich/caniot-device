@@ -127,10 +127,10 @@ int class1_blc_command_handler(struct caniot_device *dev,
     return dev_apply_blc_sys_command(dev, &sys_cmd);
 }
 
-int class1_config_apply(struct caniot_device *dev,
-                        struct caniot_device_config *config,
-                        bool init)
+int class1_config_apply(struct caniot_device *dev, bool init)
 {
+    struct caniot_device_config *const config = dev->config;
+
     for (uint8_t i = 0u; i < CONFIG_IO_COUNT; i++) {
         if (config->cls1_gpio.self_managed & BIT(i)) continue;
 

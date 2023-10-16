@@ -55,7 +55,7 @@ ISR(BSP_PCF_INT_vect)
 
     pcf8574_invalidate_buffer(&pcf_state);
 
-    struct k_thread *ready = trigger_process();
+    struct k_thread *ready = dev_trigger_process();
 
     /* Immediately yield to schedule main thread */
     k_yield_from_isr_cond(ready);

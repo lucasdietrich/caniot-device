@@ -22,7 +22,7 @@ void settings_init(struct caniot_device *dev,
  * @param config (is actually dev->config)
  * @return int
  */
-int settings_read(struct caniot_device *dev, struct caniot_device_config *config);
+int settings_read(struct caniot_device *dev);
 
 /**
  * @brief Write the settings from the config struct to the EEPROM.
@@ -31,7 +31,7 @@ int settings_read(struct caniot_device *dev, struct caniot_device_config *config
  * @param config (is actually dev->config)
  * @return int
  */
-int settings_write(struct caniot_device *dev, struct caniot_device_config *config);
+int settings_write(struct caniot_device *dev);
 
 /**
  * @brief Restore the default settings for the device.

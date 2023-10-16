@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "can.h"
 #include "config.h"
 #include "platform.h"
@@ -8,6 +14,14 @@
 
 #include <caniot/caniot.h>
 #define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
+
+const struct caniot_drivers_api platform_caniot_drivers = {
+    .entropy  = platform_entropy,
+    .get_time = platform_get_time,
+    .set_time = platform_set_time,
+    .recv     = platform_caniot_recv,
+    .send     = platform_caniot_send,
+};
 
 void platform_entropy(uint8_t *buf, size_t len)
 {

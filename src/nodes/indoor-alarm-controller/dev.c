@@ -51,7 +51,7 @@ void adc_task(void *arg)
     for (;;) {
         mcp3008_read_all(channels);
 
-        trigger_telemetrys(BIT(CANIOT_ENDPOINT_1) | BIT(CANIOT_ENDPOINT_2));
+        dev_trigger_telemetrys(BIT(CANIOT_ENDPOINT_1) | BIT(CANIOT_ENDPOINT_2));
         k_sleep(K_SECONDS(1u));
     }
 }

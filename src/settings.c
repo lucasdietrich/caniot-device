@@ -43,60 +43,59 @@ static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
     return crc;
 }
 
-static int settings_apply(struct caniot_device *dev, struct caniot_device_config *cfg)
+static int settings_apply(struct caniot_device *dev)
 {
-    set_zone(cfg->timezone);
+    set_zone(dev->config->timezone);
 
-    switch (__DEVICE_CLS__) {
+    switch (__DEVICE_CLS__) { /* TODO get device class dynamically */
+#if CONFIG_CLASS0_ENABLED
     case CANIOT_DEVICE_CLASS0:
-        return class0_config_apply(dev, cfg, init_config_to_apply);
+        return class0_config_apply(dev, init_config_to_apply);
+#endif
+#if CONFIG_CLASS1_ENABLED
     case CANIOT_DEVICE_CLASS1:
-        return class1_config_apply(dev, cfg, init_config_to_apply);
+        return class1_config_apply(dev, init_config_to_apply);
+#endif
     default:
         return -CANIOT_ENOTSUP;
     }
 }
 
-/**
- * @brief Indicates whether the configuration is still valid or not.
- * TODO can be removed
- */
-static bool settings_dirty = true;
-
-int settings_read(struct caniot_device *dev, struct caniot_device_config *cfg)
+int settings_read(struct caniot_device *dev)
 {
     (void)dev;
 
-    if (settings_dirty == true) {
-        const uint8_t actual_checksum = eeprom_read_byte(0x0000U);
+    /* TODO calculate base offset for the device */
+    const void *config_base_offset = 0x0000u;
+    const uint8_t actual_checksum  = eeprom_read_byte(config_base_offset);
 
-        eeprom_read_block(cfg, (const void *)0x0001U, SETTINGS_BLOCK_SIZE);
+    eeprom_read_block(dev->config, config_base_offset + 1u, SETTINGS_BLOCK_SIZE);
 
-        uint8_t calculated_checksum =
-            checksum_crc8((const uint8_t *)cfg, SETTINGS_BLOCK_SIZE);
+    uint8_t calculated_checksum =
+        checksum_crc8((const uint8_t *)dev->config, SETTINGS_BLOCK_SIZE);
 
-        if (actual_checksum != calculated_checksum) {
-            return -EINVAL;
-        }
-
-        settings_dirty = false;
+    if (actual_checksum != calculated_checksum) {
+        return -EINVAL;
     }
 
     return 0;
 }
 
-int settings_write(struct caniot_device *dev, struct caniot_device_config *cfg)
+int settings_write(struct caniot_device *dev)
 {
-    eeprom_update_block((const void *)cfg, (void *)0x0001U, SETTINGS_BLOCK_SIZE);
+    /* TODO calculate base offset for the device */
+    const uint16_t config_base_offset = 0x0000u;
+    eeprom_update_block((const void *)dev->config,
+                        (void *)(config_base_offset + 1u),
+                        SETTINGS_BLOCK_SIZE);
 
     const uint8_t calculated_checksum =
-        checksum_crc8((const uint8_t *)cfg, SETTINGS_BLOCK_SIZE);
+        checksum_crc8((const uint8_t *)dev->config, SETTINGS_BLOCK_SIZE);
 
-    eeprom_update_byte((uint8_t *)0x0000U, calculated_checksum);
+    /* Write checksum */
+    eeprom_update_byte((uint8_t *)config_base_offset, calculated_checksum);
 
-    settings_dirty = true;
-
-    return settings_apply(dev, cfg);
+    return settings_apply(dev);
 }
 
 int settings_restore_default(struct caniot_device *dev,
@@ -104,7 +103,7 @@ int settings_restore_default(struct caniot_device *dev,
 {
     memcpy_P(dev->config, farp_default_config, SETTINGS_BLOCK_SIZE);
 
-    return settings_write(dev, dev->config);
+    return settings_write(dev);
 }
 
 #if CONFIG_FORCE_RESTORE_DEFAULT_CONFIG
@@ -118,7 +117,7 @@ void settings_init(struct caniot_device *dev,
 
     if (CONFIG_FORCE_RESTORE_DEFAULT_CONFIG == 0) {
         /* sanity check on EEPROM */
-        if (settings_read(dev, dev->config) != 0) {
+        if (settings_read(dev) != 0) {
             restore = true;
         }
     }
@@ -129,7 +128,7 @@ void settings_init(struct caniot_device *dev,
         LOG_DBG("Config reset ...");
         settings_restore_default(dev, farp_default_config);
     } else {
-        settings_apply(dev, dev->config);
+        settings_apply(dev);
     }
 
     /* the initial configuration has been applied */

@@ -82,6 +82,11 @@
 		"filters.h": "c",
 		"errno.h": "c",
 		"spi.h": "c",
-		"avrtos_arduinoide_conf.h": "c"
+		"avrtos_arduinoide_conf.h": "c",
+		"caniot_config.h": "c",
+		"platform.h": "c",
+		"instance_multi.h": "c",
+		"instance_single.h": "c",
+		"build_info.h": "c"
 	},
 }

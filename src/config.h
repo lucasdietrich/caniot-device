@@ -9,6 +9,15 @@
 
 /* General configuration */
 
+/* Tells whether the device is a multi-instance device */
+#if !defined(__MULTI_INSTANCES__)
+#define __MULTI_INSTANCES__ 0u
+#endif
+
+#if !defined(__MULTI_INSTANCES_COUNT__)
+#define __MULTI_INSTANCES_COUNT__ 0u
+#endif
+
 #if !defined(CONFIG_GPIO_PULSE_SUPPORT)
 #define CONFIG_GPIO_PULSE_SUPPORT 0U
 #endif
@@ -193,6 +202,14 @@
 
 #if __DEVICE_CLS__ == 7
 #define CONFIG_CLASS7_ENABLED 1U
+#endif
+
+#if __MULTI_INSTANCES__
+#define DEVICE_INSTANCES_COUNT __MULTI_INSTANCES_COUNT__
+#define DEVICE_SINGLE_INSTANCE 0
+#else
+#define DEVICE_INSTANCES_COUNT 1
+#define DEVICE_SINGLE_INSTANCE 1
 #endif
 
 #endif /* _APP_CONFIG_H_ */

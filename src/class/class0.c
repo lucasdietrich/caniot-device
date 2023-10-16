@@ -92,12 +92,10 @@ int class0_blc_command_handler(struct caniot_device *dev,
     return dev_apply_blc_sys_command(dev, &sys_cmd);
 }
 
-int class0_config_apply(struct caniot_device *dev,
-                        struct caniot_device_config *config,
-                        bool init)
+int class0_config_apply(struct caniot_device *dev, bool init)
 {
     /* TODO if !dev->flags.initialized, set port default value */
-    struct caniot_class0_config *const c0 = &config->cls0_gpio;
+    struct caniot_class0_config *const c0 = &dev->config->cls0_gpio;
 
     /* If its initialized, set the defaults */
     if (init) {

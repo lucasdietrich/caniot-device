@@ -110,7 +110,7 @@ void shell_process(void)
 #if CONFIG_SHELL_WORKQ_OFFLOADED
             k_sched_lock();
 #endif
-            trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
+            dev_trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 #if CONFIG_SHELL_WORKQ_OFFLOADED
             k_sched_unlock();
 #endif
