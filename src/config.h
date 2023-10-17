@@ -166,6 +166,14 @@
 #define CONFIG_CAN_DELAYABLE_TX_BUFFER 1u
 #endif
 
+#if !defined(CONFIG_CAN_WORKQ_OFFLOADED)
+#define CONFIG_CAN_WORKQ_OFFLOADED 0u
+#endif
+
+#if !defined(CONFIG_CAN_TX_MSGQ_SIZE)
+#define CONFIG_CAN_TX_MSGQ_SIZE 1u
+#endif
+
 #if !defined(CONFIG_CHECKS)
 #define CONFIG_CHECKS 1u
 #endif

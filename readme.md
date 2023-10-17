@@ -31,8 +31,8 @@ heaters and more through the CANIOT protocol.
 - 1W: read temperature sensors serial number dynamically
 - Attribute for OS monitoring
   - tasks count, max stack usage, irq count, thread switch count, idle time percentage ...
-- Delayed workqueue items
-- Use workqueue to send CAN messages
+- AVRTOS: Delayed workqueue items
+- ~~Use workqueue to send CAN messages~~
 
 
 ## Boards

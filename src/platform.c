@@ -103,7 +103,7 @@ static void dmsg_handler(struct k_event *ev)
 {
     struct delayed_msg *dmsg = CONTAINER_OF(ev, struct delayed_msg, ev);
 
-    can_txq_message(&dmsg->msg);
+    (void)can_txq_message(&dmsg->msg);
 
     k_mem_slab_free(&dmsg_slab, dmsg);
 }

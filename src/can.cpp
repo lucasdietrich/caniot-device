@@ -25,24 +25,30 @@
 #define CAN_CLOCKSET MCP_8MHz
 #endif
 
-#define CAN_SPEEDSET     CAN_500KBPS
-#define CAN_TX_MSGQ_SIZE 2u
+#define CAN_SPEEDSET CAN_500KBPS
 
 static mcp2515_can can(BSP_CAN_SS_ARDUINO_PIN);
 
-/* maybe unecessary */
+#define CONFIG_CAN_THREAD_OFFLOADED !CONFIG_CAN_WORKQ_OFFLOADED
 
 #if CONFIG_CAN_CONTEXT_LOCK
 static K_MUTEX_DEFINE(can_mutex_if);
-
 #define CAN_CONTEXT_LOCK()   k_mutex_lock(&can_mutex_if, K_FOREVER);
 #define CAN_CONTEXT_UNLOCK() k_mutex_unlock(&can_mutex_if);
-
 #else
-
 #define CAN_CONTEXT_LOCK()
 #define CAN_CONTEXT_UNLOCK()
+#endif
 
+K_MSGQ_DEFINE(txq, sizeof(can_message), CONFIG_CAN_TX_MSGQ_SIZE);
+
+#if CONFIG_CAN_WORKQ_OFFLOADED
+static struct k_work can_tx_work;
+static void can_tx_wq_cb(struct k_work *work);
+#else
+static void can_tx_entry(void *arg);
+K_THREAD_DEFINE(
+    can_tx_thread, can_tx_entry, CONFIG_CAN_THREAD_STACK_SIZE, K_COOPERATIVE, NULL, 'C');
 #endif
 
 void can_init(void)
@@ -73,6 +79,10 @@ void can_init(void)
 #else
     can.init_Mask(0u, CAN_EXTID, 0x0ul);
     can.init_Mask(1u, CAN_EXTID, 0x0ul);
+#endif
+
+#if CONFIG_CAN_WORKQ_OFFLOADED
+    k_work_init(&can_tx_work, can_tx_wq_cb);
 #endif
 
     CAN_CONTEXT_UNLOCK();
@@ -143,6 +153,8 @@ static int can_send(can_message *msg)
 {
     __ASSERT_NOTNULL(msg);
 
+    // can_print_msg(&msg);
+
     CAN_CONTEXT_LOCK();
 
     int rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len, msg->buf, true);
@@ -150,29 +162,6 @@ static int can_send(can_message *msg)
     CAN_CONTEXT_UNLOCK();
 
     return rc;
-}
-
-K_MSGQ_DEFINE(txq, sizeof(can_message), CAN_TX_MSGQ_SIZE);
-
-static void can_tx_entry(void *arg);
-
-K_THREAD_DEFINE(
-    can_tx_thread, can_tx_entry, CONFIG_CAN_THREAD_STACK_SIZE, K_COOPERATIVE, NULL, 'C');
-
-static void can_tx_entry(void *arg)
-{
-    can_message msg;
-    while (1) {
-        if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
-            // can_print_msg(&msg);
-            can_send(&msg);
-        }
-    }
-}
-
-int can_txq_message(can_message *msg)
-{
-    return k_msgq_put(&txq, msg, K_NO_WAIT);
 }
 
 // print can_message
@@ -186,3 +175,38 @@ void can_print_msg(can_message *msg)
 
     LOG_HEXDUMP_DBG(msg->buf, MIN(msg->len, 8U));
 }
+
+int can_txq_message(can_message *msg)
+{
+    int ret = k_msgq_put(&txq, msg, K_NO_WAIT);
+
+    if (ret == 0) {
+#if CONFIG_CAN_WORKQ_OFFLOADED
+        k_system_workqueue_submit(&can_tx_work);
+#endif
+    } else if (ret == -ENOMEM) {
+        LOG_ERR("can txq full");
+    }
+
+    return ret;
+}
+
+#if !CONFIG_CAN_WORKQ_OFFLOADED
+static void can_tx_entry(void *arg)
+{
+    can_message msg;
+    while (1) {
+        if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
+            can_send(&msg);
+        }
+    }
+}
+#else
+static void can_tx_wq_cb(struct k_work *work)
+{
+    can_message msg;
+    while (k_msgq_get(&txq, &msg, K_NO_WAIT) == 0) {
+        can_send(&msg);
+    }
+}
+#endif

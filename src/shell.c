@@ -105,16 +105,27 @@ void shell_process(void)
             }
             break;
 #endif
+        case '0':
+        case '1':
+        case '2':
+        case '3':
         case 't':
-        case 'T':
+        case 'T': {
+            caniot_endpoint_t ep;
+            if (IN_RANGE(chr, '0', '3')) {
+                ep = (caniot_endpoint_t)(chr - '0');
+            } else {
+                ep = CANIOT_ENDPOINT_BOARD_CONTROL;
+            }
 #if CONFIG_SHELL_WORKQ_OFFLOADED
             k_sched_lock();
 #endif
-            dev_trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
+            dev_trigger_telemetry(ep);
 #if CONFIG_SHELL_WORKQ_OFFLOADED
             k_sched_unlock();
 #endif
             break;
+        }
         case 'U':
         case 'u':
             k_show_uptime();
