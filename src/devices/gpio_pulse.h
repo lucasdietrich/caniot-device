@@ -28,8 +28,9 @@ struct pulse_event {
     /* Tells wether the pulse is active or not */
     uint8_t scheduled : 1;
 
-    /* Tells wether the pulse context has been allocated internally */
-    uint8_t _iallocated;
+    /* Tells wether the pulse context has been allocated using the 
+     * pulse allocator or not */
+    uint8_t _iallocated : 1;
 
     /* GPIO descriptor */
     pin_descr_t descr;
@@ -42,6 +43,10 @@ void pulse_init(void);
 
 /**
  * @brief Trigger a pulse on an output
+ *
+ * @warning If a pulse is already pending on the pin, it WON'T be CANCELLED, so bot pulses
+ * will be processed simultaneously. If you don't want this behavior, you should
+ * call pulse_cancel() before calling pulse_trigger().
  *
  * @param output RL1, RL2, OC1, OC2
  * @param state true, false
@@ -59,7 +64,7 @@ struct pulse_event *pulse_trigger(pin_descr_t descr,
  * @param output RL1, RL2, OC1, OC2
  * @param state true, false
  */
-void pulse_cancel(struct pulse_event *ev);
+void pulse_cancel(struct pulse_event *ev, bool do_reset_state);
 
 /**
  * @brief Check if a pulse is being processed for the pin

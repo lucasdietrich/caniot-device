@@ -69,9 +69,4 @@ int platform_reset(void);
  */
 int platform_watchdog_enable(bool enable);
 
-/**
- * @brief Platform specific CANIOT drivers API.
- */
-extern const struct caniot_drivers_api platform_caniot_drivers;
-
 #endif /* _PLATFORM_H_ */

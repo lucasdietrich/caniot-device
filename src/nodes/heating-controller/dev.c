@@ -80,7 +80,7 @@ void app_init(void)
 #endif
 
     /* Send initial state */
-    trigger_telemetry(CANIOT_ENDPOINT_APP);
+    dev_trigger_telemetry(CANIOT_ENDPOINT_APP);
 }
 
 void app_process(void)
@@ -91,7 +91,7 @@ void app_process(void)
     if (new_status != power_current_status) {
         power_current_status = new_status;
 
-        trigger_telemetry(CANIOT_ENDPOINT_APP);
+        dev_trigger_telemetry(CANIOT_ENDPOINT_APP);
     }
 
     LOG_DBG("freq: %d status: %u", pcc_get_get_frequency(), new_status);

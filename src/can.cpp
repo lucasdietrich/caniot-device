@@ -64,8 +64,12 @@ void can_init(void)
 
 #if CONFIG_CAN_SOFT_FILTERING == 0
     const unsigned long mask             = caniot_device_get_mask();
+    const unsigned long filter_broadcast = caniot_device_get_filter_broadcast();
+#if CONFIG_DEVICE_SINGLE_INSTANCE
     const unsigned long filter_self      = caniot_device_get_filter(DEVICE_DID);
-    const unsigned long filter_broadcast = caniot_device_get_filter_broadcast(DEVICE_DID);
+#else
+    const unsigned long filter_self      = caniot_device_get_filter_by_cls(__DEVICE_CLS__);
+#endif
 
     can.init_Mask(0u, CAN_STDID, mask);
     can.init_Filt(0u, CAN_STDID, filter_self);
@@ -76,9 +80,11 @@ void can_init(void)
     can.init_Filt(3u, CAN_STDID, filter_broadcast);
     can.init_Filt(4u, CAN_STDID, filter_broadcast);
     can.init_Filt(5u, CAN_STDID, filter_broadcast);
-#else
+#elif CONFIG_DEVICE_SINGLE_INSTANCE
     can.init_Mask(0u, CAN_EXTID, 0x0ul);
     can.init_Mask(1u, CAN_EXTID, 0x0ul);
+#else
+#   error "CONFIG_CAN_SOFT_FILTERING not supported for multi instance devices"
 #endif
 
 #if CONFIG_CAN_WORKQ_OFFLOADED
@@ -133,15 +139,6 @@ int can_recv(can_message *msg)
                 (uint16_t)(msg->id >> 16u),
                 (uint16_t)(msg->id & 0xFFFFu));
     LOG_HEXDUMP_DBG(msg->buf, msg->len);
-
-#if CONFIG_CAN_SOFT_FILTERING
-    if (!caniot_device_targeted(did, msg->isext, msg->rtr, msg->id)) {
-        LOG_WRN("CAN drop can msg");
-        rc = -EAGAIN;
-    }
-#endif
-
-    /* Valid message directed to us */
 
 exit:
     CAN_CONTEXT_UNLOCK();

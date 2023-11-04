@@ -87,6 +87,7 @@
 		"platform.h": "c",
 		"instance_multi.h": "c",
 		"instance_single.h": "c",
-		"build_info.h": "c"
+		"build_info.h": "c",
+		"iom328p.h": "c"
 	},
 }

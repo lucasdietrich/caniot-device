@@ -18,6 +18,13 @@
 #define __MULTI_INSTANCES_COUNT__ 0u
 #endif
 
+#if !__MULTI_INSTANCES__
+#elif __MULTI_INSTANCES_COUNT__ > 8
+#error "With __MULTI_INSTANCES__ enabled, maximum number of instances is 8"
+#elif __MULTI_INSTANCES_COUNT__ <= 1
+#error "With __MULTI_INSTANCES__ enabled, minimum number of instances is 2"
+#endif
+
 #if !defined(CONFIG_GPIO_PULSE_SUPPORT)
 #define CONFIG_GPIO_PULSE_SUPPORT 0U
 #endif
@@ -213,11 +220,18 @@
 #endif
 
 #if __MULTI_INSTANCES__
-#define DEVICE_INSTANCES_COUNT __MULTI_INSTANCES_COUNT__
-#define DEVICE_SINGLE_INSTANCE 0
+#define CONFIG_DEVICE_INSTANCES_COUNT __MULTI_INSTANCES_COUNT__
+#define CONFIG_DEVICE_SINGLE_INSTANCE 0
+
+#define CONFIG_DEVICE_MULTI_FIRST_SID 0u
+#define CONFIG_DEVICE_MULTI_LAST_SID (__MULTI_INSTANCES_COUNT__ - 1u)
+#define CONFIG_DEVICE_MULTI_SID(_n)  (CONFIG_DEVICE_MULTI_FIRST_SID + (_n))
+#if defined(__DEVICE_SID__)
+#error "__DEVICE_SID__ must not be defined when __MULTI_INSTANCES__ is enabled"
+#endif
 #else
-#define DEVICE_INSTANCES_COUNT 1
-#define DEVICE_SINGLE_INSTANCE 1
+#define CONFIG_DEVICE_INSTANCES_COUNT 1
+#define CONFIG_DEVICE_SINGLE_INSTANCE 1
 #endif
 
 #endif /* _APP_CONFIG_H_ */

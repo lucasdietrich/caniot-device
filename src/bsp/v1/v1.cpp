@@ -56,7 +56,7 @@
         (BSP_DESCR_GPIO_PORT_GET_INDEX(BSP_RL1) == GPIOD_INDEX) ||                       \
         (BSP_DESCR_GPIO_PORT_GET_INDEX(BSP_RL2) == GPIOD_INDEX)
 
-extern "C" void trigger_telemetry(caniot_endpoint_t ep);
+extern "C" void dev_trigger_telemetry(caniot_endpoint_t ep);
 
 #if PCINT0_ISR_ENABLED
 ISR(PCINT0_vect)
@@ -64,7 +64,7 @@ ISR(PCINT0_vect)
 #if DEBUG_INT
     serial_transmit('*');
 #endif
-    trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
+    dev_trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
     /* TODO add k_yield_from_isr() */
 }
@@ -76,7 +76,7 @@ ISR(PCINT1_vect)
 #if DEBUG_INT
     serial_transmit('!');
 #endif
-    trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
+    dev_trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
     /* TODO add k_yield_from_isr() */
 }
@@ -88,7 +88,7 @@ ISR(PCINT2_vect)
 #if DEBUG_INT
     serial_transmit('=');
 #endif
-    trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
+    dev_trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
     /* TODO add k_yield_from_isr() */
 }

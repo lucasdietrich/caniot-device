@@ -13,11 +13,15 @@
 #include <caniot/datatype.h>
 #include <caniot/device.h>
 
+#include "config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#if CONFIG_DEVICE_SINGLE_INSTANCE
 #define DEVICE_DID CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__)
+#endif
 
 /**
  * @brief Print the device CANIOT identification.
@@ -25,23 +29,26 @@ extern "C" {
 void dev_print_indentification(void);
 
 /**
+ * @brief Return the index of the device instance.
+ * 
+ * @param dev 
+ * @return uint8_t 
+ */
+uint8_t dev_get_instance_index(struct caniot_device *dev);
+
+/**
  * @brief Process the CANIOT device.
+ * 
+ * @param tid Thread watchdog ID to use when calling alive() function.
  *
  * @return int
  */
-int dev_process(void);
+int dev_process(uint8_t tid);
 
 /**
  * @brief Initialize the CANIOT device.
  */
 void dev_init(void);
-
-/**
- * @brief Restore the default settings for the device.
- *
- * @return int
- */
-int dev_restore_default(void);
 
 /**
  * @brief Get the time to wait for the next process.
@@ -100,6 +107,16 @@ static inline struct k_thread *dev_trigger_process(void)
 {
     return k_signal_raise(&dev_process_sig, 0);
 }
+
+/* Utility functions */
+
+/**
+ * @brief Get the device configuration size in EEPROM.
+ * 
+ * @param dev 
+ * @return uint16_t 
+ */
+void dev_settings_restore_default(void);
 
 #ifdef __cplusplus
 }

@@ -31,8 +31,7 @@ heaters and more through the CANIOT protocol.
 - 1W: read temperature sensors serial number dynamically
 - Attribute for OS monitoring
   - tasks count, max stack usage, irq count, thread switch count, idle time percentage ...
-- AVRTOS: Delayed workqueue items
-- ~~Use workqueue to send CAN messages~~
+- Implement device inhibit
 
 
 ## Boards
@@ -42,11 +41,11 @@ Following boards are supported:
 - V1 ([documentation](./docs/bsp-v1.md)): First prototype (used for garage door controller and outdoor alarm controller)
 - Tiny ([documentation](./docs/bsp-tiny.md)): Second prototype (used for heating controller and shutters controller)
 
-| Board                                                  | MCU           | Controllable pins | Devices/Drivers support           | CANIOT Class |
-| ------------------------------------------------------ | ------------- | ----------------- | --------------------------------- | ------------ |
-| V1                                                     | ATmega328P(B) | 8                 | TCN75<br>DS18S20                  | CLASS0       |
-| Tiny rev A [schematic](./res/tiny_rev_A_schematic.pdf) | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
-| Tiny rev B                                             | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
+| Board                                                | MCU           | Controllable pins | Devices/Drivers support           | CANIOT Class |
+| ---------------------------------------------------- | ------------- | ----------------- | --------------------------------- | ------------ |
+| V1                                                   | ATmega328P(B) | 8                 | TCN75<br>DS18S20                  | CLASS0       |
+| Tiny rev A [schematic](res/tiny_rev_A_schematic.pdf) | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
+| Tiny rev B                                           | ATmega328P(B) | 19                | TCN75(A)<br>DS18S20<br>PCF8574(A) | CLASS1       |
 
 ## Applications:
 
@@ -197,6 +196,20 @@ Run docker image:
 Run pio within the docker image:
 
     docker run -it devops/fedora-pio-toolchain 
+
+## Documentation
+
+Create python virtual environment:
+
+    python3 -m venv venv
+  
+Install mkdocs:
+
+    pip install mkdocs-material
+
+Run mkdocs:
+
+    mkdocs serve
 
 ## Ressources (to cleanup)
 

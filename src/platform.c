@@ -15,14 +15,6 @@
 #include <caniot/caniot.h>
 #define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 
-const struct caniot_drivers_api platform_caniot_drivers = {
-    .entropy  = platform_entropy,
-    .get_time = platform_get_time,
-    .set_time = platform_set_time,
-    .recv     = platform_caniot_recv,
-    .send     = platform_caniot_send,
-};
-
 void platform_entropy(uint8_t *buf, size_t len)
 {
     static K_PRNG_DEFINE(prng, __MAGIC_NUMBER__, __MAGIC_NUMBER__ >> 1);
@@ -32,17 +24,12 @@ void platform_entropy(uint8_t *buf, size_t len)
 
 void platform_get_time(uint32_t *sec, uint16_t *ms)
 {
-    if (sec == NULL) {
-        return;
-    }
+    if (!sec) return;
 
-    uint64_t time_ms = k_time_get_ms();
-
-    *sec = time_ms / MSEC_PER_SEC;
-
-    if (ms != NULL) {
-        *ms = time_ms % MSEC_PER_SEC;
-    }
+    const uint64_t time_ms = k_time_get_ms();
+    *sec                   = time_ms / MSEC_PER_SEC;
+    
+    if (ms) *ms = time_ms % MSEC_PER_SEC;
 }
 
 void platform_set_time(uint32_t sec)
@@ -82,7 +69,6 @@ int platform_caniot_recv(struct caniot_frame *frame)
         caniot_explain_frame(frame);
         LOG_INF_RAW("\n");
 #endif
-
     } else if (ret == -EAGAIN) {
         ret = -CANIOT_EAGAIN;
     }

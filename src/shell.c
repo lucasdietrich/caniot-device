@@ -19,6 +19,8 @@
 #include <avrtos/drivers/usart.h>
 #include <avrtos/logging.h>
 
+#include <avr/eeprom.h>
+
 #include <caniot/caniot.h>
 #define LOG_LEVEL LOG_LEVEL_INF
 
@@ -56,6 +58,30 @@ ISR(SHELL_USART_RX_vect)
 void shell_init(void)
 {
     ll_usart_enable_rx_isr(BSP_USART);
+}
+
+static void dump_ram(void)
+{
+    uint8_t *ptr = (uint8_t *)RAMSTART;
+    uint8_t *end = (uint8_t *)RAMEND;
+
+    while (ptr < end) {
+        printf_P(PSTR("%02X "), *ptr++);
+    }
+}
+
+#if !defined(E2START)
+#define E2START 0
+#endif
+
+static void dump_eeprom(void)
+{
+    uint8_t *ptr = (uint8_t *)E2START;
+    uint8_t *end = (uint8_t *)E2END;
+
+    while (ptr < end) {
+        printf_P(PSTR("%02X "), eeprom_read_byte(ptr++));
+    }
 }
 
 #if CONFIG_TEST_STRESS
@@ -174,6 +200,18 @@ void shell_process(void)
             stress_test_toggle();
             break;
 #endif
+        case 's':
+        case 'S':
+            dev_settings_restore_default();
+            break;
+        case 'r':
+        case 'R':
+            dump_ram();
+            break;
+        case 'e':
+        case 'E':
+            dump_eeprom();
+            break;
         default:
             break;
         }

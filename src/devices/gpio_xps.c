@@ -40,8 +40,14 @@ int command_xps(struct xps_context *xpsc,
 #if CONFIG_GPIO_PULSE_SUPPORT
     case CANIOT_XPS_PULSE_ON:
     case CANIOT_XPS_PULSE_OFF:
+        /* If a pulse is already active on this pin, cancel it
+         * without setting the pin to its reset state. Then 
+         * trigger a new pulse.
+         */
+        pulse_cancel(xpsc->pev, false);
         xpsc->pev =
             pulse_trigger(xpsc->descr, cmd == CANIOT_XPS_PULSE_ON, duration_ms, NULL);
+        
         LOG_DBG("XPS: descr=%u pev=%p rest=%u cmd=%u dur=%lu",
                 xpsc->descr,
                 xpsc->pev,
@@ -50,13 +56,13 @@ int command_xps(struct xps_context *xpsc,
                 duration_ms);
         break;
     case CANIOT_XPS_PULSE_CANCEL:
-        pulse_cancel(xpsc->pev);
+        pulse_cancel(xpsc->pev, true);
         break;
 #endif
 
     case CANIOT_XPS_RESET:
 #if CONFIG_GPIO_PULSE_SUPPORT
-        pulse_cancel(xpsc->pev);
+        pulse_cancel(xpsc->pev, true);
 #endif
         bsp_descr_gpio_output_write(xpsc->descr, xpsc->reset_state);
     default:

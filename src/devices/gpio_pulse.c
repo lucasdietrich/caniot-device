@@ -117,13 +117,13 @@ exit:
     return ev;
 }
 
-void pulse_cancel(struct pulse_event *ev)
+void pulse_cancel(struct pulse_event *ev, bool do_reset_state)
 {
     PULSE_CONTEXT_LOCK();
 
     if (ev != NULL) {
         cancel_event(ev);
-        output_set_state(ev->descr, ev->reset_state);
+        if (do_reset_state) output_set_state(ev->descr, ev->reset_state);
         free_context(ev);
     }
 

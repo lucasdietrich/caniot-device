@@ -7,6 +7,8 @@
 #ifndef _CANIOT_SETTINGS_H_
 #define _CANIOT_SETTINGS_H_
 
+#include <caniot/device.h>
+
 /**
  * @brief Initialize the settings module.
  *

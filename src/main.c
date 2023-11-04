@@ -47,6 +47,9 @@ K_KERNEL_LINK_INIT();
 
 int main(void)
 {
+    /* Main thread watchdog id */
+    uint8_t tid = 0u;
+
     /* Interrupt should already be enabled */
 
     /* as we don't (always) use mutex/semaphore to synchronize threads
@@ -77,7 +80,7 @@ int main(void)
 
 #if CONFIG_WATCHDOG
     /* register the thread a critical, i.e. watchdog-protected thread */
-    const uint8_t tid = critical_thread_register();
+    tid = critical_thread_register();
 
     /* Enable watchdog */
     wdt_enable(WATCHDOG_TIMEOUT_WDTO);
@@ -90,10 +93,8 @@ int main(void)
     dev_trigger_telemetry(CANIOT_ENDPOINT_BOARD_CONTROL);
 
     /* LOG */
-    // k_thread_dump_all();
     dev_print_indentification();
 
-    int ret;
     for (;;) {
         /* Estimate time to next event :
          * - Thread alive (for watchdog timeout)
@@ -132,27 +133,6 @@ int main(void)
         shell_process();
 #endif
 
-        do {
-            ret = dev_process();
-            if (ret == 0) {
-                /* When CAN message "sent" (actually queued to TX queue),
-                 * immediately yield after having queued the CAN message
-                 * so that it can be immediately sent.
-                 */
-                k_yield();
-
-            } else if (ret != -CANIOT_EAGAIN) {
-                // show error
-                caniot_show_error(ret);
-
-                k_sleep(K_MSEC(100u));
-            }
-
-#if CONFIG_WATCHDOG
-            /* I'm alive ! */
-            alive(tid);
-#endif /* CONFIG_WATCHDOG */
-
-        } while (ret != -CANIOT_EAGAIN);
+        dev_process(tid);
     }
 }

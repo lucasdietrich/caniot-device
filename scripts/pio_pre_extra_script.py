@@ -46,7 +46,7 @@ infos['build_date'] = build_date
 
 infos['firmware_version'] = int(defines.get("__FIRMWARE_VERSION__", ""), 16)
 infos['device_name'] = defines.get("__DEVICE_NAME__", "").strip('"')
-infos['device_sid'] = int(defines.get("__DEVICE_SID__", ""), 16)
+infos['device_sid'] = int(defines.get("__DEVICE_SID__", "0"), 16)
 infos['device_cls'] = int(defines.get("__DEVICE_CLS__", ""), 16)
 infos['device_did'] = (infos['device_cls']) | (infos['device_sid'] << 3)
 infos['device_magic'] = int(defines.get("__MAGIC_NUMBER__", ""), 16)

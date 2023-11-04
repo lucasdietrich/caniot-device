@@ -7,6 +7,7 @@
 #include "class/class.h"
 #include "config.h"
 #include "settings.h"
+#include "dev.h"
 
 #include <stdint.h>
 #include <time.h>
@@ -15,12 +16,22 @@
 #include <avrtos/logging.h>
 
 #include <avr/eeprom.h>
+#include <avr/io.h>
 #include <caniot/caniot.h>
 #include <caniot/device.h>
 
 #define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 
-#define SETTINGS_BLOCK_SIZE sizeof(struct caniot_device_config)
+/* Configuration structure size + 1 byte for the checksum */
+#define SETTINGS_BLOCK_SIZE (sizeof(struct caniot_device_config) + 1u)
+
+__STATIC_ASSERT(SETTINGS_BLOCK_SIZE*CONFIG_DEVICE_INSTANCES_COUNT <= E2END,
+                "Not enough EEPROM space for the settings");
+
+static uint16_t eeprom_config_offset(struct caniot_device *dev)
+{
+    return dev_get_instance_index(dev) * SETTINGS_BLOCK_SIZE;
+}
 
 /* Tell whether the initial configuration needs to be applied or not */
 static bool init_config_to_apply = true;
@@ -65,8 +76,7 @@ int settings_read(struct caniot_device *dev)
 {
     (void)dev;
 
-    /* TODO calculate base offset for the device */
-    const void *config_base_offset = 0x0000u;
+    const void *config_base_offset = (void*) eeprom_config_offset(dev);
     const uint8_t actual_checksum  = eeprom_read_byte(config_base_offset);
 
     eeprom_read_block(dev->config, config_base_offset + 1u, SETTINGS_BLOCK_SIZE);
@@ -83,8 +93,7 @@ int settings_read(struct caniot_device *dev)
 
 int settings_write(struct caniot_device *dev)
 {
-    /* TODO calculate base offset for the device */
-    const uint16_t config_base_offset = 0x0000u;
+    const uint16_t config_base_offset = eeprom_config_offset(dev);
     eeprom_update_block((const void *)dev->config,
                         (void *)(config_base_offset + 1u),
                         SETTINGS_BLOCK_SIZE);
