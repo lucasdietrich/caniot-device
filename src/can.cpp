@@ -43,8 +43,8 @@ static K_MUTEX_DEFINE(can_mutex_if);
 K_MSGQ_DEFINE(txq, sizeof(can_message), CONFIG_CAN_TX_MSGQ_SIZE);
 
 #if CONFIG_CAN_WORKQ_OFFLOADED
-static struct k_work can_tx_work;
 static void can_tx_wq_cb(struct k_work *work);
+static K_WORK_DEFINE(can_tx_work, can_tx_wq_cb);
 #else
 static void can_tx_entry(void *arg);
 K_THREAD_DEFINE(
@@ -63,11 +63,12 @@ void can_init(void)
     }
 
 #if CONFIG_CAN_SOFT_FILTERING == 0
-    const unsigned long mask             = caniot_device_get_mask();
     const unsigned long filter_broadcast = caniot_device_get_filter_broadcast();
 #if CONFIG_DEVICE_SINGLE_INSTANCE
+    const unsigned long mask             = caniot_device_get_mask();
     const unsigned long filter_self      = caniot_device_get_filter(DEVICE_DID);
 #else
+    const unsigned long mask             = caniot_device_get_mask_by_cls();
     const unsigned long filter_self      = caniot_device_get_filter_by_cls(__DEVICE_CLS__);
 #endif
 
@@ -85,10 +86,6 @@ void can_init(void)
     can.init_Mask(1u, CAN_EXTID, 0x0ul);
 #else
 #   error "CONFIG_CAN_SOFT_FILTERING not supported for multi instance devices"
-#endif
-
-#if CONFIG_CAN_WORKQ_OFFLOADED
-    k_work_init(&can_tx_work, can_tx_wq_cb);
 #endif
 
     CAN_CONTEXT_UNLOCK();

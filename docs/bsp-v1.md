@@ -1,4 +1,4 @@
-# BSP V1 (*revA*)
+# BSP V1 (*revA*) - Caniot Class 1
 
 ## Features
 

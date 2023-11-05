@@ -23,6 +23,8 @@ extern "C" {
 #define DEVICE_DID CANIOT_DID(__DEVICE_CLS__, __DEVICE_SID__)
 #endif
 
+#define DEVICE_CLASS __DEVICE_CLS__
+
 /**
  * @brief Print the device CANIOT identification.
  */

@@ -32,6 +32,8 @@ heaters and more through the CANIOT protocol.
 - Attribute for OS monitoring
   - tasks count, max stack usage, irq count, thread switch count, idle time percentage ...
 - Implement device inhibit
+- Make TCN75 temperature read asynchronous (not in telemetry handler)
+- Remove __PACKED structures from buffer union in `caniot_frame` to make code portable
 
 
 ## Boards

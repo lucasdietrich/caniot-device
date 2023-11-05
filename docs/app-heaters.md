@@ -6,7 +6,7 @@ Based on [BSP Tiny rev A](bsp-tiny.md) board, with `ATmega328P` MCU.
 
 ### Identification
 - Class: `1`
-- Device ID: `1`
+- Device ID: `0`
 - Name: `HeatingController`
 - Magic: `0x523a5a5b`
 

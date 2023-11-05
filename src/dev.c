@@ -389,13 +389,14 @@ static int multi_caniot_recv(struct caniot_frame *frame)
 
             /* Check the device id is in supported range */
             if (device_index < CONFIG_DEVICE_INSTANCES_COUNT) {
-                memcpy(&devices_rx_frames[device_index], frame, sizeof(*frame));
-
-                // make sure the frame slot is empty for the device
+                /* make sure the frame slot is empty for the device */
                 if (devices_rx_frames_status & BIT(device_index)) {
                     LOG_ERR("device %u frame slot not empty, dropping ...", device_index);
-                    devices_rx_frames_status |= BIT(device_index);
                 }
+
+                /* Write frame to device frame buffer */
+                memcpy(&devices_rx_frames[device_index], frame, sizeof(*frame));
+                devices_rx_frames_status |= BIT(device_index);
             }
         }
     } else if (ret == -CANIOT_EAGAIN) {
