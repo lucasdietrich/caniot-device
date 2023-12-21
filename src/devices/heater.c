@@ -23,11 +23,7 @@
 #error "Heaters controller needs CONFIG_KERNEL_EVENTS to be set"
 #endif
 
-#if CONFIG_EXTIO_ENABLED && !CONFIG_WORKQUEUE_HEATERS_EXECUTION
-#error "CONFIG_EXTIO_ENABLED requires CONFIG_WORKQUEUE_HEATERS_EXECUTION"
-#endif
-
-#if CONFIG_WORKQUEUE_HEATERS_EXECUTION && !CONFIG_SYSTEM_WORKQUEUE_ENABLE
+#if !CONFIG_SYSTEM_WORKQUEUE_ENABLE
 #error "Heaters controller needs CONFIG_SYSTEM_WORKQUEUE_ENABLE to be set"
 #endif
 
@@ -50,10 +46,8 @@ struct heater {
      */
     struct k_event event;
 
-#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
     /* Work used to schedule the next state change */
     struct k_work work;
-#endif
 
     heater_mode_t mode : 3u;
     /* 1: active, 0: inactive.
@@ -141,21 +135,15 @@ void heater_ev_cb(struct k_event *ev)
 
 static void event_cb(struct k_event *ev)
 {
-#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
     struct heater *const heater = CONTAINER_OF(ev, struct heater, event);
     k_system_workqueue_submit(&heater->work);
-#else
-    heater_ev_cb(ev);
-#endif /* CONFIG_WORKQUEUE_HEATERS_EXECUTION */
 }
 
-#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
 static void work_cb(struct k_work *work)
 {
     struct heater *const heater = CONTAINER_OF(work, struct heater, work);
     heater_ev_cb(&heater->event);
 }
-#endif /* CONFIG_WORKQUEUE_HEATERS_EXECUTION */
 
 int heaters_init(void)
 {
@@ -172,10 +160,7 @@ int heaters_init(void)
         heater_set_mode(h, HEATER_MODE_OFF);
 
         k_event_init(&hs[h].event, event_cb);
-
-#if CONFIG_WORKQUEUE_HEATERS_EXECUTION
         k_work_init(&hs[h].work, work_cb);
-#endif
     }
 
     return ret;

@@ -18,11 +18,7 @@
 #error "Heaters controller needs CONFIG_KERNEL_EVENTS to be set"
 #endif
 
-#if CONFIG_EXTIO_ENABLED && !CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
-#error "CONFIG_EXTIO_ENABLED requires CONFIG_WORKQUEUE_HEATERS_EXECUTION"
-#endif
-
-#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION && !CONFIG_SYSTEM_WORKQUEUE_ENABLE
+#if !CONFIG_SYSTEM_WORKQUEUE_ENABLE
 #error "Shutter controller needs CONFIG_SYSTEM_WORKQUEUE_ENABLE to be set"
 #endif
 
@@ -53,10 +49,8 @@ struct shutter {
      */
     struct k_event event;
 
-#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
     /* Work used to schedule the next state change */
     struct k_work work;
-#endif
 
     /* Openness in percents,
      * 0 - closed, 100 - opened
@@ -171,21 +165,15 @@ static void shutter_event_handler(struct k_event *ev)
 
 static void event_cb(struct k_event *ev)
 {
-#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
     struct shutter *const shutter = CONTAINER_OF(ev, struct shutter, event);
     k_system_workqueue_submit(&shutter->work);
-#else
-    shutter_event_handler(ev);
-#endif /* CONFIG_WORKQUEUE_SHUTTERS_EXECUTION */
 }
 
-#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
 static void work_cb(struct k_work *work)
 {
     struct shutter *const shutter = CONTAINER_OF(work, struct shutter, work);
     shutter_event_handler(&shutter->event);
 }
-#endif /* CONFIG_WORKQUEUE_SHUTTERS_EXECUTION */
 
 /* __attribute__((noinline)) */ int shutters_system_init(void)
 {
@@ -200,10 +188,7 @@ static void work_cb(struct k_work *work)
         /* Assume closed */
         shutters[i].openness = 0u;
         k_event_init(&shutters[i].event, event_cb);
-
-#if CONFIG_WORKQUEUE_SHUTTERS_EXECUTION
         k_work_init(&shutters[i].work, work_cb);
-#endif /* CONFIG_WORKQUEUE_SHUTTERS_EXECUTION */
     }
 
     return 0;

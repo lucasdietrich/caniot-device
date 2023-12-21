@@ -160,7 +160,7 @@ static void sys_work_handler(struct k_work *w)
             /* wait for WDT reset */
         }
 
-        CODE_UNREACHABLE;
+        CODE_UNREACHABLE
     }
     default:
         break;
