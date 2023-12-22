@@ -57,7 +57,7 @@ int mcp3008_read_all(uint16_t *values)
      * save and restore the SPI registers.
      * Moreover we need to make sure the SPI is not used by another device
      * during this function call, the use of cooperative threads garantees
-     * this.
+     * this. Otherwise lock the scheduler for the operation with k_sched_lock().
      */
 
     struct spi_regs saved_regs;

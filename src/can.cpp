@@ -7,6 +7,7 @@
 #include "bsp/bsp.h"
 #include "can.h"
 #include "dev.h"
+#include "platform.h"
 
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
@@ -143,17 +144,36 @@ exit:
     return rc;
 }
 
-static int can_send(can_message *msg)
+#if CONFIG_CAN_WTD_MAX_ERROR_COUNT != -1
+static void can_watchdog(bool ok)
+{
+    static uint8_t can_wtd_error_count = 0u;
+
+    if (ok) {
+        can_wtd_error_count = 0u;
+    } else {
+        can_wtd_error_count++;
+        LOG_ERR("CAN watchdog: %u", can_wtd_error_count);
+        if (can_wtd_error_count >= CONFIG_CAN_WTD_MAX_ERROR_COUNT) {
+            platform_reset(false);
+        }
+    }
+}
+#endif
+
+static uint8_t can_send(can_message *msg)
 {
     __ASSERT_NOTNULL(msg);
 
     // can_print_msg(&msg);
 
     CAN_CONTEXT_LOCK();
-
-    int rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len, msg->buf, true);
-
+    uint8_t rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len, msg->buf, true);
     CAN_CONTEXT_UNLOCK();
+
+#if CONFIG_CAN_WTD_MAX_ERROR_COUNT != -1
+    can_watchdog(rc == CAN_OK);
+#endif
 
     return rc;
 }
@@ -191,7 +211,7 @@ static void can_tx_entry(void *arg)
     can_message msg;
     while (1) {
         if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
-            can_send(&msg);
+            (void)can_send(&msg);
         }
     }
 }
@@ -200,7 +220,7 @@ static void can_tx_wq_cb(struct k_work *work)
 {
     can_message msg;
     while (k_msgq_get(&txq, &msg, K_NO_WAIT) == 0) {
-        can_send(&msg);
+        (void)can_send(&msg);
     }
 }
 #endif

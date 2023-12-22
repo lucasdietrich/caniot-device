@@ -56,7 +56,7 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
     }
 
     if (sysc->reset == CANIOT_SS_CMD_SET) {
-        ret = platform_reset();
+        ret = platform_reset(true);
     }
 
     if (sysc->inhibit == CANIOT_TSP_CMD_PULSE) {

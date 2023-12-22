@@ -14,6 +14,10 @@
 
 #include <caniot/caniot.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Fill buffer with random data
  *
@@ -61,12 +65,18 @@ int platform_caniot_send(const struct caniot_frame *frame, uint32_t delay_ms);
 
 /**
  * @brief Platform specific function to reset the device.
+ * 
+ * @param deferred If true, the reset is deferred to a later time.
  */
-int platform_reset(void);
+int platform_reset(bool deferred);
 
 /**
  * @brief Platform specific function to enable/disable the watchdog.
  */
 int platform_watchdog_enable(bool enable);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _PLATFORM_H_ */

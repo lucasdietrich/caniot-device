@@ -15,6 +15,8 @@
 #include <caniot/caniot.h>
 #define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 
+#define DEFERRED_RESET_DELAY K_SECONDS(1)
+
 void platform_entropy(uint8_t *buf, size_t len)
 {
     static K_PRNG_DEFINE(prng, __MAGIC_NUMBER__, __MAGIC_NUMBER__ >> 1);
@@ -139,28 +141,31 @@ struct sys_work {
     struct k_work _work;
 };
 
+static void reset_now(void)
+{
+    /* Enable watchdog if off */
+    if ((WDTCSR & BIT(WDE)) == 0u) {
+        wdt_enable(WATCHDOG_TIMEOUT_WDTO);
+    }
+
+    irq_disable();
+
+    for (;;) {
+        /* wait for WDT reset */
+    }
+
+    CODE_UNREACHABLE;
+}
+
 static void sys_work_handler(struct k_work *w)
 {
     struct sys_work *x = CONTAINER_OF(w, struct sys_work, _work);
 
     switch (x->action) {
     case SYS_WDT_RESET: {
-        /* Enable watchdog if off */
-        if ((WDTCSR & BIT(WDE)) == 0u) {
-            wdt_enable(WATCHDOG_TIMEOUT_WDTO);
-        }
-
         LOG_DBG("Reset (WDT) in 1 SEC");
-
-        k_sleep(K_SECONDS(1));
-
-        irq_disable();
-
-        for (;;) {
-            /* wait for WDT reset */
-        }
-
-        CODE_UNREACHABLE
+        k_sleep(DEFERRED_RESET_DELAY);
+        reset_now();
     }
     default:
         break;
@@ -172,15 +177,19 @@ static struct sys_work sys_work = {
     ._work  = K_WORK_INITIALIZER(sys_work_handler),
 };
 
-int platform_reset(void)
+int platform_reset(bool deferred)
 {
-    int ret;
+    int ret = 0;
 
-    /* When requesting device request, we delay the reset in order to let the
-     * device time to send the CAN response if needed.
-     */
-    sys_work.action = SYS_WDT_RESET;
-    ret             = k_system_workqueue_submit(&sys_work._work) ? 0 : -EINVAL;
+    if (deferred) {
+        /* When requesting device request, we delay the reset in order to let the
+        * device time to send the CAN response if needed.
+        */
+        sys_work.action = SYS_WDT_RESET;
+        ret             = k_system_workqueue_submit(&sys_work._work) ? 0 : -EINVAL;
+    } else {
+        reset_now();
+    }
 
     return ret;
 }

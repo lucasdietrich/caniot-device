@@ -173,6 +173,11 @@
 #define CONFIG_CAN_TX_MSGQ_SIZE 1u
 #endif
 
+// Enabled if value is different from -1
+#if !defined(CONFIG_CAN_WTD_MAX_ERROR_COUNT)
+#define CONFIG_CAN_WTD_MAX_ERROR_COUNT -1
+#endif
+
 #if !defined(CONFIG_CHECKS)
 #define CONFIG_CHECKS 1u
 #endif
@@ -224,6 +229,10 @@
 #else
 #define CONFIG_DEVICE_INSTANCES_COUNT 1
 #define CONFIG_DEVICE_SINGLE_INSTANCE 1
+#endif
+
+#ifndef CONFIG_DIAG
+#define CONFIG_DIAG 0u
 #endif
 
 #endif /* _APP_CONFIG_H_ */
