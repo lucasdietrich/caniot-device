@@ -85,10 +85,6 @@ static void dump_flash(void)
     }
 }
 
-#if !defined(E2START)
-#define E2START 0
-#endif
-
 static void dump_eeprom(void)
 {
     uint8_t *ptr = (uint8_t *)E2START;

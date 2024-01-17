@@ -199,6 +199,14 @@ struct pin {
 #define BSP_CAN_INT_vect       INT0_vect
 #define BSP_CAN_SS_ARDUINO_PIN 10
 
+#ifndef FLASHSTART
+#define FLASHSTART 0x0000u
+#endif
+
+#ifndef E2START
+#define E2START 0x0000u
+#endif
+
 /*____________________________________________________________________________*/
 
 /* Board version
