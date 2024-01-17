@@ -199,6 +199,9 @@ struct pin {
 #define BSP_CAN_INT_vect       INT0_vect
 #define BSP_CAN_SS_ARDUINO_PIN 10
 
+/* I2C */
+#define BSP_I2C I2C0_DEVICE
+
 #ifndef FLASHSTART
 #define FLASHSTART 0x0000u
 #endif

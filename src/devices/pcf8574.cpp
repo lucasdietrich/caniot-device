@@ -6,11 +6,11 @@
 
 #include "config.h"
 #include "pcf8574.h"
+#include "bsp/bsp.h"
 
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
-
-#include <Wire.h>
+#include <avrtos/drivers/i2c.h>
 
 #if CONFIG_PCF8574_ENABLED
 
@@ -35,11 +35,10 @@ void pcf8574_set(struct pcf8574_state *pcf, uint8_t value)
     if (pcf->write_buffer == value) return;
 #endif
 
-    Wire.beginTransmission(pcf->i2c_address);
-    w = Wire.write(value);
-    Wire.endTransmission();
+    const uint8_t buf[1u] = {value};
+    int8_t res = i2c_master_transmit(BSP_I2C, pcf->i2c_address, buf, 1u);
 
-    LOG_DBG("PCF8574 I2C w x%02x ok: %u", value, w);
+    LOG_DBG("PCF8574 I2C w x%02x ok: %d", value, res);
 
 #if CONFIG_PCF8574_BUFFERED_WRITE
     if (w != 0) pcf->write_buffer = value;
@@ -55,15 +54,13 @@ uint8_t pcf8574_get(struct pcf8574_state *pcf)
 #endif
 
     uint8_t value = 0u;
-    Wire.requestFrom((int)pcf->i2c_address, 1u, true);
-    if (Wire.available() == 1) {
-        value = Wire.read();
-        LOG_DBG("PCF8574 I2C r x%02x ok", value);
-    }
+    int8_t res = i2c_master_receive(BSP_I2C, pcf->i2c_address, &value, 1u);
+
+    LOG_DBG("PCF8574 I2C r x%02X ret: %d", value, res);
 
 #if CONFIG_PCF8574_BUFFERED_READ
     pcf->read_buffer       = value;
-    pcf->read_buffer_valid = 1u;
+    pcf->read_buffer_valid = res == 0;
 #endif
 
     return value;

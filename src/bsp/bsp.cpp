@@ -16,9 +16,9 @@
 #include <avrtos/avrtos.h>
 #include <avrtos/drivers/exti.h>
 #include <avrtos/drivers/gpio.h>
+#include <avrtos/drivers/i2c.h>
 #include <avrtos/logging.h>
 
-#include <Wire.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
@@ -106,7 +106,10 @@ void bsp_init(void)
     ll_usart_init(BSP_USART, &usart_config);
 
     /* i2c init */
-    Wire.begin();
+    const struct i2c_config i2c_config = {
+        .prescaler = I2C_PRESCALER_1,
+    };
+    i2c_init(BSP_I2C, i2c_config);
 
 #if CONFIG_TCN75
     tcn75_init();

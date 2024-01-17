@@ -18,7 +18,6 @@
 #include <avrtos/logging.h>
 #include <avrtos/misc/serial.h>
 
-#include <Wire.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>

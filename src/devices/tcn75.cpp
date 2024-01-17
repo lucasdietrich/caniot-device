@@ -5,10 +5,10 @@
  */
 
 #include "tcn75.h"
+#include "bsp/bsp.h"
 
 #include <avrtos/avrtos.h>
-
-#include <Wire.h>
+#include <avrtos/drivers/i2c.h>
 
 #define K_MODULE_TCN75 0x23
 #define K_MODULE       K_MODULE_TCN75
@@ -29,19 +29,16 @@ static void tcn75_configure(void)
                           TCN75_FAULT_QUEUE_NB_CONVERSION_6 | TCN75_RESOLUTION_12BIT |
                           TCN75_CONTINUOUS;
 
-    Wire.beginTransmission(TCN75_ADDR);
-    Wire.write((uint8_t)TCN75_CONFIG_REGISTER);
-    Wire.write(value);
-    Wire.endTransmission();
+    const uint8_t buf[2u] = {TCN75_CONFIG_REGISTER, value};
+    i2c_master_transmit(BSP_I2C, TCN75_ADDR, buf, 2u);
 }
 
 static void tcn75_select_data_register(void)
 {
     __ASSERT_INTERRUPT();
 
-    Wire.beginTransmission(TCN75_ADDR);
-    Wire.write((uint8_t)TCN75_TEMPERATURE_REGISTER);
-    Wire.endTransmission();
+    const uint8_t buf[1u] = {TCN75_TEMPERATURE_REGISTER};
+    i2c_master_transmit(BSP_I2C, TCN75_ADDR, buf, 1u);
 }
 
 void tcn75_init(void)
@@ -65,12 +62,11 @@ int16_t tcn75_read(void)
     tcn75_select_data_register();
 #endif
 
-    Wire.requestFrom(TCN75_ADDR, 2u);
-    if (Wire.available() == 2u) {
-        const uint8_t msb = Wire.read();
-        const uint8_t lsb = Wire.read();
-
-        temperature = tcn75_temp2int16(msb, lsb);
+    uint8_t buf[2u];
+    int8_t ret = i2c_master_receive(BSP_I2C, TCN75_ADDR, buf, 2u);
+    
+    if (ret == 0u) {
+        temperature = tcn75_temp2int16(buf[0u], buf[1u]);
         LOG_DBG("TCN75 read: %d", temperature);
     } else {
         LOG_ERR("TCN75 read error");
