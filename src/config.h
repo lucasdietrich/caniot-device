@@ -239,4 +239,8 @@
 #define CONFIG_DIAG_RESET_COUNTERS 1u
 #endif
 
+#ifndef CONFIG_DIAG_THREAD_INFO
+#define CONFIG_DIAG_THREAD_INFO 1u
+#endif
+
 #endif /* _APP_CONFIG_H_ */

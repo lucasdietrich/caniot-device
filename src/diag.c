@@ -146,3 +146,42 @@ int8_t diag_reset_counters_init_update(void)
 }
 
 #endif // CONFIG_DIAG_RESET_COUNTERS
+
+#if CONFIG_DIAG_THREAD_INFO
+
+char diag_thread_get_name(uint8_t index)
+{
+    k_dump_stack_canaries()
+}
+
+uint16_t diag_thread_get_state(uint8_t index)
+{
+
+}
+
+uint16_t diag_thread_get_stack_usage(uint8_t index)
+{
+
+}
+
+uint16_t diag_thread_get_stack_size(uint8_t index)
+{
+
+}
+
+uint16_t diag_thread_get_max_stack_usage(uint8_t index)
+{
+
+}
+
+uint32_t diag_os_ticks(void)
+{
+
+}
+
+uint8_t diag_cpu_usage(void)
+{
+    
+}
+
+#endif // CONFIG_DIAG_THREAD_INFO
