@@ -58,6 +58,7 @@
 
 extern "C" void dev_trigger_telemetry(caniot_endpoint_t ep);
 
+// TODO: use flags instead to make sure the state is notified
 #if PCINT0_ISR_ENABLED
 ISR(PCINT0_vect)
 {

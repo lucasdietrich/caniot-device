@@ -1,7 +1,7 @@
 site_name: CANIOT Device Documentation
 repo_url: https://github.com/lucasdietrich/caniot-device.git
 theme:
-  name: material
+  name: readthedocs
 nav:
   - Index: index.md
   - Nodes:

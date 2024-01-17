@@ -71,6 +71,7 @@ int16_t tcn75_read(void)
         const uint8_t lsb = Wire.read();
 
         temperature = tcn75_temp2int16(msb, lsb);
+        LOG_DBG("TCN75 read: %d", temperature);
     } else {
         LOG_ERR("TCN75 read error");
     }

@@ -171,9 +171,7 @@ static uint8_t can_send(can_message *msg)
     uint8_t rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len, msg->buf, true);
     CAN_CONTEXT_UNLOCK();
 
-#if CONFIG_CAN_WTD_MAX_ERROR_COUNT != -1
-    can_watchdog(rc == CAN_OK);
-#endif
+    LOG_ERR("CAN sendMsgBuf err: %d", rc);
 
     return rc;
 }
@@ -205,22 +203,34 @@ int can_txq_message(can_message *msg)
     return ret;
 }
 
-#if !CONFIG_CAN_WORKQ_OFFLOADED
+#if CONFIG_CAN_WORKQ_OFFLOADED
+static void can_tx_wq_cb(struct k_work *work)
+{
+    can_message msg;
+    while (k_msgq_get(&txq, &msg, K_NO_WAIT) == 0) {
+        uint8_t rc = can_send(&msg);
+
+#if CONFIG_CAN_WTD_MAX_ERROR_COUNT != -1
+            can_watchdog(rc == CAN_OK);
+#else
+            (void)rc;
+#endif
+    }
+}
+#else
 static void can_tx_entry(void *arg)
 {
     can_message msg;
     while (1) {
         if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
-            (void)can_send(&msg);
-        }
-    }
-}
+            uint8_t rc = can_send(&msg);
+
+#if CONFIG_CAN_WTD_MAX_ERROR_COUNT != -1
+            can_watchdog(rc == CAN_OK);
 #else
-static void can_tx_wq_cb(struct k_work *work)
-{
-    can_message msg;
-    while (k_msgq_get(&txq, &msg, K_NO_WAIT) == 0) {
-        (void)can_send(&msg);
+            (void)rc;
+#endif
+        }
     }
 }
 #endif

@@ -2,8 +2,7 @@
 
 ## Features
 
-- CANIOT Class: `1`
-- Controllable pins: 17 or 19 (in/out)
+- CANIOT Class: `1`, including:
     -  9 (if *ATmega328P*) or 11 (if *ATmega328PB*) MCU GPIOs (in/out)
     -  8 PCF8574 GPIOs (in/out)
 - Devices/Drivers support:

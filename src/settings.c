@@ -8,6 +8,7 @@
 #include "config.h"
 #include "settings.h"
 #include "dev.h"
+#include "utils/crc.h"
 
 #include <stdint.h>
 #include <time.h>
@@ -22,8 +23,9 @@
 
 #define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 
+#define SETTINGS_CONFIG_SIZE sizeof(struct caniot_device_config)
 /* Configuration structure size + 1 byte for the checksum */
-#define SETTINGS_BLOCK_SIZE (sizeof(struct caniot_device_config) + 1u)
+#define SETTINGS_BLOCK_SIZE (SETTINGS_CONFIG_SIZE + 1u)
 
 __STATIC_ASSERT(SETTINGS_BLOCK_SIZE*CONFIG_DEVICE_INSTANCES_COUNT <= E2END,
                 "Not enough EEPROM space for the settings");
@@ -35,24 +37,6 @@ static uint16_t eeprom_config_offset(struct caniot_device *dev)
 
 /* Tell whether the initial configuration needs to be applied or not */
 static bool init_config_to_apply = true;
-
-// compute CRC8
-static uint8_t checksum_crc8(const uint8_t *buf, size_t len)
-{
-    uint8_t crc = 0;
-
-    while (len--) {
-        uint8_t inbyte = *buf++;
-        uint8_t i;
-
-        for (i = 0x80; i > 0; i >>= 1) {
-            uint8_t mix = (crc ^ inbyte) & i;
-            crc         = (crc >> 1) ^ (mix ? 0x8C : 0x00);
-        }
-    }
-
-    return crc;
-}
 
 static int settings_apply(struct caniot_device *dev)
 {
@@ -79,10 +63,10 @@ int settings_read(struct caniot_device *dev)
     const void *config_base_offset = (void*) eeprom_config_offset(dev);
     const uint8_t actual_checksum  = eeprom_read_byte(config_base_offset);
 
-    eeprom_read_block(dev->config, config_base_offset + 1u, SETTINGS_BLOCK_SIZE);
+    eeprom_read_block(dev->config, config_base_offset + 1u, SETTINGS_CONFIG_SIZE);
 
     uint8_t calculated_checksum =
-        checksum_crc8((const uint8_t *)dev->config, SETTINGS_BLOCK_SIZE);
+        crc8((const uint8_t *)dev->config, SETTINGS_CONFIG_SIZE);
 
     if (actual_checksum != calculated_checksum) {
         return -EINVAL;
@@ -96,10 +80,10 @@ int settings_write(struct caniot_device *dev)
     const uint16_t config_base_offset = eeprom_config_offset(dev);
     eeprom_update_block((const void *)dev->config,
                         (void *)(config_base_offset + 1u),
-                        SETTINGS_BLOCK_SIZE);
+                        SETTINGS_CONFIG_SIZE);
 
     const uint8_t calculated_checksum =
-        checksum_crc8((const uint8_t *)dev->config, SETTINGS_BLOCK_SIZE);
+        crc8((const uint8_t *)dev->config, SETTINGS_CONFIG_SIZE);
 
     /* Write checksum */
     eeprom_update_byte((uint8_t *)config_base_offset, calculated_checksum);
@@ -110,7 +94,7 @@ int settings_write(struct caniot_device *dev)
 int settings_restore_default(struct caniot_device *dev,
                              const struct caniot_device_config *farp_default_config)
 {
-    memcpy_P(dev->config, farp_default_config, SETTINGS_BLOCK_SIZE);
+    memcpy_P(dev->config, farp_default_config, SETTINGS_CONFIG_SIZE);
 
     return settings_write(dev);
 }

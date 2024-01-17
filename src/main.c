@@ -12,6 +12,7 @@
 #include "devices/temp.h"
 #include "shell.h"
 #include "watchdog.h"
+#include "diag.h"
 
 #include <time.h>
 
@@ -57,13 +58,14 @@ int main(void)
      */
     __ASSERT_SCHED_LOCKED();
 
-    /* Board Support Package */
     bsp_init();
 
 #if LOG_LEVEL >= LOG_LEVEL_DBG
     k_thread_dump_all();
     k_dump_stack_canaries();
 #endif
+
+    diag_init();
 
     temp_start();
 

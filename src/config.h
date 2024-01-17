@@ -177,6 +177,9 @@
 #if !defined(CONFIG_CAN_WTD_MAX_ERROR_COUNT)
 #define CONFIG_CAN_WTD_MAX_ERROR_COUNT -1
 #endif
+#if CONFIG_CAN_WTD_MAX_ERROR_COUNT == 0
+#error "CONFIG_CAN_WTD_MAX_ERROR_COUNT must be different from 0"
+#endif
 
 #if !defined(CONFIG_CHECKS)
 #define CONFIG_CHECKS 1u
@@ -231,8 +234,9 @@
 #define CONFIG_DEVICE_SINGLE_INSTANCE 1
 #endif
 
-#ifndef CONFIG_DIAG
-#define CONFIG_DIAG 0u
+
+#ifndef CONFIG_DIAG_RESET_COUNTERS
+#define CONFIG_DIAG_RESET_COUNTERS 1u
 #endif
 
 #endif /* _APP_CONFIG_H_ */

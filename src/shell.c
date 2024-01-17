@@ -11,6 +11,9 @@
 #include "dev.h"
 #include "devices/heater.h"
 #include "shell.h"
+#include "watchdog.h"
+
+#include "utils/hexdump.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -63,10 +66,22 @@ void shell_init(void)
 static void dump_ram(void)
 {
     uint8_t *ptr = (uint8_t *)RAMSTART;
-    uint8_t *end = (uint8_t *)RAMEND;
+    uint8_t *end = (uint8_t *)RAMEND + 1u;
+    uint8_t offset = 0u;
 
     while (ptr < end) {
-        printf_P(PSTR("%02X "), *ptr++);
+        hexdump_byte(offset++, *ptr++);
+    }
+}
+
+static void dump_flash(void)
+{
+    uint8_t *ptr = (uint8_t *)FLASHSTART;
+    uint8_t *end = (uint8_t *)FLASHEND + 1u;
+    uint8_t offset = 0u;
+
+    while (ptr < end) {
+        hexdump_byte(offset++, pgm_read_byte(ptr++));
     }
 }
 
@@ -77,10 +92,11 @@ static void dump_ram(void)
 static void dump_eeprom(void)
 {
     uint8_t *ptr = (uint8_t *)E2START;
-    uint8_t *end = (uint8_t *)E2END;
+    uint8_t *end = (uint8_t *)E2END + 1u;
+    uint8_t offset = 0u;
 
     while (ptr < end) {
-        printf_P(PSTR("%02X "), eeprom_read_byte(ptr++));
+        hexdump_byte(offset++, eeprom_read_byte(ptr++));
     }
 }
 
@@ -122,15 +138,14 @@ void shell_process(void)
         LOG_INF("shell: %c", chr);
 
         switch ((uint8_t)chr) {
-#if CONFIG_WATCHDOG
         case 'W':
         case 'w':
             /* Watchdog reset test */
+            wdt_enable(WATCHDOG_TIMEOUT_WDTO);
             irq_disable();
             for (;;) {
             }
             break;
-#endif
         case '0':
         case '1':
         case '2':
@@ -211,6 +226,10 @@ void shell_process(void)
         case 'e':
         case 'E':
             dump_eeprom();
+            break;
+        case 'f':
+        case 'F':
+            dump_flash();
             break;
         default:
             break;

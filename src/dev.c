@@ -11,6 +11,7 @@
 #include "platform.h"
 #include "settings.h"
 #include "watchdog.h"
+#include "diag.h"
 
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
@@ -66,7 +67,7 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
     return ret;
 }
 
-int telemetry_handler(struct caniot_device *dev,
+static int telemetry_handler(struct caniot_device *dev,
                       caniot_endpoint_t ep,
                       unsigned char *buf,
                       uint8_t *len)
@@ -85,7 +86,7 @@ int telemetry_handler(struct caniot_device *dev,
     }
 }
 
-int command_handler(struct caniot_device *dev,
+static int command_handler(struct caniot_device *dev,
                     caniot_endpoint_t ep,
                     const unsigned char *buf,
                     uint8_t len)
@@ -121,6 +122,70 @@ int command_handler(struct caniot_device *dev,
     return ret;
 }
 
+static int attr_read(struct caniot_device *dev, uint16_t key, uint32_t *val)
+{
+    int ret = 0;
+
+    switch (key) {
+#if CONFIG_DIAG_RESET_COUNTERS
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT:
+        *val = (uint32_t)diag_reset_get_count();
+        break;
+    case CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON:
+        *val = (uint32_t)diag_reset_get_reason();
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_POWER_ON:
+        *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_POWER_ON);
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_WATCHDOG:
+        *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_WATCHDOG);
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_EXTERNAL:
+        *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_EXTERNAL);
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_UNKNOWN:
+        *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_UNKNOWN);
+        break;
+#endif /* CONFIG_DIAG_RESET_COUNTERS */
+    default:
+        ret = - CANIOT_ENOTSUP;
+        break;
+    }
+
+    return ret;
+}
+
+static int attr_write(struct caniot_device *dev, uint16_t key, uint32_t val)
+{
+    int ret = 0;
+
+    switch (key) {
+#if CONFIG_DIAG_RESET_COUNTERS
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT:
+        diag_reset_count_clear_bm_all();
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_POWER_ON:
+        diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_POWER_ON));
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_WATCHDOG:
+        diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_WATCHDOG));
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_EXTERNAL:
+        diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_EXTERNAL));
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_UNKNOWN:
+        diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_UNKNOWN));
+        break;
+#endif /* CONFIG_DIAG_RESET_COUNTERS */
+    case CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON:
+    default:
+        ret = -CANIOT_ENOTSUP;
+        break;
+    }
+
+    return ret;
+}
+
 __attribute__((
     section(".noinit"))) static struct caniot_device_config device_settings_rambuf;
 __STATIC_ASSERT(sizeof(device_settings_rambuf) <= 1024u,
@@ -131,8 +196,8 @@ static const struct caniot_device_api device_caniot_api = {
     .telemetry_handler   = telemetry_handler,
     .config.on_read      = settings_read,
     .config.on_write     = settings_write,
-    .custom_attr.read    = NULL,
-    .custom_attr.write   = NULL,
+    .custom_attr.read    = attr_read,
+    .custom_attr.write   = attr_write,
 };
 
 #if CONFIG_DEVICE_SINGLE_INSTANCE
@@ -170,6 +235,7 @@ struct caniot_device device = {
 void dev_init(void)
 {
     caniot_app_init(&device);
+
     settings_init(&device, &default_config);
 }
 
@@ -231,7 +297,6 @@ bool dev_telemetry_is_requested(void)
 void dev_trigger_telemetry(caniot_endpoint_t ep)
 {
     caniot_device_trigger_telemetry_ep(&device, ep);
-
     dev_trigger_process();
 }
 
