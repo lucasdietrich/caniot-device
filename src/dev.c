@@ -162,19 +162,19 @@ static int attr_write(struct caniot_device *dev, uint16_t key, uint32_t val)
     switch (key) {
 #if CONFIG_DIAG_RESET_COUNTERS
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT:
-        diag_reset_count_clear_bm_all();
+        if (val != 0) diag_reset_count_clear_bm_all();
         break;
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_POWER_ON:
-        diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_POWER_ON));
+        if (val != 0) diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_POWER_ON));
         break;
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_WATCHDOG:
-        diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_WATCHDOG));
+        if (val != 0) diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_WATCHDOG));
         break;
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_EXTERNAL:
-        diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_EXTERNAL));
+        if (val != 0) diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_EXTERNAL));
         break;
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_UNKNOWN:
-        diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_UNKNOWN));
+        if (val != 0) diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_UNKNOWN));
         break;
 #endif /* CONFIG_DIAG_RESET_COUNTERS */
     case CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON:
