@@ -171,7 +171,7 @@ static uint8_t can_send(can_message *msg)
     uint8_t rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len, msg->buf, true);
     CAN_CONTEXT_UNLOCK();
 
-    LOG_ERR("CAN sendMsgBuf err: %d", rc);
+    // LOG_ERR("CAN sendMsgBuf err: %d", rc);
 
     return rc;
 }

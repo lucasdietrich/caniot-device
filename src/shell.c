@@ -12,6 +12,8 @@
 #include "devices/heater.h"
 #include "shell.h"
 #include "watchdog.h"
+#include "diag.h"
+#include "platform.h"
 
 #include "utils/hexdump.h"
 
@@ -136,11 +138,8 @@ void shell_process(void)
         switch ((uint8_t)chr) {
         case 'W':
         case 'w':
-            /* Watchdog reset test */
-            wdt_enable(WATCHDOG_TIMEOUT_WDTO);
-            irq_disable();
-            for (;;) {
-            }
+            // Reset
+            platform_reset(false);
             break;
         case '0':
         case '1':
@@ -227,6 +226,20 @@ void shell_process(void)
         case 'F':
             dump_flash();
             break;
+#if CONFIG_DIAG
+#if CONFIG_DIAG_RESET_CONTEXT_RUNTIME
+        case 'x':
+        case 'X':
+            diag_reset_context_clear();
+            break;
+#endif /* CONFIG_DIAG_RESET_CONTEXT_RUNTIME */
+#if CONFIG_DIAG_RESET_REASON
+        case 'z':
+        case 'Z':
+            diag_reset_stats_eeprom_clear();
+            break;
+#endif /* CONFIG_DIAG_RESET_CONTEXT_RUNTIME */
+#endif /* CONFIG_DIAG */
         default:
             break;
         }

@@ -11,8 +11,8 @@
 void hexdump_byte(uint8_t offset, unsigned char byte)
 {
     if (offset % HEXDUMP_LINE_SIZE == 0)
-        printf("\n");
-    printf("%02X ", byte);
+        printf_P(PSTR("\n%02x: "), offset);
+    printf_P(PSTR("%02X "), byte);
 }
 
 void hexdump(const void *data, size_t size)
@@ -21,5 +21,5 @@ void hexdump(const void *data, size_t size)
     const unsigned char *p = data;
     while (size--)
         hexdump_byte(offset++, *p++);
-    printf("\n");
+    printf_P(PSTR("\n"));
 }

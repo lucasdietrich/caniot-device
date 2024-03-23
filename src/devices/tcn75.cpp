@@ -30,7 +30,7 @@ static void tcn75_configure(void)
                           TCN75_CONTINUOUS;
 
     const uint8_t buf[2u] = {TCN75_CONFIG_REGISTER, value};
-    i2c_master_transmit(BSP_I2C, TCN75_ADDR, buf, 2u);
+    i2c_master_write(BSP_I2C, TCN75_ADDR, buf, 2u);
 }
 
 static void tcn75_select_data_register(void)
@@ -38,7 +38,7 @@ static void tcn75_select_data_register(void)
     __ASSERT_INTERRUPT();
 
     const uint8_t buf[1u] = {TCN75_TEMPERATURE_REGISTER};
-    i2c_master_transmit(BSP_I2C, TCN75_ADDR, buf, 1u);
+    i2c_master_write(BSP_I2C, TCN75_ADDR, buf, 1u);
 }
 
 void tcn75_init(void)
@@ -63,7 +63,7 @@ int16_t tcn75_read(void)
 #endif
 
     uint8_t buf[2u];
-    int8_t ret = i2c_master_receive(BSP_I2C, TCN75_ADDR, buf, 2u);
+    int8_t ret = i2c_master_read(BSP_I2C, TCN75_ADDR, buf, 2u);
     
     if (ret == 0u) {
         temperature = tcn75_temp2int16(buf[0u], buf[1u]);

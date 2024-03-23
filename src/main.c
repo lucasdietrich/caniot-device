@@ -65,7 +65,9 @@ int main(void)
     k_dump_stack_canaries();
 #endif
 
+#if CONFIG_DIAG
     diag_init();
+#endif
 
     temp_start();
 
@@ -136,5 +138,9 @@ int main(void)
 #endif
 
         dev_process(tid);
+
+#if CONFIG_DIAG && CONFIG_DIAG_RESET_CONTEXT_RUNTIME
+        diag_reset_context_update(k_uptime_get());
+#endif // CONFIG_DIAG_RESET_CONTEXT_RUNTIME
     }
 }

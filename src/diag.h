@@ -7,7 +7,10 @@
 #ifndef _DIAG_H_
 #define _DIAG_H_
 
+#include <stdbool.h>
 #include <stdint.h>
+
+#include <avrtos/sys.h>
 
 /**
  * @brief Initialize the diagnostic functions.
@@ -68,10 +71,52 @@ static inline int8_t diag_reset_count_clear_bm_all(void)
 }
 
 /**
- * @brief Initialize and update the reset counters on startup.
+ * @brief Maintain the current reset context state by providing the current uptime.
  * 
  * @return int8_t 
  */
-int8_t diag_reset_counters_init_update(void);
+void diag_reset_context_update(uint32_t uptime);
+
+/**
+ * @brief Clear the reset stats in EEPROM.
+ */
+bool diag_reset_stats_eeprom_clear(void);
+
+/**
+ * @brief Clear the current reset context.
+ * 
+ * @return int8_t 
+ */
+void diag_reset_context_clear(void);
+
+struct diag_runtime_context {
+    uint32_t uptime;
+    uint32_t streak_uptime;
+    uint16_t streak_count;
+};
+
+struct diag_reset_context {
+    uint8_t reset_reason;
+#if CONFIG_DIAG_RESET_CONTEXT_RUNTIME
+    struct diag_runtime_context last_runtime;
+#endif /* CONFIG_DIAG_RESET_CONTEXT_RUNTIME */
+} __packed;
+
+/**
+ * @brief Return the last reset reason that occured "ago" resets ago.
+ * 
+ * @param ago Get the nth last reset reason.
+ * @return diag_reset_reason_t 
+ */
+diag_reset_reason_t diag_reset_get_last_reason(uint8_t ago);
+
+/**
+ * @brief Get the reset context for the reset that occured "ago" resets ago.
+ *
+ * @param ago Get the nth last reset context.
+ * @param ctx Pointer to the reset context to fill.
+ * @return int8_t
+ */
+int8_t diag_reset_context_get_last(uint8_t ago, struct diag_reset_context *ctx);
 
 #endif /* _DIAG_H_ */

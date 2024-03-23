@@ -126,14 +126,49 @@ static int attr_read(struct caniot_device *dev, uint16_t key, uint32_t *val)
 {
     int ret = 0;
 
-    switch (key) {
-#if CONFIG_DIAG_RESET_COUNTERS
+#if CONFIG_DIAG && (CONFIG_DIAG_RESET_REASON || CONFIG_DIAG_RESET_CONTEXT_RUNTIME)
+    uint8_t key_part = caniot_attr_key_get_part(key);
+#endif /* CONFIG_DIAG_RESET_REASON || CONFIG_DIAG_RESET_CONTEXT_RUNTIME */
+
+    switch (caniot_attr_key_get_root(key)) {
+#if CONFIG_DIAG
+#if CONFIG_DIAG_RESET_REASON
+    case CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON:
+        *val = (uint32_t)diag_reset_get_last_reason(key_part);
+        break;
+#endif /* CONFIG_DIAG_RESET_REASON */
+#if CONFIG_DIAG_RESET_CONTEXT_RUNTIME
+    case CANIOT_ATTR_KEY_DIAG_LAST_RUNTIME_UPTIME: {
+        struct diag_reset_context ctx;
+        if (diag_reset_context_get_last(key_part, &ctx) == 0) {
+            *val = ctx.last_runtime.uptime;
+        } else {
+            ret = -CANIOT_ENOTSUP;
+        }
+    } break;
+    case CANIOT_ATTR_KEY_DIAG_LAST_RESET_STREAK_COUNT: {
+        struct diag_reset_context ctx;
+        if (diag_reset_context_get_last(key_part, &ctx) == 0) {
+            *val = ctx.last_runtime.streak_count;
+        } else {
+            ret = -CANIOT_ENOTSUP;
+        }
+    } break;
+    case CANIOT_ATTR_KEY_DIAG_LAST_RUNTIME_UPTIME_TOTAL: {
+        struct diag_reset_context ctx;
+        if (diag_reset_context_get_last(key_part, &ctx) == 0) {
+            *val = ctx.last_runtime.streak_uptime;
+        } else {
+            ret = -CANIOT_ENOTSUP;
+        }
+    } break;
+#endif /* CONFIG_DIAG_RESET_CONTEXT_RUNTIME */
+#if CONFIG_DIAG_RESET_CONTEXT_PERSISTENT
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT:
         *val = (uint32_t)diag_reset_get_count();
         break;
-    case CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON:
-        *val = (uint32_t)diag_reset_get_reason();
-        break;
+#endif /* CONFIG_DIAG_RESET_CONTEXT_PERSISTENT */
+#if CONFIG_DIAG_RESET_CONTEXT_PERSISTENT
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_POWER_ON:
         *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_POWER_ON);
         break;
@@ -146,9 +181,10 @@ static int attr_read(struct caniot_device *dev, uint16_t key, uint32_t *val)
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_UNKNOWN:
         *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_UNKNOWN);
         break;
-#endif /* CONFIG_DIAG_RESET_COUNTERS */
+#endif /* CONFIG_DIAG_RESET_CONTEXT_PERSISTENT */
+#endif /* CONFIG_DIAG */
     default:
-        ret = - CANIOT_ENOTSUP;
+        ret = -CANIOT_ENOTSUP;
         break;
     }
 
@@ -160,7 +196,8 @@ static int attr_write(struct caniot_device *dev, uint16_t key, uint32_t val)
     int ret = 0;
 
     switch (key) {
-#if CONFIG_DIAG_RESET_COUNTERS
+#if CONFIG_DIAG
+#if CONFIG_DIAG_RESET_CONTEXT_PERSISTENT
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT:
         if (val != 0) diag_reset_count_clear_bm_all();
         break;
@@ -176,8 +213,9 @@ static int attr_write(struct caniot_device *dev, uint16_t key, uint32_t val)
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_UNKNOWN:
         if (val != 0) diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_UNKNOWN));
         break;
-#endif /* CONFIG_DIAG_RESET_COUNTERS */
+#endif /* CONFIG_DIAG_RESET_CONTEXT_PERSISTENT */
     case CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON:
+#endif /* CONFIG_DIAG */
     default:
         ret = -CANIOT_ENOTSUP;
         break;

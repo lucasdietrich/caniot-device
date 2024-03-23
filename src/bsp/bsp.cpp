@@ -106,10 +106,7 @@ void bsp_init(void)
     ll_usart_init(BSP_USART, &usart_config);
 
     /* i2c init */
-    const struct i2c_config i2c_config = {
-        .prescaler = I2C_PRESCALER_1,
-    };
-    i2c_init(BSP_I2C, i2c_config);
+    i2c_init(BSP_I2C, I2C_CONF_100000);
 
 #if CONFIG_TCN75
     tcn75_init();
