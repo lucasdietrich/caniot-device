@@ -63,6 +63,7 @@ int command_xps(struct xps_context *xpsc,
     case CANIOT_XPS_RESET:
 #if CONFIG_GPIO_PULSE_SUPPORT
         pulse_cancel(xpsc->pev, true);
+        xpsc->pev = NULL;
 #endif
         bsp_descr_gpio_output_write(xpsc->descr, xpsc->reset_state);
     default:

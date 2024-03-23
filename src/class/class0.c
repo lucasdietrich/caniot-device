@@ -51,10 +51,10 @@ int class0_blc_telemetry_handler(struct caniot_device *dev,
     data.dio |= bsp_descr_gpio_input_read(BSP_IN4) << IN4_IDX;
 
 #if CONFIG_GPIO_PULSE_SUPPORT
-    data.pdio |= pulse_is_active(xps_ctx[OC1_IDX].pev);
-    data.pdio |= pulse_is_active(xps_ctx[OC2_IDX].pev);
-    data.pdio |= pulse_is_active(xps_ctx[RL1_IDX].pev);
-    data.pdio |= pulse_is_active(xps_ctx[RL2_IDX].pev);
+    data.pdio |= pulse_is_active(xps_ctx[OC1_IDX].pev) ? (1 << OC1_IDX) : 0;
+    data.pdio |= pulse_is_active(xps_ctx[OC2_IDX].pev) ? (1 << OC2_IDX) : 0;
+    data.pdio |= pulse_is_active(xps_ctx[RL1_IDX].pev) ? (1 << RL1_IDX) : 0;
+    data.pdio |= pulse_is_active(xps_ctx[RL2_IDX].pev) ? (1 << RL2_IDX) : 0;
 #endif
 
 #if CONFIG_CANIOT_FAKE_TEMPERATURE
