@@ -138,7 +138,7 @@ struct sys_work {
         SYS_NONE      = 0u,
         SYS_WDT_RESET = 2u,
     } action;
-    struct k_work _work;
+    struct k_work_delayable _work;
 };
 
 static void reset_now(void)
@@ -163,8 +163,6 @@ static void sys_work_handler(struct k_work *w)
 
     switch (x->action) {
     case SYS_WDT_RESET: {
-        LOG_DBG("Reset (WDT) in 1 SEC");
-        k_sleep(DEFERRED_RESET_DELAY);
         reset_now();
     }
     default:
@@ -174,7 +172,7 @@ static void sys_work_handler(struct k_work *w)
 
 static struct sys_work sys_work = {
     .action = SYS_NONE,
-    ._work  = K_WORK_INITIALIZER(sys_work_handler),
+    ._work  = K_WORK_DELAYABLE_INIT(sys_work_handler),
 };
 
 int platform_reset(bool deferred)
@@ -182,11 +180,13 @@ int platform_reset(bool deferred)
     int ret = 0;
 
     if (deferred) {
+        LOG_DBG("Reset (WDT) in 1 SEC");
+
         /* When requesting device request, we delay the reset in order to let the
-        * device time to send the CAN response if needed.
-        */
+         * device time to send the CAN response if needed.
+         */
         sys_work.action = SYS_WDT_RESET;
-        ret             = k_system_workqueue_submit(&sys_work._work) ? 0 : -EINVAL;
+        ret = k_system_work_delayable_schedule(&sys_work._work, DEFERRED_RESET_DELAY);
     } else {
         reset_now();
     }
