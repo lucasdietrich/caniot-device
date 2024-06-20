@@ -10,9 +10,9 @@
 #include "dev.h"
 #include "devices/gpio_pulse.h"
 #include "devices/temp.h"
+#include "diag.h"
 #include "shell.h"
 #include "watchdog.h"
-#include "diag.h"
 
 #include <time.h>
 

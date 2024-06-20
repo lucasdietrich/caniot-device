@@ -65,7 +65,7 @@ int platform_caniot_send(const struct caniot_frame *frame, uint32_t delay_ms);
 
 /**
  * @brief Platform specific function to reset the device.
- * 
+ *
  * @param deferred If true, the reset is deferred to a later time.
  */
 int platform_reset(bool deferred);

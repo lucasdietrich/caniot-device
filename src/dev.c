@@ -8,10 +8,10 @@
 #include "class/class.h"
 #include "config.h"
 #include "dev.h"
+#include "diag.h"
 #include "platform.h"
 #include "settings.h"
 #include "watchdog.h"
-#include "diag.h"
 
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
@@ -22,7 +22,8 @@
 #define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 
 #if CONFIG_CAN_SOFT_FILTERING && !CONFIG_CANIOT_DEVICE_FILTER_FRAME
-#error "CONFIG_CANIOT_DEVICE_FILTER_FRAME must be enabled when CONFIG_CAN_SOFT_FILTERING is enabled"
+#error                                                                                   \
+    "CONFIG_CANIOT_DEVICE_FILTER_FRAME must be enabled when CONFIG_CAN_SOFT_FILTERING is enabled"
 #endif
 
 K_SIGNAL_DEFINE(dev_process_sig);
@@ -68,9 +69,9 @@ int dev_apply_blc_sys_command(struct caniot_device *dev,
 }
 
 static int telemetry_handler(struct caniot_device *dev,
-                      caniot_endpoint_t ep,
-                      unsigned char *buf,
-                      uint8_t *len)
+                             caniot_endpoint_t ep,
+                             unsigned char *buf,
+                             uint8_t *len)
 {
     if (ep == CANIOT_ENDPOINT_BOARD_CONTROL) {
         switch (__DEVICE_CLS__) {
@@ -87,9 +88,9 @@ static int telemetry_handler(struct caniot_device *dev,
 }
 
 static int command_handler(struct caniot_device *dev,
-                    caniot_endpoint_t ep,
-                    const unsigned char *buf,
-                    uint8_t len)
+                           caniot_endpoint_t ep,
+                           const unsigned char *buf,
+                           uint8_t len)
 {
     int ret = -CANIOT_ENOTSUP;
 
@@ -131,6 +132,10 @@ static int attr_read(struct caniot_device *dev, uint16_t key, uint32_t *val)
 #endif /* CONFIG_DIAG_RESET_REASON || CONFIG_DIAG_RESET_CONTEXT_RUNTIME */
 
     switch (caniot_attr_key_get_root(key)) {
+    case CANIOT_ATTR_KEY_DIAG_BOOT_SIGNAL:
+        // TODO Use a meaningful value for boot signal
+        *val = 0xFFFFFFFFu;
+        break;
 #if CONFIG_DIAG
 #if CONFIG_DIAG_RESET_REASON
     case CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON:
@@ -230,12 +235,12 @@ __STATIC_ASSERT(sizeof(device_settings_rambuf) <= 1024u,
                 "config too big"); /* EEPROM size depends on MCU */
 
 static const struct caniot_device_api device_caniot_api = {
-    .command_handler     = command_handler,
-    .telemetry_handler   = telemetry_handler,
-    .config.on_read      = settings_read,
-    .config.on_write     = settings_write,
-    .custom_attr.read    = attr_read,
-    .custom_attr.write   = attr_write,
+    .command_handler   = command_handler,
+    .telemetry_handler = telemetry_handler,
+    .config.on_read    = settings_read,
+    .config.on_write   = settings_write,
+    .custom_attr.read  = attr_read,
+    .custom_attr.write = attr_write,
 };
 
 #if CONFIG_DEVICE_SINGLE_INSTANCE
@@ -263,11 +268,27 @@ const struct caniot_drivers_api platform_caniot_drivers = {
     .send     = platform_caniot_send,
 };
 
+#if CONFIG_CANIOT_DEVICE_STARTUP_ATTRIBUTES
+static const uint16_t caniot_startup_attributes[] = {
+    CANIOT_ATTR_KEY_DIAG_BOOT_SIGNAL,
+#if CONFIG_DIAG_RESET_REASON
+    CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON,
+#endif
+#if CONFIG_DIAG_RESET_CONTEXT_RUNTIME
+    CANIOT_ATTR_KEY_DIAG_LAST_RUNTIME_UPTIME,
+#endif
+    0u, /* end of list */
+};
+#endif
+
 struct caniot_device device = {
     .identification = &identification,
     .config         = &device_settings_rambuf,
     .api            = &device_caniot_api,
     .driv           = &platform_caniot_drivers,
+#if CONFIG_CANIOT_DEVICE_STARTUP_ATTRIBUTES
+    .startup_attrs = caniot_startup_attributes,
+#endif
 };
 
 void dev_init(void)
@@ -324,7 +345,7 @@ static int dev_restore_default(struct caniot_device *dev)
 
 uint32_t dev_get_process_timeout(void)
 {
-    return caniot_device_telemetry_remaining(&device);
+    return caniot_device_time_until_process(&device);
 }
 
 bool dev_telemetry_is_requested(void)
@@ -426,7 +447,7 @@ static const struct caniot_device_id identification[CONFIG_DEVICE_INSTANCES_COUN
 // clang-format on
 
 static struct caniot_device devices[CONFIG_DEVICE_INSTANCES_COUNT] = {0u};
-static uint8_t current_device_index = 0u;
+static uint8_t current_device_index                                = 0u;
 static struct caniot_frame devices_rx_frames[CONFIG_DEVICE_INSTANCES_COUNT];
 static uint8_t devices_rx_frames_status = 0u;
 
@@ -531,7 +552,7 @@ static inline uint8_t next_index(uint8_t index, uint8_t en_map)
 int dev_process(uint8_t tid)
 {
     /* Bitmask of devices to process
-     * When calling dev_process() for the first time, we need to process 
+     * When calling dev_process() for the first time, we need to process
      * all devices at least once.
      */
     uint8_t do_run_map = (1u << CONFIG_DEVICE_INSTANCES_COUNT) - 1u;
@@ -577,7 +598,7 @@ uint32_t dev_get_process_timeout(void)
     uint32_t timeout = -1;
 
     for (uint8_t i = 0u; i < CONFIG_DEVICE_INSTANCES_COUNT; i++) {
-        timeout = MIN(timeout, caniot_device_telemetry_remaining(&devices[i]));
+        timeout = MIN(timeout, caniot_device_time_until_process(&devices[i]));
         if (!timeout) break;
     }
 
@@ -607,7 +628,8 @@ void dev_trigger_telemetry(caniot_endpoint_t ep)
 void dev_trigger_telemetrys(uint8_t endpoints_bitmask)
 {
     for (uint8_t i = 0u; i < CONFIG_DEVICE_INSTANCES_COUNT; i++) {
-        for (uint8_t ep = CANIOT_ENDPOINT_APP; ep <= CANIOT_ENDPOINT_BOARD_CONTROL; ep++) {
+        for (uint8_t ep = CANIOT_ENDPOINT_APP; ep <= CANIOT_ENDPOINT_BOARD_CONTROL;
+             ep++) {
             if (endpoints_bitmask & BIT(ep)) {
                 caniot_device_trigger_telemetry_ep(&devices[i], ep);
             }

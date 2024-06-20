@@ -6,8 +6,8 @@
 
 // Don't ever use this code, it is fucked up
 //
-// Todo optimize this code to read only the location in eeprom instead of the whole "diag_reset_context",
-// a buffer is allocated on RAM to store the reset context.
+// Todo optimize this code to read only the location in eeprom instead of the whole
+// "diag_reset_context", a buffer is allocated on RAM to store the reset context.
 
 #include "config.h"
 #include "diag.h"
@@ -49,9 +49,9 @@
 /* Mutex to protect access to the diag_rambuf */
 static K_MUTEX_DEFINE(diag_mutex);
 static struct eeprom_reset_stats diag_rambuf;
-#define DIAG_LOCK()           k_mutex_lock(&diag_mutex, K_FOREVER)
-#define DIAG_UNLOCK()         k_mutex_unlock(&diag_mutex)
-#define DIAG_DECLARE_RAMBUF() 
+#define DIAG_LOCK()   k_mutex_lock(&diag_mutex, K_FOREVER)
+#define DIAG_UNLOCK() k_mutex_unlock(&diag_mutex)
+#define DIAG_DECLARE_RAMBUF()
 #define DIAG_GET_RAMBUF_PTR() &diag_rambuf
 #else
 #define DIAG_LOCK()
@@ -82,7 +82,7 @@ static void reset_context_init(void)
         /* Update the streak and streak uptime with the uptime of the previous run */
         accross_reset_context.data.streak_uptime += accross_reset_context.data.uptime;
         accross_reset_context.data.streak_count++;
-        
+
         /* Copy the previous runtime data to a backup variable */
         previous_run_context.streak_count  = accross_reset_context.data.streak_count;
         previous_run_context.streak_uptime = accross_reset_context.data.streak_uptime;
@@ -420,7 +420,7 @@ int8_t diag_reset_context_get_last(uint8_t ago, struct diag_reset_context *ctx)
         ctx->last_runtime.streak_count  = previous_run_context.streak_count;
         ctx->last_runtime.streak_uptime = previous_run_context.streak_uptime;
         ctx->last_runtime.uptime        = previous_run_context.uptime;
-        ret = 0u;
+        ret                             = 0u;
     } else {
 #if CONFIG_DIAG_RESET_CONTEXT_HISTORY
         DIAG_LOCK();
@@ -444,15 +444,16 @@ int8_t diag_reset_context_get_last(uint8_t ago, struct diag_reset_context *ctx)
 #endif // CONFIG_DIAG_RESET_CONTEXT_HISTORY
     }
 
-    LOG_DBG("diag: ctx get last-%u -> ret: %d %p(reason: %u streak: %u uptime: %u s total: "
-            "%u s)",
-            ago,
-            ret,
-            ctx,
-            ctx->reset_reason,
-            (uint16_t)ctx->last_runtime.streak_count,
-            (uint16_t)ctx->last_runtime.uptime,
-            (uint16_t)ctx->last_runtime.streak_uptime);
+    LOG_DBG(
+        "diag: ctx get last-%u -> ret: %d %p(reason: %u streak: %u uptime: %u s total: "
+        "%u s)",
+        ago,
+        ret,
+        ctx,
+        ctx->reset_reason,
+        (uint16_t)ctx->last_runtime.streak_count,
+        (uint16_t)ctx->last_runtime.uptime,
+        (uint16_t)ctx->last_runtime.streak_uptime);
 
     return ret;
 }

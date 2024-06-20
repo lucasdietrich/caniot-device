@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "tcn75.h"
 #include "bsp/bsp.h"
+#include "tcn75.h"
 
 #include <avrtos/avrtos.h>
 #include <avrtos/drivers/i2c.h>
@@ -64,7 +64,7 @@ int16_t tcn75_read(void)
 
     uint8_t buf[2u];
     int8_t ret = i2c_master_read(BSP_I2C, TCN75_ADDR, buf, 2u);
-    
+
     if (ret == 0u) {
         temperature = tcn75_temp2int16(buf[0u], buf[1u]);
         LOG_DBG("TCN75 read: %d", temperature);

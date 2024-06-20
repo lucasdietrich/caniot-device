@@ -5,6 +5,7 @@
  */
 
 #include "bsp/bsp.h"
+#include "multi.h"
 
 #include <stdio.h>
 
@@ -15,8 +16,6 @@
 #include <caniot/caniot.h>
 #include <caniot/datatype.h>
 #include <caniot/device.h>
-
-#include "multi.h"
 
 void app_init(void)
 {
@@ -88,11 +87,11 @@ const struct caniot_device_config default_config[CONFIG_DEVICE_INSTANCES_COUNT] 
                     },
 #endif
             },
-    [1] = DEFAULT_CONFIG(),
-    [2] = DEFAULT_CONFIG(),
-    [3] = DEFAULT_CONFIG(),
-    [4] = DEFAULT_CONFIG(),
-    [5] = DEFAULT_CONFIG(),
-    // [6] = DEFAULT_CONFIG(),
-    // [7] = DEFAULT_CONFIG(),
+        [1] = DEFAULT_CONFIG(),
+        [2] = DEFAULT_CONFIG(),
+        [3] = DEFAULT_CONFIG(),
+        [4] = DEFAULT_CONFIG(),
+        [5] = DEFAULT_CONFIG(),
+        // [6] = DEFAULT_CONFIG(),
+        // [7] = DEFAULT_CONFIG(),
 };

@@ -41,13 +41,13 @@ int command_xps(struct xps_context *xpsc,
     case CANIOT_XPS_PULSE_ON:
     case CANIOT_XPS_PULSE_OFF:
         /* If a pulse is already active on this pin, cancel it
-         * without setting the pin to its reset state. Then 
+         * without setting the pin to its reset state. Then
          * trigger a new pulse.
          */
         pulse_cancel(xpsc->pev, false);
         xpsc->pev =
             pulse_trigger(xpsc->descr, cmd == CANIOT_XPS_PULSE_ON, duration_ms, NULL);
-        
+
         LOG_DBG("XPS: descr=%u pev=%p rest=%u cmd=%u dur=%lu",
                 xpsc->descr,
                 xpsc->pev,

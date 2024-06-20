@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2023 Lucas Dietrich <ld.adecy@gmail.com>
-    *
+ *
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -32,38 +32,38 @@ typedef enum diag_reset_reason {
 
 /**
  * @brief Return the last reset reason.
- * 
- * @return diag_reset_reason_t 
+ *
+ * @return diag_reset_reason_t
  */
 diag_reset_reason_t diag_reset_get_reason(void);
 
 /**
  * @brief Return the number of reset for a given reason.
- * 
- * @param reason 
- * @return uint16_t 
+ *
+ * @param reason
+ * @return uint16_t
  */
 uint16_t diag_reset_get_count_by_reason(diag_reset_reason_t reason);
 
 /**
  * @brief Return the total number of reset.
- * 
- * @return uint16_t 
+ *
+ * @return uint16_t
  */
 uint16_t diag_reset_get_count(void);
 
 /**
  * @brief Reset the reset counter(s) for the reason(s) specified in the given bitfield.
- * 
- * @param reason_flags 
- * @return int8_t 
+ *
+ * @param reason_flags
+ * @return int8_t
  */
 int8_t diag_reset_count_clear_bm(uint8_t reason_flags);
 
 /**
  * @brief Reset all the reset counters.
- * 
- * @return int8_t 
+ *
+ * @return int8_t
  */
 static inline int8_t diag_reset_count_clear_bm_all(void)
 {
@@ -72,8 +72,8 @@ static inline int8_t diag_reset_count_clear_bm_all(void)
 
 /**
  * @brief Maintain the current reset context state by providing the current uptime.
- * 
- * @return int8_t 
+ *
+ * @return int8_t
  */
 void diag_reset_context_update(uint32_t uptime);
 
@@ -84,8 +84,8 @@ bool diag_reset_stats_eeprom_clear(void);
 
 /**
  * @brief Clear the current reset context.
- * 
- * @return int8_t 
+ *
+ * @return int8_t
  */
 void diag_reset_context_clear(void);
 
@@ -104,9 +104,9 @@ struct diag_reset_context {
 
 /**
  * @brief Return the last reset reason that occured "ago" resets ago.
- * 
+ *
  * @param ago Get the nth last reset reason.
- * @return diag_reset_reason_t 
+ * @return diag_reset_reason_t
  */
 diag_reset_reason_t diag_reset_get_last_reason(uint8_t ago);
 

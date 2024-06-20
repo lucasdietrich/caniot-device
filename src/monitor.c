@@ -17,7 +17,7 @@
 #error KERNEL_TIMERS disabled
 #endif
 
-static void timer_handler(struct k_timer *tim);
+static int timer_handler(struct k_timer *tim);
 static void work_handler(struct k_work *work);
 static void print_datetime_work(struct k_work *w);
 
@@ -30,7 +30,7 @@ void schedule_print_datetime(void)
     k_system_workqueue_submit(&datetime_work);
 }
 
-static void timer_handler(struct k_timer *timer)
+static int timer_handler(struct k_timer *timer)
 {
 #if DEBUG_MONITOR
     k_system_workqueue_submit(&monitor_work);
@@ -39,6 +39,8 @@ static void timer_handler(struct k_timer *timer)
 #if DEBUG_TIME
     schedule_print_datetime();
 #endif /* DEBUG_TIME */
+
+    return 0;
 }
 
 static void work_handler(struct k_work *work)

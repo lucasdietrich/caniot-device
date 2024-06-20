@@ -66,11 +66,11 @@ void can_init(void)
 #if CONFIG_CAN_SOFT_FILTERING == 0
     const unsigned long filter_broadcast = caniot_device_get_filter_broadcast();
 #if CONFIG_DEVICE_SINGLE_INSTANCE
-    const unsigned long mask             = caniot_device_get_mask();
-    const unsigned long filter_self      = caniot_device_get_filter(DEVICE_DID);
+    const unsigned long mask        = caniot_device_get_mask();
+    const unsigned long filter_self = caniot_device_get_filter(DEVICE_DID);
 #else
-    const unsigned long mask             = caniot_device_get_mask_by_cls();
-    const unsigned long filter_self      = caniot_device_get_filter_by_cls(__DEVICE_CLS__);
+    const unsigned long mask        = caniot_device_get_mask_by_cls();
+    const unsigned long filter_self = caniot_device_get_filter_by_cls(__DEVICE_CLS__);
 #endif
 
     can.init_Mask(0u, CAN_STDID, mask);
@@ -86,7 +86,7 @@ void can_init(void)
     can.init_Mask(0u, CAN_EXTID, 0x0ul);
     can.init_Mask(1u, CAN_EXTID, 0x0ul);
 #else
-#   error "CONFIG_CAN_SOFT_FILTERING not supported for multi instance devices"
+#error "CONFIG_CAN_SOFT_FILTERING not supported for multi instance devices"
 #endif
 
     CAN_CONTEXT_UNLOCK();
@@ -211,9 +211,9 @@ static void can_tx_wq_cb(struct k_work *work)
         uint8_t rc = can_send(&msg);
 
 #if CONFIG_CAN_WTD_MAX_ERROR_COUNT != -1
-            can_watchdog(rc == CAN_OK);
+        can_watchdog(rc == CAN_OK);
 #else
-            (void)rc;
+        (void)rc;
 #endif
     }
 }

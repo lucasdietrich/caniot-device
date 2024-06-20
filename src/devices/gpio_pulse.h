@@ -28,7 +28,7 @@ struct pulse_event {
     /* Tells wether the pulse is active or not */
     uint8_t scheduled : 1;
 
-    /* Tells wether the pulse context has been allocated using the 
+    /* Tells wether the pulse context has been allocated using the
      * pulse allocator or not */
     uint8_t _iallocated : 1;
 

@@ -10,12 +10,11 @@
 #include "config.h"
 #include "dev.h"
 #include "devices/heater.h"
-#include "shell.h"
-#include "watchdog.h"
 #include "diag.h"
 #include "platform.h"
-
+#include "shell.h"
 #include "utils/hexdump.h"
+#include "watchdog.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -25,7 +24,6 @@
 #include <avrtos/logging.h>
 
 #include <avr/eeprom.h>
-
 #include <caniot/caniot.h>
 #define LOG_LEVEL LOG_LEVEL_INF
 
@@ -67,8 +65,8 @@ void shell_init(void)
 
 static void dump_ram(void)
 {
-    uint8_t *ptr = (uint8_t *)RAMSTART;
-    uint8_t *end = (uint8_t *)RAMEND + 1u;
+    uint8_t *ptr   = (uint8_t *)RAMSTART;
+    uint8_t *end   = (uint8_t *)RAMEND + 1u;
     uint8_t offset = 0u;
 
     while (ptr < end) {
@@ -78,8 +76,8 @@ static void dump_ram(void)
 
 static void dump_flash(void)
 {
-    uint8_t *ptr = (uint8_t *)FLASHSTART;
-    uint8_t *end = (uint8_t *)FLASHEND + 1u;
+    uint8_t *ptr   = (uint8_t *)FLASHSTART;
+    uint8_t *end   = (uint8_t *)FLASHEND + 1u;
     uint8_t offset = 0u;
 
     while (ptr < end) {
@@ -89,8 +87,8 @@ static void dump_flash(void)
 
 static void dump_eeprom(void)
 {
-    uint8_t *ptr = (uint8_t *)E2START;
-    uint8_t *end = (uint8_t *)E2END + 1u;
+    uint8_t *ptr   = (uint8_t *)E2START;
+    uint8_t *end   = (uint8_t *)E2END + 1u;
     uint8_t offset = 0u;
 
     while (ptr < end) {

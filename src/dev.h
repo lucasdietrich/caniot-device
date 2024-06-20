@@ -7,13 +7,13 @@
 #ifndef _CANIOT_DEV_DEV_H_
 #define _CANIOT_DEV_DEV_H_
 
+#include "config.h"
+
 #include <avrtos/avrtos.h>
 
 #include <caniot/caniot.h>
 #include <caniot/datatype.h>
 #include <caniot/device.h>
-
-#include "config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,15 +32,15 @@ void dev_print_indentification(void);
 
 /**
  * @brief Return the index of the device instance.
- * 
- * @param dev 
- * @return uint8_t 
+ *
+ * @param dev
+ * @return uint8_t
  */
 uint8_t dev_get_instance_index(struct caniot_device *dev);
 
 /**
  * @brief Process the CANIOT device.
- * 
+ *
  * @param tid Thread watchdog ID to use when calling alive() function.
  *
  * @return int
@@ -114,9 +114,9 @@ static inline struct k_thread *dev_trigger_process(void)
 
 /**
  * @brief Get the device configuration size in EEPROM.
- * 
- * @param dev 
- * @return uint16_t 
+ *
+ * @param dev
+ * @return uint16_t
  */
 void dev_settings_restore_default(void);
 

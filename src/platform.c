@@ -15,6 +15,7 @@
 #include <caniot/caniot.h>
 #define LOG_LEVEL CONFIG_DEVICE_LOG_LEVEL
 
+// Let time for the device to send the CAN response if pending
 #define DEFERRED_RESET_DELAY K_SECONDS(1)
 
 void platform_entropy(uint8_t *buf, size_t len)
@@ -30,7 +31,7 @@ void platform_get_time(uint32_t *sec, uint16_t *ms)
 
     const uint64_t time_ms = k_time_get_ms();
     *sec                   = time_ms / MSEC_PER_SEC;
-    
+
     if (ms) *ms = time_ms % MSEC_PER_SEC;
 }
 

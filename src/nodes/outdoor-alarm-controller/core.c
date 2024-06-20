@@ -25,8 +25,9 @@
 #define OUTDOOR_LIGHT_2 OC2_IDX
 #define SIREN           RL1_IDX
 
-#define PRESENCE_SENSOR IN1_IDX
-#define SABOTAGE        IN4_IDX
+#define PRESENCE_SENSOR_1 IN1_IDX
+#define PRESENCE_SENSOR_2 IN2_IDX
+#define SABOTAGE          IN4_IDX
 
 int app_telemetry_handler(struct caniot_device *dev,
                           caniot_endpoint_t ep,

@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "bsp/bsp.h"
 #include "config.h"
 #include "pcf8574.h"
-#include "bsp/bsp.h"
 
 #include <avrtos/avrtos.h>
-#include <avrtos/logging.h>
 #include <avrtos/drivers/i2c.h>
+#include <avrtos/logging.h>
 
 #if CONFIG_PCF8574_ENABLED
 
@@ -36,7 +36,7 @@ void pcf8574_set(struct pcf8574_state *pcf, uint8_t value)
 #endif
 
     const uint8_t buf[1u] = {value};
-    int8_t res = i2c_master_write(BSP_I2C, pcf->i2c_address, buf, 1u);
+    int8_t res            = i2c_master_write(BSP_I2C, pcf->i2c_address, buf, 1u);
 
     LOG_DBG("PCF8574 I2C w x%02x ok: %d", value, res);
 
@@ -54,7 +54,7 @@ uint8_t pcf8574_get(struct pcf8574_state *pcf)
 #endif
 
     uint8_t value = 0u;
-    int8_t res = i2c_master_read(BSP_I2C, pcf->i2c_address, &value, 1u);
+    int8_t res    = i2c_master_read(BSP_I2C, pcf->i2c_address, &value, 1u);
 
     LOG_DBG("PCF8574 I2C r x%02X ret: %d", value, res);
 

@@ -50,6 +50,9 @@ void adc_task(void *arg)
 
     for (;;) {
         mcp3008_read_all(channels);
+        for (uint8_t i = 0; i < 8u; i++) {
+            printf_P(PSTR("ADC[%u] = %u\n"), i, channels[i]);
+        }
 
         dev_trigger_telemetrys(BIT(CANIOT_ENDPOINT_1) | BIT(CANIOT_ENDPOINT_2));
         k_sleep(K_SECONDS(1u));

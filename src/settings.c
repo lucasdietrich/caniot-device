@@ -6,8 +6,8 @@
 
 #include "class/class.h"
 #include "config.h"
-#include "settings.h"
 #include "dev.h"
+#include "settings.h"
 #include "utils/crc.h"
 
 #include <stdint.h>
@@ -27,7 +27,7 @@
 /* Configuration structure size + 1 byte for the checksum */
 #define SETTINGS_BLOCK_SIZE (SETTINGS_CONFIG_SIZE + 1u)
 
-__STATIC_ASSERT(SETTINGS_BLOCK_SIZE*CONFIG_DEVICE_INSTANCES_COUNT <= E2END,
+__STATIC_ASSERT(SETTINGS_BLOCK_SIZE *CONFIG_DEVICE_INSTANCES_COUNT <= E2END,
                 "Not enough EEPROM space for the settings");
 
 static uint16_t eeprom_config_offset(struct caniot_device *dev)
@@ -60,7 +60,7 @@ int settings_read(struct caniot_device *dev)
 {
     (void)dev;
 
-    const void *config_base_offset = (void*) eeprom_config_offset(dev);
+    const void *config_base_offset = (void *)eeprom_config_offset(dev);
     const uint8_t actual_checksum  = eeprom_read_byte(config_base_offset);
 
     eeprom_read_block(dev->config, config_base_offset + 1u, SETTINGS_CONFIG_SIZE);

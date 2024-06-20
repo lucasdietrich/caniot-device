@@ -26,6 +26,7 @@
 #define LEFT_DOOR_COMMAND  RL1_IDX
 #define RIGHT_DOOR_COMMAND RL2_IDX
 
+// 0 if closed, 1 if open
 #define LEFT_DOOR_STATUS  IN3_IDX
 #define RIGHT_DOOR_STATUS IN4_IDX
 #define GATE_STATUS       IN2_IDX

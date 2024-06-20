@@ -7,12 +7,12 @@
 #ifndef _CRC_H_
 #define _CRC_H_
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /**
  * @brief Compute CRC8 of a buffer.
- * 
+ *
  * @param buf Buffer to compute CRC8.
  * @param len Length of the buffer.
  * @return uint8_t Computed CRC8 of the buffer.
