@@ -132,10 +132,12 @@ static int attr_read(struct caniot_device *dev, uint16_t key, uint32_t *val)
 #endif /* CONFIG_DIAG_RESET_REASON || CONFIG_DIAG_RESET_CONTEXT_RUNTIME */
 
     switch (caniot_attr_key_get_root(key)) {
+#if CONFIG_CANIOT_DEVICE_STARTUP_ATTRIBUTES
     case CANIOT_ATTR_KEY_DIAG_BOOT_SIGNAL:
         // TODO Use a meaningful value for boot signal
-        *val = 0xFFFFFFFFu;
+        *val = caniot_read_rom_build_commit(dev);
         break;
+#endif
 #if CONFIG_DIAG
 #if CONFIG_DIAG_RESET_REASON
     case CANIOT_ATTR_KEY_DIAG_LAST_RESET_REASON:
