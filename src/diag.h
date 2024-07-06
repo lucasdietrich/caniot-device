@@ -26,6 +26,8 @@ typedef enum diag_reset_reason {
     PLATFORM_RESET_REASON_WATCHDOG,
     /* External reset, e.g. reset pin/serial */
     PLATFORM_RESET_REASON_EXTERNAL,
+    /* Brown-out reset */
+    PLATFORM_RESET_REASON_BROWN_OUT,
     /* Number of reset reasons, must be last */
     PLATFORM_RESET_REASON_COUNT
 } diag_reset_reason_t;

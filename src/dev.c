@@ -185,6 +185,9 @@ static int attr_read(struct caniot_device *dev, uint16_t key, uint32_t *val)
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_EXTERNAL:
         *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_EXTERNAL);
         break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_BROWN_OUT:
+        *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_BROWN_OUT);
+        break;
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_UNKNOWN:
         *val = (uint32_t)diag_reset_get_count_by_reason(PLATFORM_RESET_REASON_UNKNOWN);
         break;
@@ -216,6 +219,9 @@ static int attr_write(struct caniot_device *dev, uint16_t key, uint32_t val)
         break;
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_EXTERNAL:
         if (val != 0) diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_EXTERNAL));
+        break;
+    case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_BROWN_OUT:
+        if (val != 0) diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_BROWN_OUT));
         break;
     case CANIOT_ATTR_KEY_DIAG_RESET_COUNT_UNKNOWN:
         if (val != 0) diag_reset_count_clear_bm(BIT(PLATFORM_RESET_REASON_UNKNOWN));

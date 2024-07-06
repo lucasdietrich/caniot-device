@@ -368,6 +368,8 @@ diag_reset_reason_t diag_reset_get_reason(void)
         return PLATFORM_RESET_REASON_EXTERNAL;
     } else if (mcusr & BIT(WDRF)) {
         return PLATFORM_RESET_REASON_WATCHDOG;
+    } else if (mcusr & BIT(BORF)) {
+        return PLATFORM_RESET_REASON_BROWN_OUT;
     } else {
         return PLATFORM_RESET_REASON_UNKNOWN;
     }
