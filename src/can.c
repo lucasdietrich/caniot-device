@@ -11,9 +11,7 @@
 
 #include <avrtos/avrtos.h>
 #include <avrtos/logging.h>
-
-#include <mcp2515_can.h>
-#include <mcp2515_can_dfs.h>
+#include <avrtos/devices/mcp2515.h>
 
 #define LOG_LEVEL CONFIG_CAN_LOG_LEVEL
 
@@ -28,20 +26,9 @@
 
 #define CAN_SPEEDSET CAN_500KBPS
 
-static mcp2515_can can(BSP_CAN_SS_ARDUINO_PIN);
-
 #define CONFIG_CAN_THREAD_OFFLOADED !CONFIG_CAN_WORKQ_OFFLOADED
 
-#if CONFIG_CAN_CONTEXT_LOCK
-static K_MUTEX_DEFINE(can_mutex_if);
-#define CAN_CONTEXT_LOCK()   k_mutex_lock(&can_mutex_if, K_FOREVER);
-#define CAN_CONTEXT_UNLOCK() k_mutex_unlock(&can_mutex_if);
-#else
-#define CAN_CONTEXT_LOCK()
-#define CAN_CONTEXT_UNLOCK()
-#endif
-
-K_MSGQ_DEFINE(txq, sizeof(can_message), CONFIG_CAN_TX_MSGQ_SIZE);
+K_MSGQ_DEFINE(txq, sizeof(struct can_frame), CONFIG_CAN_TX_MSGQ_SIZE);
 
 #if CONFIG_CAN_WORKQ_OFFLOADED
 static void can_tx_wq_cb(struct k_work *work);
@@ -52,13 +39,36 @@ K_THREAD_DEFINE(
     can_tx_thread, can_tx_entry, CONFIG_CAN_THREAD_STACK_SIZE, K_COOPERATIVE, NULL, 'C');
 #endif
 
+static struct mcp2515_device mcp;
+
 void can_init(void)
 {
     __ASSERT_INTERRUPT();
 
-    CAN_CONTEXT_LOCK();
+	const struct spi_config spi_cfg = {
+		.role		 = SPI_ROLE_MASTER,
+		.polarity	 = SPI_CLOCK_POLARITY_RISING,
+		.phase		 = SPI_CLOCK_PHASE_SAMPLE,
+		.prescaler	 = SPI_PRESCALER_4,
+		.irq_enabled = 0u,
+	};
 
-    while (CAN_OK != can.begin(CAN_SPEEDSET, CAN_CLOCKSET)) {
+	struct spi_slave spi_slave = {
+		.cs_port	  = BSP_CAN_SS_GPIO_DEVICE,
+		.cs_pin		  = BSP_CAN_SS_GPIO_PIN,
+		.active_state = GPIO_LOW,
+		.regs		  = spi_config_into_regs(spi_cfg),
+	};
+
+	const struct mcp2515_config mcp_cfg = {
+		.can_speed	 = MCP2515_CAN_SPEED_500KBPS,
+		.clock_speed = MCP2515_CLOCK_SET_16MHZ,
+		.flags		 = MCP2515_INT_RX,
+	};
+
+    spi_init(spi_cfg);
+
+    while (mcp2515_init(&mcp, &mcp_cfg, &spi_slave) != 0) {
         LOG_ERR("can init failed");
         k_sleep(K_MSEC(500));
     }
@@ -73,23 +83,21 @@ void can_init(void)
     const unsigned long filter_self = caniot_device_get_filter_by_cls(__DEVICE_CLS__);
 #endif
 
-    can.init_Mask(0u, CAN_STDID, mask);
-    can.init_Filt(0u, CAN_STDID, filter_self);
-    can.init_Filt(1u, CAN_STDID, filter_self);
+    mcp2515_set_mask(&mcp, 0u, CAN_STD_ID, mask);
+	mcp2515_set_filter(&mcp, 0u, CAN_STD_ID, filter_self);
+	mcp2515_set_filter(&mcp, 1u, CAN_STD_ID, filter_self);
 
-    can.init_Mask(1u, CAN_STDID, mask);
-    can.init_Filt(2u, CAN_STDID, filter_broadcast);
-    can.init_Filt(3u, CAN_STDID, filter_broadcast);
-    can.init_Filt(4u, CAN_STDID, filter_broadcast);
-    can.init_Filt(5u, CAN_STDID, filter_broadcast);
+	mcp2515_set_mask(&mcp, 1u, CAN_STD_ID, mask);
+	mcp2515_set_filter(&mcp, 2u, CAN_STD_ID, filter_broadcast);
+	mcp2515_set_filter(&mcp, 3u, CAN_STD_ID, filter_broadcast);
+	mcp2515_set_filter(&mcp, 4u, CAN_STD_ID, filter_broadcast);
+	mcp2515_set_filter(&mcp, 5u, CAN_STD_ID, filter_broadcast);
 #elif CONFIG_DEVICE_SINGLE_INSTANCE
-    can.init_Mask(0u, CAN_EXTID, 0x0ul);
-    can.init_Mask(1u, CAN_EXTID, 0x0ul);
+    mcp2515_set_mask(&mcp, 0u, CAN_EXT_ID, 0x0ul);
+	mcp2515_set_mask(&mcp, 1u, CAN_EXT_ID, 0x0ul);
 #else
 #error "CONFIG_CAN_SOFT_FILTERING not supported for multi instance devices"
 #endif
-
-    CAN_CONTEXT_UNLOCK();
 }
 
 ISR(BSP_CAN_INT_vect)
@@ -98,49 +106,36 @@ ISR(BSP_CAN_INT_vect)
     serial_transmit('%');
 #endif
 
-    struct k_thread *ready = dev_trigger_process();
+    int8_t ret = dev_trigger_process();
 
     /* Immediately yield to schedule main thread */
-    k_yield_from_isr_cond(ready);
+    if (ret > 0) k_yield_from_isr();
 }
 
-int can_recv(can_message *msg)
+int can_recv(struct can_frame *msg)
 {
     __ASSERT_NOTNULL(msg);
 
     int8_t rc;
-    uint8_t isext, rtr;
 
-    CAN_CONTEXT_LOCK();
-
-    rc = can.readMsgBufID(can.readRxTxStatus(),
-                          (unsigned long *)&msg->id,
-                          &isext,
-                          &rtr,
-                          &msg->len,
-                          msg->buf);
-    if (rc == CAN_NOMSG) {
+    rc = mcp2515_recv(&mcp, msg);
+    if (rc == -ENOMSG) {
         rc = -EAGAIN;
         goto exit;
     } else if (rc != 0) {
-        LOG_ERR("CAN readMsgBufID failed err: %d", rc);
+        LOG_ERR("mcp2515_recv failed err: %d", rc);
         rc = -EIO;
         goto exit;
     }
 
-    msg->isext = isext ? CAN_EXTID : CAN_STDID;
-    msg->rtr   = rtr ? 1 : 0;
-
     LOG_DBG_RAW("CAN RX ext: %u rtr: %u id: %04x%04x: ",
-                isext,
-                rtr,
+                msg->is_ext,
+                msg->rtr,
                 (uint16_t)(msg->id >> 16u),
                 (uint16_t)(msg->id & 0xFFFFu));
-    LOG_HEXDUMP_DBG(msg->buf, msg->len);
+    LOG_HEXDUMP_DBG(msg->data, msg->len);
 
 exit:
-    CAN_CONTEXT_UNLOCK();
-
     return rc;
 }
 
@@ -161,34 +156,32 @@ static void can_watchdog(bool ok)
 }
 #endif
 
-static uint8_t can_send(can_message *msg)
+static uint8_t can_send(const struct can_frame *msg)
 {
     __ASSERT_NOTNULL(msg);
 
     // can_print_msg(&msg);
 
-    CAN_CONTEXT_LOCK();
-    uint8_t rc = can.sendMsgBuf(msg->id, msg->isext, msg->rtr, msg->len, msg->buf, true);
-    CAN_CONTEXT_UNLOCK();
+    int8_t rc = mcp2515_send(&mcp, msg);
 
-    // LOG_ERR("CAN sendMsgBuf err: %d", rc);
+    // LOG_ERR("mcp2515_send err: %d", rc);
 
     return rc;
 }
 
-// print can_message
-void can_print_msg(can_message *msg)
+// print can_frame
+void can_print_msg(const struct can_frame *msg)
 {
     LOG_DBG("id: %08lx, isext: %d, rtr: %d, len: %d : ",
             msg->id,
-            msg->isext,
+            msg->is_ext,
             msg->rtr,
             msg->len);
 
-    LOG_HEXDUMP_DBG(msg->buf, MIN(msg->len, 8U));
+    LOG_HEXDUMP_DBG(msg->data, MIN(msg->len, 8U));
 }
 
-int can_txq_message(can_message *msg)
+int can_txq_message(const struct can_frame *msg)
 {
     int ret = k_msgq_put(&txq, msg, K_NO_WAIT);
 
@@ -206,7 +199,7 @@ int can_txq_message(can_message *msg)
 #if CONFIG_CAN_WORKQ_OFFLOADED
 static void can_tx_wq_cb(struct k_work *work)
 {
-    can_message msg;
+    struct can_frame msg;
     while (k_msgq_get(&txq, &msg, K_NO_WAIT) == 0) {
         uint8_t rc = can_send(&msg);
 
@@ -220,7 +213,7 @@ static void can_tx_wq_cb(struct k_work *work)
 #else
 static void can_tx_entry(void *arg)
 {
-    can_message msg;
+    struct can_frame msg;
     while (1) {
         if (k_msgq_get(&txq, &msg, K_FOREVER) == 0) {
             uint8_t rc = can_send(&msg);

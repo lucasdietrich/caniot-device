@@ -23,7 +23,6 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <caniot/datatype.h>
-#include <mcp_can.h>
 
 #define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 

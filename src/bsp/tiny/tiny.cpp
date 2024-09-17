@@ -22,7 +22,6 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <caniot/datatype.h>
-#include <mcp_can.h>
 
 #define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 
@@ -54,10 +53,10 @@ ISR(BSP_PCF_INT_vect)
 
     pcf8574_invalidate_buffer(&pcf_state);
 
-    struct k_thread *ready = dev_trigger_process();
+    int8_t ret = dev_trigger_process();
 
     /* Immediately yield to schedule main thread */
-    k_yield_from_isr_cond(ready);
+    if (ret > 0) k_yield_from_isr();
 }
 #endif
 #endif

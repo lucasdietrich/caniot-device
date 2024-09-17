@@ -40,32 +40,31 @@ void platform_set_time(uint32_t sec)
     k_time_set(sec);
 }
 
-static void caniot2msg(can_message *msg, const struct caniot_frame *frame)
+static void caniot2msg(struct can_frame *msg, const struct caniot_frame *frame)
 {
-    msg->ext   = 0U;
-    msg->isext = 0U;
+    msg->is_ext = 0U;
     msg->rtr   = 0U;
-    msg->std   = caniot_id_to_canid(frame->id);
+    msg->id   = caniot_id_to_canid(frame->id);
     msg->len   = frame->len;
-    memcpy(msg->buf, frame->buf, MIN(frame->len, 8U));
+    memcpy(msg->data, frame->buf, MIN(frame->len, 8U));
 }
 
-static void msg2caniot(struct caniot_frame *frame, const can_message *msg)
+static void msg2caniot(struct caniot_frame *frame, const struct can_frame *msg)
 {
-    frame->id  = caniot_canid_to_id(msg->std);
+    frame->id  = caniot_canid_to_id(msg->id);
     frame->len = msg->len;
-    memcpy(frame->buf, msg->buf, msg->len);
+    memcpy(frame->buf, msg->data, msg->len);
 }
 
 int platform_caniot_recv(struct caniot_frame *frame)
 {
     int ret;
-    can_message req;
+    struct can_frame req;
 
     ret = can_recv(&req);
     if (ret == 0) {
         // can_print_msg(&req);
-        msg2caniot(frame, &req);
+        msg2caniot(frame, (const struct can_frame *)&req);
 
 #if LOG_LEVEL >= LOG_LEVEL_INF
         k_show_uptime();
@@ -82,7 +81,7 @@ int platform_caniot_recv(struct caniot_frame *frame)
 #if CONFIG_CAN_DELAYABLE_TX
 struct delayed_msg {
     struct k_event ev;
-    can_message msg;
+    struct can_frame msg;
 };
 
 /* Should be increased if "delayed message" feature is used */
@@ -102,7 +101,7 @@ int platform_caniot_send(const struct caniot_frame *frame, uint32_t delay_ms)
 {
     int ret;
     if (!CONFIG_CAN_DELAYABLE_TX || (delay_ms < KERNEL_TICK_PERIOD_MS)) {
-        can_message msg;
+        struct can_frame msg;
 
         caniot2msg(&msg, frame);
 

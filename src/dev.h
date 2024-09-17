@@ -105,7 +105,7 @@ extern struct k_signal dev_process_sig;
  *
  * @return struct k_thread*
  */
-static inline struct k_thread *dev_trigger_process(void)
+static inline int8_t dev_trigger_process(void)
 {
     return k_signal_raise(&dev_process_sig, 0);
 }

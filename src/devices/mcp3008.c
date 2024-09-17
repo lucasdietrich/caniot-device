@@ -26,7 +26,7 @@ static struct spi_regs mcp3008_spi_regs;
 void mcp3008_init(void)
 {
     const struct spi_config config = {
-        .mode        = SPI_MODE_MASTER,
+        .role        = SPI_ROLE_MASTER,
         .polarity    = SPI_CLOCK_POLARITY_RISING,
         .phase       = SPI_CLOCK_PHASE_SAMPLE,
         .prescaler   = SPI_PRESCALER_X32,

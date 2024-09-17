@@ -197,7 +197,8 @@ struct pin {
 #define BSP_CAN_INT_DESCR      BSP_INT0_DESCR
 #define BSP_CAN_INT            INT0
 #define BSP_CAN_INT_vect       INT0_vect
-#define BSP_CAN_SS_ARDUINO_PIN 10
+#define BSP_CAN_SS_GPIO_DEVICE GPIOB_DEVICE
+#define BSP_CAN_SS_GPIO_PIN    2u
 
 /* I2C */
 #define BSP_I2C I2C0_DEVICE
