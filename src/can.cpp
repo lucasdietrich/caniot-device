@@ -98,10 +98,11 @@ ISR(BSP_CAN_INT_vect)
     serial_transmit('%');
 #endif
 
-    struct k_thread *ready = dev_trigger_process();
+    int8_t ready = dev_trigger_process();
 
     /* Immediately yield to schedule main thread */
-    k_yield_from_isr_cond(ready);
+    if (ready > 0)
+        k_yield_from_isr();
 }
 
 int can_recv(can_message *msg)
