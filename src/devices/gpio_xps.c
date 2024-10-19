@@ -12,6 +12,7 @@
 
 #include <avrtos.h>
 
+#define K_MODULE K_MODULE_APPLICATION
 #define LOG_LEVEL CONFIG_BOARD_LOG_LEVEL
 
 int command_xps(struct xps_context *xpsc,

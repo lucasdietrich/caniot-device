@@ -21,6 +21,7 @@
 
 #if CONFIG_DIAG
 
+#define K_MODULE K_MODULE_APPLICATION
 #define LOG_LEVEL CONFIG_DIAG_LOG_LEVEL
 
 #define EEPROM_RESET_STATS_MAX_SIZE 64u
@@ -227,7 +228,7 @@ int8_t diag_reset_count_clear_bm(uint8_t reason_flags)
 static void reset_context_save(struct diag_reset_context *store,
                                struct diag_reset_context *ctx)
 {
-    K_ASSERT_APP((ctx != NULL) && (ctx->reason != PLATFORM_RESET_REASON_UNKNOWN));
+    K_ASSERT_APP((ctx != NULL) && (ctx->reset_reason != PLATFORM_RESET_REASON_UNKNOWN));
 
     bool saved = false;
     struct diag_reset_context *cur;
