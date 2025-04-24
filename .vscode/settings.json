@@ -2,7 +2,9 @@
 	"editor.indentSize": "tabSize",
 	"editor.rulers": [
 		80
-	], 
+	],
+	"clangd.enable": false,
+	"C_Cpp.intelliSenseEngine": "default",
 	"files.associations": {
 		"*.jinja": "python",
 		"*.asm": "avr",
