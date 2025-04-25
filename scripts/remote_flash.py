@@ -42,7 +42,7 @@ for file in files.values():
 
 # flash
 flash_command = f"avrdude -c arduino -p {board} -P {port} -U flash:w:{files['hex']['remote']}"
-result = conn.sudo(flash_command, hide=True, warn=True)
+result = conn.sudo(flash_command, hide=False, warn=True)
 
 if result.return_code != 0:
 	print(Fore.RED + f"Failed to flash {files['hex']['remote']} into device {port}\n\t" + flash_command + Style.RESET_ALL)
