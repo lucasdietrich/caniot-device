@@ -1,6 +1,7 @@
 # platformio extra script
 
 import subprocess
+import time
 
 Import("env")
 
@@ -24,8 +25,8 @@ def build_commit_hash_defs():
 
 # return UTC timestamp in seconds
 def get_build_date() -> int:
-    ret = subprocess.run(["date", "+%s"], capture_output=True)
-    return f"0x{int(ret.stdout.decode().strip()):08x}"
+    now = int(time.time())
+    return f"0x{now:08x}"
 
 build_date = get_build_date()
 
