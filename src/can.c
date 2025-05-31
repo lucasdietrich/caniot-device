@@ -22,9 +22,8 @@
 #define CAN_CLOCKSET MCP_16MHz
 #else
 #define CAN_CLOCKSET MCP_8MHz
+#error "8MHz clock not supported"
 #endif
-
-#define CAN_SPEEDSET CAN_500KBPS
 
 #define CONFIG_CAN_THREAD_OFFLOADED !CONFIG_CAN_WORKQ_OFFLOADED
 
@@ -49,7 +48,7 @@ void can_init(void)
 		.role		 = SPI_ROLE_MASTER,
 		.polarity	 = SPI_CLOCK_POLARITY_RISING,
 		.phase		 = SPI_CLOCK_PHASE_SAMPLE,
-		.prescaler	 = SPI_PRESCALER_4,
+		.prescaler	 = SPI_PRESCALER_16, // 1MHz SPI Clock
 		.irq_enabled = 0u,
 	};
 
@@ -93,6 +92,7 @@ void can_init(void)
 	mcp2515_set_filter(&mcp, 4u, CAN_STD_ID, filter_broadcast);
 	mcp2515_set_filter(&mcp, 5u, CAN_STD_ID, filter_broadcast);
 #elif CONFIG_DEVICE_SINGLE_INSTANCE
+    // TODO understand by the sample crash if no mask is set with DevBoardTinyB
     mcp2515_set_mask(&mcp, 0u, CAN_EXT_ID, 0x0ul);
 	mcp2515_set_mask(&mcp, 1u, CAN_EXT_ID, 0x0ul);
 #else
@@ -163,8 +163,9 @@ static uint8_t can_send(const struct can_frame *msg)
     // can_print_msg(&msg);
 
     int8_t rc = mcp2515_send(&mcp, msg);
-
-    // LOG_ERR("mcp2515_send err: %d", rc);
+    if (rc != 0) {
+        LOG_ERR("mcp2515_send failed err: %d", rc);
+    }
 
     return rc;
 }

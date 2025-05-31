@@ -131,7 +131,7 @@ void shell_process(void)
     char chr;
 
     while (k_msgq_get(&shell_msgq, &chr, K_NO_WAIT) == 0) {
-        LOG_INF("shell: %c", chr);
+        LOG_INF("shell: %c (%x)", chr, (uint8_t)chr);
 
         switch ((uint8_t)chr) {
         case 'W':
